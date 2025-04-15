@@ -21,7 +21,7 @@ export default function AllUsersList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'consultantsFilter' | 'applicantsFilter' | null>(null);
-  const [filteredUsers, setFilteredUsers] = useState(users);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
 
   const t = useTranslations('Users');
   const c = useTranslations('Common');
@@ -39,31 +39,32 @@ export default function AllUsersList() {
   }, [setUsers]);
 
   useEffect(() => {
-    let filtered = users;
+    let filtered = users || [];
 
-    if (filter === 'consultantsFilter') {
-      const consultantIds = user?.consultants?.map((c) => c.id) || [];
-      filtered = users.filter((user) => consultantIds.includes(user.id));
+    if (filter === 'consultantsFilter' && user?.consultants) {
+      const consultantIds = user.consultants.map((c) => c.id);
+      filtered = filtered.filter((user) => consultantIds.includes(user.id));
     }
 
-    if (filter === 'applicantsFilter') {
-      const applicantIds = user?.consultedApplications?.map((app) => app.createdById) || [];
-      filtered = users.filter((user) => applicantIds.includes(user.id));
+    if (filter === 'applicantsFilter' && user?.consultedApplications) {
+      const applicantIds = user.consultedApplications.map((app) => app.createdById);
+      filtered = filtered.filter((user) => applicantIds.includes(user.id));
     }
 
     if (searchQuery) {
       filtered = filtered.filter(
         (user) =>
-          user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          user.email?.toLowerCase().includes(searchQuery.toLowerCase()),
+          (user.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+          (user.email?.toLowerCase() || '').includes(searchQuery.toLowerCase()),
       );
     }
 
     setFilteredUsers(filtered);
   }, [users, filter, searchQuery, user]);
 
-  const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
+  const totalPages = Math.ceil((filteredUsers?.length || 0) / USERS_PER_PAGE);
   const currentUsers = useMemo(() => {
+    if (!filteredUsers?.length) return [];
     const indexOfLastUser = currentPage * USERS_PER_PAGE;
     const indexOfFirstUser = indexOfLastUser - USERS_PER_PAGE;
     return filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
@@ -90,7 +91,7 @@ export default function AllUsersList() {
         </div>
         <div className="w-full space-y-4">
           <div className="mb-4 flex gap-2">
-            {(user?.consultants ?? []).length > 0 && (
+            {(user?.consultants?.length || 0) > 0 && (
               <button
                 onClick={() =>
                   setFilter(filter === 'consultantsFilter' ? null : 'consultantsFilter')
@@ -105,7 +106,7 @@ export default function AllUsersList() {
               </button>
             )}
 
-            {(user?.consultedApplications ?? []).length > 0 && (
+            {(user?.consultedApplications?.length || 0) > 0 && (
               <button
                 onClick={() => setFilter(filter === 'applicantsFilter' ? null : 'applicantsFilter')}
                 className={`rounded-full px-4 py-2 text-sm ${
@@ -151,7 +152,7 @@ export default function AllUsersList() {
           </thead>
           <tbody className="divide-y divide-gray-200">
             {currentUsers.map((userItem) => (
-              <tr key={userItem.email} className="hover:bg-gray-50">
+              <tr key={userItem.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900">
                   {userItem.name || t('noName')}
                   {/* <pre className="mt-4 rounded bg-gray-100 p-4">
@@ -167,8 +168,8 @@ export default function AllUsersList() {
                 </td>
                 {/* )} */}
                 <td className="flex gap-4 px-6 py-4 text-sm whitespace-nowrap">
-                  {!user ||
-                    (hasAccess(user.role, userItem.role) && (
+                  {user && hasAccess(user.role, userItem.role) && (
+                    <>
                       <button
                         onClick={() =>
                           setSelectedUser({
@@ -184,9 +185,6 @@ export default function AllUsersList() {
                         <PencilIcon className="h-6 w-6 flex-shrink-0" />
                         {/* {c('edit')} */}
                       </button>
-                    ))}
-                  {!user ||
-                    (hasAccess(user.role, userItem.role) && (
                       <Link
                         href={`/users/${userItem.id}`}
                         className="hover:text-rose-600 hover:underline"
@@ -194,7 +192,8 @@ export default function AllUsersList() {
                         <EyeIcon className="h-6 w-6 flex-shrink-0" />
                         {/* {c('view')} */}
                       </Link>
-                    ))}
+                    </>
+                  )}
                 </td>
               </tr>
             ))}

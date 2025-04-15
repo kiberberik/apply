@@ -81,13 +81,6 @@ enum DocumentType {
     OTHER
 }
 
-enum DocumentStatus {
-    PENDING
-    APPROVED
-    REVISION
-    REJECTED
-}
-
 enum Citizenship {
     KAZAKHSTAN
     OTHER
@@ -96,15 +89,21 @@ enum Citizenship {
 enum ApplicationStatus {
     DRAFT
     PROCESSING
-    REVISION
-    TECH_CONFIRMATION
-    TECH_REVISION
     NEED_SIGNATURE
-    ENROLLED
     REFUSED_TO_SIGN
+    CHECK_DOCS
+    NEED_DOCS
+    RE_PROCESSING
+    ENROLLED
+    EARLY_REFUSED_TO_ENROLL
     REFUSED_TO_ENROLL
     REJECTED
-    REPROCESSING
+}
+
+enum ContractTerminationStatus {
+    NEED_SIGNATURE_TERMINATE_CONTRACT
+    REFUSED_TO_SIGN_TERMINATE_CONTRACT
+    SIGNED_TERMINATE_CONTRACT
 }
 
 enum AcademicLevel {
@@ -118,58 +117,89 @@ enum StudyType {
     GRANT
     NONE_DEGREE
     CONDITIONAL
+    OTHER
 }
 
-enum StudyLanguage {
+enum SupportLanguages {
     RUS
     KAZ
     ENG
 }
 
-enum Gender {
-    MALE
-    FEMALE
+enum RelationshipDegree {
+    PARENT
+    GUARDIAN
+    TRUSTEE
     OTHER
-    NOT_SPECIFIED
 }
 
-enum MaritalStatus {
-    MARRIED
-    NOT_MARRIED
+enum Country {
+    KAZAKHSTAN
+    OTHER
+}
+
+enum AgeCategory {
+    ADULT
+    MINOR
+}
+
+model Status {
+    id           String        @id @default(cuid())
+    name         String
+    description  String?
+    color        String?
+    createdAt    DateTime      @default(now())
+    updatedAt    DateTime      @updatedAt
+    applications Application[]
+    logs         Log[]
+
+    @@map("statuses")
+}
+
+enum ContactSignType {
+    TRUSTME
+    OFFLINE
+    NOT_SIGNED
 }
 
 model Application {
-    id               String          @id @default(cuid())
-    createdBy        User?           @relation("CreatedApplications", fields: [createdById], references: [id])
-    createdById      String?
-    consultant       User?           @relation("ConsultedApplications", fields: [consultantId], references: [id])
-    consultantId     String?
-    applicant        Applicant?      @relation(fields: [applicantId], references: [id])
-    applicantId      String?
-    representative   Representative? @relation(fields: [representativeId], references: [id])
-    representativeId String?
-    documents        Document[]
-    details          Details?        @relation(fields: [detailsId], references: [id]) // Указываем только тут
-    detailsId        String?         @unique
-    statusId         String?
-    createdAt        DateTime        @default(now())
-    updatedAt        DateTime        @updatedAt
-    Log              Log[]
-    User             User?           @relation(fields: [userId], references: [id])
-    userId           String?
+    id                        String                     @id @default(cuid())
+    createdBy                 User?                      @relation("CreatedApplications", fields: [createdById], references: [id])
+    createdById               String?
+    consultant                User?                      @relation("ConsultedApplications", fields: [consultantId], references: [id])
+    consultantId              String?
+    applicant                 Applicant?                 @relation(fields: [applicantId], references: [id])
+    applicantId               String?
+    representative            Representative?            @relation(fields: [representativeId], references: [id])
+    representativeId          String?
+    documents                 Document[]
+    details                   Details?                   @relation(fields: [detailsId], references: [id]) // Указываем только тут
+    detailsId                 String?                    @unique
+    statusId                  String?
+    status                    Status?                    @relation(fields: [statusId], references: [id])
+    createdAt                 DateTime                   @default(now())
+    updatedAt                 DateTime                   @updatedAt
+    Log                       Log[]
+    User                      User?                      @relation(fields: [userId], references: [id])
+    userId                    String?
+    isDeleted                 Boolean?                   @default(false)
+    contractSignType          ContactSignType?           @default(NOT_SIGNED)
+    contractTerminationStatus ContractTerminationStatus?
+    contractTerminationDate   DateTime?
+    contractLanguage          SupportLanguages?          @default(RUS)
 }
 
 model Details {
-    id                   String         @id @default(cuid())
-    application          Application?   @relation()
-    applicationId        String?        @unique
+    id                   String            @id @default(cuid())
+    application          Application?      @relation()
+    applicationId        String?           @unique
     type                 StudyType?
     academicLevel        AcademicLevel?
     isDormNeeds          Boolean?
-    language             StudyLanguage?
+    studyingLanguage     SupportLanguages?
     educationalProgramId String?
-    createdAt            DateTime       @default(now())
-    updatedAt            DateTime       @updatedAt
+    createdAt            DateTime          @default(now())
+    updatedAt            DateTime          @updatedAt
 }
 
 model Applicant {
@@ -179,13 +209,9 @@ model Applicant {
     firstname            String?
     middlename           String?
     lastname             String?
-    firstnameTranslit    String?
-    lastnameTranslit     String?
-    dob                  DateTime?
-    gender               Gender?
-    ethnicity            String?
+    birthDate            DateTime?
+    birthPlace           String?
     citizenship          String?
-    maritalStatus        String?
     identificationNumber String?
     identificationDoc    Document        @relation("ApplicantIdentification", fields: [identificationDocId], references: [id])
     identificationDocId  String          @unique
@@ -193,35 +219,33 @@ model Applicant {
     phone                String?
     addressResidential   String?
     addressRegistration  String?
-    birthPlace           String?
     documents            Document[]      @relation("ApplicantDocuments")
     createdAt            DateTime?       @default(now())
     updatedAt            DateTime?       @updatedAt
 }
 
 model Representative {
-    id                   String        @id @default(cuid())
-    applicant            Applicant?    @relation("ApplicantRepresentative", fields: [applicantId], references: [id])
-    applicantId          String?       @unique
+    id                   String              @id @default(cuid())
+    applicant            Applicant?          @relation("ApplicantRepresentative", fields: [applicantId], references: [id])
+    applicantId          String?             @unique
     applications         Application[]
     firstname            String?
     middlename           String?
     lastname             String?
-    firstnameTranslit    String?
-    lastnameTranslit     String?
     citizenship          String?
     identificationNumber String?
-    identificationDoc    Document?     @relation("RepresentativeIdentification", fields: [identificationDocId], references: [id])
-    identificationDocId  String?       @unique
-    relationshipDegree   String?
-    representativeDoc    Document?     @relation("RepresentativeDoc", fields: [representativeDocId], references: [id])
-    representativeDocId  String?       @unique
+    identificationDoc    Document?           @relation("RepresentativeIdentification", fields: [identificationDocId], references: [id])
+    identificationDocId  String?             @unique
+    relationshipDegree   RelationshipDegree? @default(PARENT)
+    representativeDoc    Document?           @relation("RepresentativeDoc", fields: [representativeDocId], references: [id])
+    representativeDocId  String?             @unique
     email                String?
     phone                String?
     addressResidential   String?
-    documents            Document[]    @relation("RepresentativeDocuments")
-    createdAt            DateTime      @default(now())
-    updatedAt            DateTime      @updatedAt
+    addressRegistration  String?
+    documents            Document[]          @relation("RepresentativeDocuments")
+    createdAt            DateTime            @default(now())
+    updatedAt            DateTime            @updatedAt
 }
 
 model Document {
@@ -235,14 +259,17 @@ model Document {
     uploadedBy                   User?           @relation("UploadedBy", fields: [uploadedById], references: [id])
     uploadedById                 String?
     link                         String?
+    code                         String?
     name                         String?
     number                       String?
     issuingAuthority             String?
     issueDate                    DateTime?
     expirationDate               DateTime?
+    diplomaSerialNumber          String?
+    additionalInfo1              String?
+    additionalInfo2              String?
     isDelivered                  Boolean?        @default(false)
     description                  String?
-    status                       DocumentStatus? @default(PENDING)
     type                         DocumentType?
     applicantIdentification      Applicant?      @relation("ApplicantIdentification")
     representativeIdentification Representative? @relation("RepresentativeIdentification")
@@ -251,16 +278,36 @@ model Document {
     updatedAt                    DateTime        @updatedAt
 }
 
+model RequiredDocument {
+    id             String        @id @default(cuid())
+    name_rus       String?
+    name_kaz       String?
+    name_eng       String?
+    code           String?
+    type           DocumentType?
+    isNeedOriginal Boolean?      @default(true)
+    isScanRequired Boolean?      @default(true)
+    description    String?
+    isDeleted      Boolean       @default(false)
+    countries      String        @db.Text // JSON string of Country[]
+    academicLevels String        @db.Text // JSON string of AcademicLevel[]
+    studyTypes     String        @db.Text // JSON string of StudyType[]
+    ageCategories  String        @db.Text // JSON string of AgeCategory[]
+    createdAt      DateTime      @default(now())
+    updatedAt      DateTime      @updatedAt
+}
+
 model Log {
-    id            String             @id @default(cuid())
-    createdBy     User?              @relation("LogCreator", fields: [createdById], references: [id])
+    id            String       @id @default(cuid())
+    createdBy     User?        @relation("LogCreator", fields: [createdById], references: [id])
     createdById   String?
-    application   Application?       @relation(fields: [applicationId], references: [id])
+    application   Application? @relation(fields: [applicationId], references: [id])
     applicationId String?
-    status        ApplicationStatus?
+    statusId      String?
+    status        Status?      @relation(fields: [statusId], references: [id])
     description   String?
-    createdAt     DateTime           @default(now())
-    updatedAt     DateTime           @updatedAt
+    createdAt     DateTime     @default(now())
+    updatedAt     DateTime     @updatedAt
 }
 
 model EducationalProgramGroup {
@@ -277,27 +324,57 @@ model EducationalProgramGroup {
     updatedAt      DateTime             @updatedAt
 }
 
+model Language {
+    id        String                       @id @default(cuid())
+    code      SupportLanguages
+    name_rus  String?
+    name_kaz  String?
+    name_eng  String?
+    programs  EducationalProgramLanguage[]
+    createdAt DateTime                     @default(now())
+    updatedAt DateTime                     @updatedAt
+
+    @@unique([code])
+}
+
 model EducationalProgram {
-    id             String                   @id @default(cuid())
+    id             String                       @id @default(cuid())
     name_rus       String?
     name_kaz       String?
     name_eng       String?
     code           String?
-    group          EducationalProgramGroup? @relation(fields: [groupId], references: [id])
+    group          EducationalProgramGroup?     @relation(fields: [groupId], references: [id])
     groupId        String?
     academic_level AcademicLevel?
     duration       Int?
-    languages      Json?
-    visibility     Boolean?                 @default(true)
-    isDeleted      Boolean?                 @default(false)
+    languages      EducationalProgramLanguage[]
+    visibility     Boolean?                     @default(true)
+    isDeleted      Boolean?                     @default(false)
     costPerCredit  String?
-    createdAt      DateTime                 @default(now())
-    updatedAt      DateTime                 @updatedAt
+    createdAt      DateTime                     @default(now())
+    updatedAt      DateTime                     @updatedAt
 }
 
-// model EducationalProgramLanguage {
-//     id        String             @id @default(cuid())
-//     program   EducationalProgram @relation(fields: [programId], references: [id])
-//     programId String
-//     language  StudyLanguage
-// }
+model EducationalProgramLanguage {
+    id                   String             @id @default(cuid())
+    educationalProgram   EducationalProgram @relation(fields: [educationalProgramId], references: [id], onDelete: Cascade)
+    educationalProgramId String
+    language             Language           @relation(fields: [languageId], references: [id])
+    languageId           String
+
+    @@unique([educationalProgramId, languageId])
+}
+
+model Instruction {
+    id        String   @id @default(cuid())
+    content   String   @db.Text
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model ApplicantAccepting {
+    id        String   @id @default(cuid())
+    isOpen    Boolean? @default(true)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}

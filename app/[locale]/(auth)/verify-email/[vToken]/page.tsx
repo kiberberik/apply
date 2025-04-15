@@ -55,7 +55,16 @@ const VerifyEmail = () => {
     return () => {
       isMounted = false; // Очищаем флаг при размонтировании
     };
-  }, [vToken, verifyEmail, locale, router]); // Убрали isEmailVerified из зависимостей
+  }, [vToken, verifyEmail, locale, router, error, verified]); // Убрали isEmailVerified из зависимостей
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+    if (verified) {
+      toast.success('Email verified successfully');
+    }
+  }, [error, verified]);
 
   if (loading) {
     return (

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { AcademicLevel, EducationalProgram, StudyLanguage } from '@prisma/client';
+import { AcademicLevel, EducationalProgram, Language } from '@prisma/client';
 import { useEducationalStore } from '@/store/useEducationalStore';
 import { toast } from 'react-toastify';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
@@ -18,7 +18,7 @@ interface ProgramFormData {
   name_kaz: string;
   name_eng: string;
   code: string;
-  languages: StudyLanguage[];
+  languages: string[]; // теперь это массив ID языков
   academic_level: AcademicLevel;
   duration: number;
   visibility: boolean;
@@ -28,7 +28,9 @@ interface ProgramFormData {
 
 // Расширяем тип EducationalProgram, чтобы включить поле languages
 interface EducationalProgramWithLanguages extends Omit<EducationalProgram, 'languages'> {
-  languages: unknown;
+  languages: {
+    language: Language;
+  }[];
 }
 
 interface ProgramFormProps {
@@ -41,8 +43,6 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ programToEdit, groupId, onClo
   const { addProgram, updateProgram, fetchPrograms, groups } = useEducationalStore();
   const t = useTranslations('EducationalPrograms');
   const c = useTranslations('Common');
-  const a = useTranslations('AcademicLevel');
-  const l = useTranslations('StudyLanguage');
 
   // Находим группу по ID
   const group = groups.find((g) => g.id === groupId);
@@ -56,13 +56,32 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ programToEdit, groupId, onClo
     languages: [],
     academic_level: group?.academic_level || AcademicLevel.BACHELORS,
     duration: 1,
-    visibility: true,
+    visibility: group?.visibility ?? true,
     isDeleted: false,
     costPerCredit: '',
   });
 
   // Состояние для ошибок валидации
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // Состояние для доступных языков
+  const [availableLanguages, setAvailableLanguages] = useState<Language[]>([]);
+
+  // Загружаем языки при монтировании компонента
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      try {
+        const response = await fetch('/api/languages');
+        if (!response.ok) throw new Error('Failed to fetch languages');
+        const data = await response.json();
+        setAvailableLanguages(data);
+      } catch (error) {
+        console.error('Error fetching languages:', error);
+        toast.error('Ошибка при загрузке языков');
+      }
+    };
+
+    fetchLanguages();
+  }, []);
 
   // Загружаем программы при монтировании компонента
   useEffect(() => {
@@ -72,36 +91,16 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ programToEdit, groupId, onClo
   // Заполняем форму данными программы, если она передана для редактирования
   useEffect(() => {
     if (programToEdit) {
-      // Получаем языки из поля languages типа Json
-      let languages: StudyLanguage[] = [];
-
-      if (programToEdit.languages) {
-        try {
-          // Если languages - это строка JSON, парсим её
-          if (typeof programToEdit.languages === 'string') {
-            languages = JSON.parse(programToEdit.languages);
-          }
-          // Если languages - это уже объект, используем его напрямую
-          else if (Array.isArray(programToEdit.languages)) {
-            languages = programToEdit.languages;
-          }
-        } catch (error) {
-          console.error('Ошибка при парсинге языков:', error);
-        }
-      }
-
-      console.log('Загруженные языки:', languages); // Добавляем для отладки
-
       setFormData({
         name_rus: programToEdit.name_rus || '',
         name_kaz: programToEdit.name_kaz || '',
         name_eng: programToEdit.name_eng || '',
         code: programToEdit.code || '',
-        languages: languages,
+        languages: programToEdit.languages.map((lang) => lang.language.id),
         academic_level:
           programToEdit.academic_level || group?.academic_level || AcademicLevel.BACHELORS,
         duration: programToEdit.duration || 1,
-        visibility: programToEdit.visibility || true,
+        visibility: programToEdit.visibility ?? true,
         isDeleted: false,
         costPerCredit: programToEdit.costPerCredit || '',
       });
@@ -153,8 +152,6 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ programToEdit, groupId, onClo
         ...formData,
         groupId,
         academic_level: group?.academic_level || AcademicLevel.BACHELORS,
-        // Отправляем массив языков напрямую, API преобразует его в JSON
-        languages: formData.languages,
       };
 
       if (programToEdit?.id) {
@@ -162,33 +159,25 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ programToEdit, groupId, onClo
       } else {
         await addProgram(programData);
       }
-      //   toast.success(programToEdit ? c('updated') : c('created'));
       onClose();
     } catch (err) {
       console.error('Ошибка при сохранении программы:', err);
-      //   toast.error('Произошла ошибка при сохранении программы');
     }
   };
 
   // Обработчик изменения языков
-  const handleLanguageChange = (language: StudyLanguage, checked: boolean) => {
+  const handleLanguageChange = (languageId: string, checked: boolean) => {
     if (checked) {
       setFormData({
         ...formData,
-        languages: [...formData.languages, language],
+        languages: [...formData.languages, languageId],
       });
     } else {
       setFormData({
         ...formData,
-        languages: formData.languages.filter((lang) => lang !== language),
+        languages: formData.languages.filter((id) => id !== languageId),
       });
     }
-    console.log(
-      'Обновленные языки:',
-      checked
-        ? [...formData.languages, language]
-        : formData.languages.filter((lang) => lang !== language),
-    );
   };
 
   return (
@@ -230,7 +219,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ programToEdit, groupId, onClo
                   value={formData.name_rus}
                   onChange={(e) => setFormData({ ...formData, name_rus: e.target.value })}
                   placeholder={t('nameRus')}
-                  className={`mt-1 ${errors.name_rus ? 'border-red-500' : ''}`}
+                  className={errors.name_rus ? 'border-red-500' : ''}
                 />
                 {errors.name_rus && (
                   <motion.p
@@ -242,13 +231,14 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ programToEdit, groupId, onClo
                   </motion.p>
                 )}
               </div>
+
               <div>
                 <Label className="text-xs text-gray-500">{t('nameKaz')}</Label>
                 <Input
                   value={formData.name_kaz}
                   onChange={(e) => setFormData({ ...formData, name_kaz: e.target.value })}
                   placeholder={t('nameKaz')}
-                  className={`mt-1 ${errors.name_kaz ? 'border-red-500' : ''}`}
+                  className={errors.name_kaz ? 'border-red-500' : ''}
                 />
                 {errors.name_kaz && (
                   <motion.p
@@ -260,13 +250,14 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ programToEdit, groupId, onClo
                   </motion.p>
                 )}
               </div>
+
               <div>
                 <Label className="text-xs text-gray-500">{t('nameEng')}</Label>
                 <Input
                   value={formData.name_eng}
                   onChange={(e) => setFormData({ ...formData, name_eng: e.target.value })}
                   placeholder={t('nameEng')}
-                  className={`mt-1 ${errors.name_eng ? 'border-red-500' : ''}`}
+                  className={errors.name_eng ? 'border-red-500' : ''}
                 />
                 {errors.name_eng && (
                   <motion.p
@@ -281,29 +272,44 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ programToEdit, groupId, onClo
             </div>
           </Card>
 
-          {/* Названия на разных языках */}
+          {/* Языки обучения */}
+          <Card className={`p-4 transition-all ${errors.languages ? 'border-red-500' : ''}`}>
+            <Label className="mb-2 block text-sm font-medium">{t('languages')}</Label>
+            <div className="space-y-2">
+              {availableLanguages.map((language) => (
+                <div key={language.id} className="flex items-center space-x-2">
+                  <Switch
+                    checked={formData.languages.includes(language.id)}
+                    onCheckedChange={(checked) => handleLanguageChange(language.id, checked)}
+                  />
+                  <Label>{language.name_rus}</Label>
+                </div>
+              ))}
+            </div>
+            {errors.languages && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mt-1 text-sm text-red-500"
+              >
+                {errors.languages}
+              </motion.p>
+            )}
+          </Card>
+
+          {/* Остальные поля */}
           <Card className="p-4">
             <div className="space-y-4">
-              <div>
-                <Label className="text-sm font-medium">{t('academicLevel')}</Label>
-                <Input
-                  value={a(group?.academic_level || AcademicLevel.BACHELORS)}
-                  disabled
-                  className="mt-2 bg-gray-50"
-                />
-                <p className="mt-1 text-xs text-gray-500">{t('academicLevelInherited')}</p>
-              </div>
               <div>
                 <Label className="text-sm font-medium">{t('duration')}</Label>
                 <Input
                   type="number"
-                  min="1"
                   value={formData.duration}
                   onChange={(e) =>
-                    setFormData({ ...formData, duration: parseInt(e.target.value) || 1 })
+                    setFormData({ ...formData, duration: parseInt(e.target.value) || 0 })
                   }
-                  placeholder={t('duration')}
-                  className={`mt-2 ${errors.duration ? 'border-red-500' : ''}`}
+                  min={1}
+                  className={errors.duration ? 'border-red-500' : ''}
                 />
                 {errors.duration && (
                   <motion.p
@@ -315,80 +321,34 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ programToEdit, groupId, onClo
                   </motion.p>
                 )}
               </div>
+
               <div>
                 <Label className="text-sm font-medium">{t('costPerCredit')}</Label>
                 <Input
-                  type="text"
                   value={formData.costPerCredit}
                   onChange={(e) => setFormData({ ...formData, costPerCredit: e.target.value })}
                   placeholder={t('costPerCredit')}
-                  className="mt-2"
                 />
               </div>
-            </div>
 
-            <div className="space-y-4">
-              <div>
-                <Label className="text-sm font-medium">{t('languages')}</Label>
-                <div className="mt-2 flex flex-wrap gap-4">
-                  {Object.values(StudyLanguage).map((language) => (
-                    <motion.div
-                      key={language}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="flex items-center space-x-2"
-                    >
-                      <input
-                        type="checkbox"
-                        id={`language-${language}`}
-                        checked={formData.languages.includes(language)}
-                        onChange={(e) => handleLanguageChange(language, e.target.checked)}
-                        className="h-4 w-4 rounded border-gray-300"
-                      />
-                      <Label htmlFor={`language-${language}`} className="cursor-pointer">
-                        {language === StudyLanguage.RUS
-                          ? l('RU')
-                          : language === StudyLanguage.KAZ
-                            ? l('KZ')
-                            : language === StudyLanguage.ENG
-                              ? l('EN')
-                              : language}
-                      </Label>
-                    </motion.div>
-                  ))}
-                </div>
-                {errors.languages && (
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="mt-1 text-sm text-red-500"
-                  >
-                    {errors.languages}
-                  </motion.p>
-                )}
-              </div>
-              <div className="flex items-center space-x-2 py-4">
+              <div className="flex items-center space-x-2">
                 <Switch
-                  id="visibility"
                   checked={formData.visibility}
                   onCheckedChange={(checked) => setFormData({ ...formData, visibility: checked })}
                 />
-                <Label htmlFor="visibility" className="font-medium">
-                  {c('visibility')}
-                </Label>
+                <Label>{c('visibility')}</Label>
               </div>
             </div>
           </Card>
-        </motion.div>
 
-        <div className="sticky bottom-0 mt-6 flex justify-end space-x-4 border-t bg-white p-4">
-          <Button variant="outline" onClick={onClose}>
-            {c('cancel')}
-          </Button>
-          <Button onClick={handleSaveProgram} className="bg-primary hover:bg-primary/90">
-            {programToEdit ? c('save') : c('create')}
-          </Button>
-        </div>
+          {/* Кнопки действий */}
+          <div className="col-span-full flex justify-end space-x-2">
+            <Button variant="outline" onClick={onClose}>
+              {c('cancel')}
+            </Button>
+            <Button onClick={handleSaveProgram}>{c('save')}</Button>
+          </div>
+        </motion.div>
       </DialogContent>
     </Dialog>
   );

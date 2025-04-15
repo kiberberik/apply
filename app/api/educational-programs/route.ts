@@ -5,10 +5,15 @@ export async function GET() {
   try {
     const programs = await prisma.educationalProgram.findMany({
       where: {
-        isDeleted: false, // Получаем только неудаленные программы
+        isDeleted: false,
       },
       include: {
         group: true,
+        languages: {
+          include: {
+            language: true,
+          },
+        },
       },
     });
     return NextResponse.json(programs);
@@ -23,12 +28,10 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { languages, ...data } = body;
 
-    // Проверяем обязательные поля
     if (!data.code) {
       return NextResponse.json({ error: 'Код программы обязателен' }, { status: 400 });
     }
 
-    // Если указан groupId, проверяем существование группы
     if (data.groupId) {
       const group = await prisma.educationalProgramGroup.findUnique({
         where: { id: data.groupId },
@@ -39,12 +42,23 @@ export async function POST(req: Request) {
       }
     }
 
-    // Создаем программу
     const newProgram = await prisma.educationalProgram.create({
       data: {
         ...data,
-        // Преобразуем languages в валидный JSON
-        languages: languages ? JSON.stringify(languages) : null,
+        languages: {
+          create: languages.map((languageId: string) => ({
+            language: {
+              connect: { id: languageId },
+            },
+          })),
+        },
+      },
+      include: {
+        languages: {
+          include: {
+            language: true,
+          },
+        },
       },
     });
 
@@ -55,26 +69,24 @@ export async function POST(req: Request) {
   }
 }
 
-// Обновить образовательную программу
 export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { id, ...data } = body;
+    const { id, languages, ...data } = body;
 
     if (!id) {
       return NextResponse.json({ error: 'ID программы не указан' }, { status: 400 });
     }
 
-    // Проверяем, существует ли программа
     const existingProgram = await prisma.educationalProgram.findUnique({
       where: { id },
+      include: { languages: true },
     });
 
     if (!existingProgram) {
       return NextResponse.json({ error: 'Программа не найдена' }, { status: 404 });
     }
 
-    // Если указан groupId, проверяем существование группы
     if (data.groupId) {
       const group = await prisma.educationalProgramGroup.findUnique({
         where: { id: data.groupId },
@@ -85,13 +97,33 @@ export async function PATCH(req: Request) {
       }
     }
 
-    // Обновляем программу
+    // Удаляем старые языки и создаем новые
+    if (languages) {
+      await prisma.educationalProgramLanguage.deleteMany({
+        where: { educationalProgramId: id },
+      });
+    }
+
     const updatedProgram = await prisma.educationalProgram.update({
       where: { id },
       data: {
         ...data,
-        // Преобразуем languages в валидный JSON, если оно определено
-        languages: data.languages !== undefined ? JSON.stringify(data.languages) : undefined,
+        languages: languages
+          ? {
+              create: languages.map((languageId: string) => ({
+                language: {
+                  connect: { id: languageId },
+                },
+              })),
+            }
+          : undefined,
+      },
+      include: {
+        languages: {
+          include: {
+            language: true,
+          },
+        },
       },
     });
 
@@ -102,7 +134,6 @@ export async function PATCH(req: Request) {
   }
 }
 
-// Удалить образовательную программу (мягкое удаление)
 export async function DELETE(req: Request) {
   try {
     const body = await req.json();
@@ -112,7 +143,6 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'ID программы обязателен' }, { status: 400 });
     }
 
-    // Проверка существования программы
     const existingProgram = await prisma.educationalProgram.findUnique({
       where: { id },
     });
@@ -121,7 +151,6 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'Программа не найдена' }, { status: 404 });
     }
 
-    // Мягкое удаление
     await prisma.educationalProgram.update({
       where: { id },
       data: { isDeleted: true },

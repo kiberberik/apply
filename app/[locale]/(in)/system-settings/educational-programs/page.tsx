@@ -25,7 +25,7 @@ export default function Page() {
   const a = useTranslations('AcademicLevel');
   useEffect(() => {
     fetchGroups();
-  }, []);
+  }, [fetchGroups]);
 
   const handleAddGroup = () => {
     setGroupToEdit(null);
@@ -58,8 +58,6 @@ export default function Page() {
           <TableRow>
             <TableHead>{t('code')}</TableHead>
             <TableHead>{t('name')}</TableHead>
-            {/* <TableHead>Название (каз)</TableHead>
-            <TableHead>Название (анг)</TableHead> */}
             <TableHead>{t('academicLevel')}</TableHead>
             <TableHead>{c('visibility')}</TableHead>
             <TableHead>{c('actions')}</TableHead>
@@ -72,11 +70,7 @@ export default function Page() {
               <TableCell>
                 {local === 'ru' ? g.name_rus : local === 'kz' ? g.name_kaz : g.name_eng || '-'}
               </TableCell>
-
-              {/* <TableCell>{g.name_kaz || '-'}</TableCell>
-              <TableCell>{g.name_eng || '-'}</TableCell> */}
               <TableCell>{a(g.academic_level ?? '')}</TableCell>
-
               <TableCell>
                 <Switch checked={g.visibility ?? false} />
               </TableCell>
@@ -84,7 +78,6 @@ export default function Page() {
                 <Button size="sm" variant="outline" onClick={() => handleEditGroup(g)}>
                   {c('edit')}
                 </Button>
-
                 <Button size="sm" variant="destructive" onClick={() => deleteGroup(g.id)}>
                   {c('delete')}
                 </Button>

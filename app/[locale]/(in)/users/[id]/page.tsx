@@ -1,5 +1,10 @@
 import SingleUser from '@/components/(users)/SingleUser';
 
-export default async function Page({ params }: { params: { id: string } }) {
-  return <SingleUser userId={params.id} />;
+type PageProps = {
+  params: Promise<{ id: string; locale: string }>;
+};
+
+export default async function UserPage({ params }: PageProps) {
+  const resolvedParams = await params;
+  return <SingleUser userId={resolvedParams.id} />;
 }

@@ -24,7 +24,7 @@ const ProfileUser = () => {
 
   useEffect(() => {
     fetchUser();
-  }, []);
+  }, [fetchUser]);
 
   useEffect(() => {
     if (isAuthenticated && !isEmailVerified) {

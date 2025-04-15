@@ -34,7 +34,7 @@ const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
   const t = useTranslations('EducationalPrograms');
   const c = useTranslations('Common');
   const a = useTranslations('AcademicLevel');
-  const l = useTranslations('StudyLanguage');
+  const l = useTranslations('SupportLanguages');
   const locale = useLocale();
 
   const [group, setGroup] = useState<
@@ -247,10 +247,11 @@ const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
                                   try {
                                     // Если languages - это строка, пытаемся распарсить её
                                     if (typeof program.languages === 'string') {
+                                      const languagesStr = program.languages as string;
                                       // Проверяем, содержит ли строка экранированные кавычки
-                                      if (program.languages.includes('\\"')) {
+                                      if (languagesStr.includes('\\"')) {
                                         // Удаляем экранированные кавычки и парсим
-                                        const fixedString = program.languages.replace(/\\"/g, '"');
+                                        const fixedString = languagesStr.replace(/\\"/g, '"');
                                         const languages = JSON.parse(fixedString);
                                         return languages
                                           .filter(
@@ -258,9 +259,9 @@ const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
                                               typeof lang === 'string',
                                           )
                                           .map((lang: string) => {
-                                            if (lang === 'KAZ') return l('KZ');
-                                            if (lang === 'RUS') return l('RU');
-                                            if (lang === 'ENG') return l('EN');
+                                            if (lang === 'KAZ') return l('KAZ');
+                                            if (lang === 'RUS') return l('RUS');
+                                            if (lang === 'ENG') return l('ENG');
                                             return lang;
                                           })
                                           .join(', ');
@@ -273,9 +274,9 @@ const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
                                               typeof lang === 'string',
                                           )
                                           .map((lang: string) => {
-                                            if (lang === 'KAZ') return l('KZ');
-                                            if (lang === 'RUS') return l('RU');
-                                            if (lang === 'ENG') return l('EN');
+                                            if (lang === 'KAZ') return l('KAZ');
+                                            if (lang === 'RUS') return l('RUS');
+                                            if (lang === 'ENG') return l('ENG');
                                             return lang;
                                           })
                                           .join(', ');
@@ -284,12 +285,11 @@ const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
                                     // Если languages - это уже массив
                                     else if (Array.isArray(program.languages)) {
                                       return program.languages
-                                        .filter((lang): lang is string => typeof lang === 'string')
                                         .map((lang) => {
-                                          if (lang === 'KAZ') return l('KZ');
-                                          if (lang === 'RUS') return l('RU');
-                                          if (lang === 'ENG') return l('EN');
-                                          return lang;
+                                          if (lang.language.code === 'KAZ') return l('KAZ');
+                                          if (lang.language.code === 'RUS') return l('RUS');
+                                          if (lang.language.code === 'ENG') return l('ENG');
+                                          return lang.language.code;
                                         })
                                         .join(', ');
                                     }
@@ -342,7 +342,7 @@ const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
       {/* Модальное окно для создания/редактирования программы */}
       {groupToEdit && programFormOpen && (
         <ProgramForm
-          programToEdit={programToEdit}
+          programToEdit={programToEdit ? { ...programToEdit, languages: [] } : null}
           groupId={groupToEdit.id}
           onClose={handleCloseProgramForm}
         />

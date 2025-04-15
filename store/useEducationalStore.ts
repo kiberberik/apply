@@ -1,16 +1,27 @@
-import { EducationalProgram, EducationalProgramGroup } from '@prisma/client';
+import { EducationalProgram, EducationalProgramGroup, Language } from '@prisma/client';
 import { toast } from 'react-toastify';
 import { create } from 'zustand';
 
+type ProgramWithLanguages = EducationalProgram & {
+  languages: {
+    language: Language;
+  }[];
+};
+
 interface EducationalStore {
-  programs: EducationalProgram[];
+  programs: ProgramWithLanguages[];
   groups: EducationalProgramGroup[];
   fetchPrograms: () => Promise<void>;
   fetchGroups: () => Promise<void>;
   addProgram: (
-    program: Omit<EducationalProgram, 'id' | 'createdAt' | 'updatedAt'>,
+    program: Omit<EducationalProgram, 'id' | 'createdAt' | 'updatedAt'> & {
+      languages: string[];
+    },
   ) => Promise<void>;
-  updateProgram: (id: string, updates: Partial<EducationalProgram>) => Promise<void>;
+  updateProgram: (
+    id: string,
+    updates: Partial<EducationalProgram> & { languages?: string[] },
+  ) => Promise<void>;
   deleteProgram: (id: string) => Promise<void>;
   addGroup: (
     group: Omit<EducationalProgramGroup, 'id' | 'createdAt' | 'updatedAt' | 'programs'>,
@@ -32,15 +43,7 @@ export const useEducationalStore = create<EducationalStore>((set) => ({
         return;
       }
       const data = await res.json();
-      const programs = data.map((program: EducationalProgram) => ({
-        ...program,
-        languages: program.languages
-          ? typeof program.languages === 'string'
-            ? JSON.parse(program.languages)
-            : program.languages
-          : [],
-      }));
-      set({ programs });
+      set({ programs: data });
     } catch (error) {
       console.error('Ошибка при загрузке программ:', error);
       toast.error('Ошибка при загрузке программ');
@@ -65,15 +68,10 @@ export const useEducationalStore = create<EducationalStore>((set) => ({
 
   addProgram: async (program) => {
     try {
-      const programWithJsonLanguages = {
-        ...program,
-        languages: JSON.stringify(program.languages),
-      };
-
       const res = await fetch('/api/educational-programs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(programWithJsonLanguages),
+        body: JSON.stringify(program),
       });
 
       if (!res.ok) {
@@ -83,16 +81,7 @@ export const useEducationalStore = create<EducationalStore>((set) => ({
       }
 
       const newProgram = await res.json();
-      const processedProgram = {
-        ...newProgram,
-        languages: newProgram.languages
-          ? typeof newProgram.languages === 'string'
-            ? JSON.parse(newProgram.languages)
-            : newProgram.languages
-          : [],
-      };
-
-      set((state) => ({ programs: [...state.programs, processedProgram] }));
+      set((state) => ({ programs: [...state.programs, newProgram] }));
       toast.success('Программа успешно создана');
     } catch (error) {
       console.error('Ошибка при создании программы:', error);
@@ -102,16 +91,10 @@ export const useEducationalStore = create<EducationalStore>((set) => ({
 
   updateProgram: async (id, updates) => {
     try {
-      const updatesWithJsonLanguages = {
-        ...updates,
-        id,
-        languages: updates.languages ? JSON.stringify(updates.languages) : undefined,
-      };
-
       const res = await fetch(`/api/educational-programs`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatesWithJsonLanguages),
+        body: JSON.stringify({ ...updates, id }),
       });
 
       if (!res.ok) {
@@ -121,17 +104,8 @@ export const useEducationalStore = create<EducationalStore>((set) => ({
       }
 
       const updated = await res.json();
-      const processedUpdated = {
-        ...updated,
-        languages: updated.languages
-          ? typeof updated.languages === 'string'
-            ? JSON.parse(updated.languages)
-            : updated.languages
-          : [],
-      };
-
       set((state) => ({
-        programs: state.programs.map((p) => (p.id === id ? processedUpdated : p)),
+        programs: state.programs.map((p) => (p.id === id ? updated : p)),
       }));
       toast.success('Программа успешно обновлена');
     } catch (error) {
@@ -154,7 +128,6 @@ export const useEducationalStore = create<EducationalStore>((set) => ({
         return;
       }
 
-      // Обновляем состояние, удаляя программу из списка
       set((state) => ({
         programs: state.programs.filter((p) => p.id !== id),
       }));
@@ -167,18 +140,26 @@ export const useEducationalStore = create<EducationalStore>((set) => ({
   },
 
   addGroup: async (group) => {
-    const res = await fetch('/api/educational-program-groups', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(group),
-    });
-    if (!res.ok) {
-      toast.error('Ошибка');
-      return;
+    try {
+      const res = await fetch('/api/educational-program-groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(group),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        toast.error(error.error || 'Ошибка при создании группы');
+        return;
+      }
+
+      const newGroup = await res.json();
+      set((state) => ({ groups: [...state.groups, newGroup] }));
+      toast.success('Группа успешно создана');
+    } catch (error) {
+      console.error('Ошибка при создании группы:', error);
+      toast.error('Ошибка при создании группы');
     }
-    toast.success('Успех!');
-    const newGroup = await res.json();
-    set((state) => ({ groups: [...state.groups, newGroup] }));
   },
 
   updateGroup: async (id, updates) => {
@@ -220,7 +201,6 @@ export const useEducationalStore = create<EducationalStore>((set) => ({
         return;
       }
 
-      // Обновляем состояние, удаляя группу из списка
       set((state) => ({
         groups: state.groups.filter((g) => g.id !== id),
       }));
