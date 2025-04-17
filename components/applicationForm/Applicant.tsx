@@ -1,77 +1,56 @@
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import React, { useEffect } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import Divider from '../ui/divider';
+import { IdentificationDocumentType } from '@prisma/client';
+import { ExtendedApplication } from '@/types/application';
+import { useDocumentStore } from '@/store/useDocumentStore';
+import { Button } from '../ui/button';
+import { cn } from '@/lib/utils';
 
-const applicantSchema = z.object({
-  firstname: z.string().nullable(),
-  middlename: z.string().nullable(),
-  lastname: z.string().nullable(),
-  birthDate: z.string().nullable(),
-  birthPlace: z.string().nullable(),
-  citizenship: z.enum(['KAZAKHSTAN', 'OTHER']).nullable(),
-  documentType: z.enum(['ID_CARD', 'PASSPORT']).nullable(),
-  idCardNumber: z.string().nullable(),
-  passportNumber: z.string().nullable(),
-  email: z.string().email().nullable(),
-  phone: z.string().nullable(),
-  addressResidential: z.string().nullable(),
-  addressRegistration: z.string().nullable(),
-  issuingAuthority: z.string().nullable(),
-  issueDate: z.string().nullable(),
-  expirationDate: z.string().nullable(),
-  identificationNumber: z.string().nullable(),
-  id_card: z.string().nullable(),
-  passport: z.string().nullable(),
-});
+interface ApplicantProps {
+  application: ExtendedApplication | null;
+}
 
-type FormValues = z.infer<typeof applicantSchema>;
-
-function Applicant() {
+function Applicant({ application }: ApplicantProps) {
   const t = useTranslations('Applicant');
+  const c = useTranslations('Common');
   const tCitizenship = useTranslations('Citizenship');
   const tDocument = useTranslations('Document');
+  const { fetchDocument } = useDocumentStore();
+  const form = useFormContext();
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(applicantSchema),
-    defaultValues: {
-      firstname: null,
-      middlename: null,
-      lastname: null,
-      birthDate: null,
-      birthPlace: null,
-      citizenship: null,
-      documentType: null,
-      idCardNumber: null,
-      passportNumber: null,
-      email: null,
-      phone: null,
-      addressResidential: null,
-      addressRegistration: null,
-      issuingAuthority: null,
-      issueDate: null,
-      expirationDate: null,
-      identificationNumber: null,
-      id_card: null,
-      passport: null,
-    },
-  });
+  const isFieldChanged = (fieldName: string) => {
+    const defaultValue = application?.applicant?.[fieldName as keyof typeof application.applicant];
+    const currentValue = form.getValues(`applicant.${fieldName}`);
+    return defaultValue !== currentValue;
+  };
 
-  const citizenship = form.watch('citizenship');
-  const documentType = form.watch('documentType');
+  useEffect(() => {
+    if (application?.applicant) {
+      const formattedBirthDate = application.applicant.birthDate
+        ? new Date(application.applicant.birthDate).toISOString().split('T')[0]
+        : null;
+
+      form.setValue('applicant', {
+        ...application.applicant,
+        birthDate: formattedBirthDate,
+      });
+    }
+  }, [application?.applicant, form]);
+
+  useEffect(() => {
+    if (application?.applicant?.identificationDocId) {
+      fetchDocument(application?.applicant?.identificationDocId);
+    }
+  }, [application?.applicant?.identificationDocId, fetchDocument]);
+
+  const documentType = form.watch('applicant.documentType');
+  const isCitizenshipKz = form.watch('applicant.isCitizenshipKz');
 
   return (
     <Card>
@@ -79,367 +58,360 @@ function Applicant() {
         <CardTitle>{t('title')}</CardTitle>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="citizenship"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('citizenship')}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value || ''}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={tCitizenship('selectCitizenship')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="KAZAKHSTAN">{tCitizenship('KAZAKHSTAN')}</SelectItem>
-                        <SelectItem value="OTHER">{tCitizenship('OTHER')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {citizenship === 'KAZAKHSTAN' && (
-                <>
-                  <FormField
-                    control={form.control}
-                    name="documentType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('documentType')}</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value || ''}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={tDocument('selectDocumentType')} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="ID_CARD">{tDocument('ID_CARD')}</SelectItem>
-                            <SelectItem value="PASSPORT">{tDocument('PASSPORT')}</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="applicant.isCitizenshipKz"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('citizenship')}</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(value === 'true')}
+                    defaultValue={field.value ? 'true' : 'false'}
+                  >
+                    <FormControl>
+                      <SelectTrigger
+                        className={cn(
+                          '',
+                          isFieldChanged('isCitizenshipKz') ? 'border-yellow-500' : '',
+                        )}
+                      >
+                        <SelectValue placeholder={tCitizenship('selectCitizenship')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="true">{tCitizenship('KAZAKHSTAN')}</SelectItem>
+                      <SelectItem value="false">{tCitizenship('OTHER')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
               )}
-            </div>
+            />
 
-            <div className="grid grid-cols-2 gap-4">
-              {citizenship === 'KAZAKHSTAN' && documentType === 'ID_CARD' && (
-                <>
-                  <FormField
-                    control={form.control}
-                    name="id_card"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{tDocument('id_card')}</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="file"
-                            multiple={false}
-                            size={124 * 5}
-                            accept="image/*"
-                            {...field}
-                            value={field.value || ''}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <br />
-                  <FormField
-                    control={form.control}
-                    name="passportNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{tDocument('number')}</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value || ''} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="issuingAuthority"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{tDocument('issuingAuthority')}</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value || ''} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="issueDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{tDocument('issueDate')}</FormLabel>
-                        <FormControl>
-                          <Input {...field} type="date" value={field.value || ''} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="expirationDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{tDocument('expirationDate')}</FormLabel>
-                        <FormControl>
-                          <Input {...field} type="date" value={field.value || ''} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
-
-              {(citizenship === 'OTHER' || documentType === 'PASSPORT') && (
-                <>
-                  <FormField
-                    control={form.control}
-                    name="passport"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{tDocument('passport')}</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="file"
-                            multiple={false}
-                            size={124 * 5}
-                            accept="image/*"
-                            {...field}
-                            value={field.value || ''}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <br />
-                  <FormField
-                    control={form.control}
-                    name="passportNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{tDocument('number')}</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value || ''} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="issuingAuthority"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{tDocument('issuingAuthority')}</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value || ''} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="issueDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{tDocument('issueDate')}</FormLabel>
-                        <FormControl>
-                          <Input {...field} type="date" value={field.value || ''} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="expirationDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{tDocument('expirationDate')}</FormLabel>
-                        <FormControl>
-                          <Input {...field} type="date" value={field.value || ''} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
-            </div>
-
-            {(citizenship === 'OTHER' || (citizenship === 'KAZAKHSTAN' && documentType)) && (
+            {!isCitizenshipKz && (
               <>
-                <Divider className="my-12" />
-                {citizenship === 'KAZAKHSTAN' && (
-                  <FormField
-                    control={form.control}
-                    name="identificationNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{tDocument('identificationNumber')}</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value || ''} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
+                <FormField
+                  control={form.control}
+                  name="applicant.citizenship"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{tCitizenship('enterCitizenship')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          value={field.value || ''}
+                          className={cn(
+                            '',
+                            isFieldChanged('citizenship') ? 'border-yellow-500' : '',
+                          )}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
 
-                <div className="grid grid-cols-3 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="lastname"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('lastName')}</FormLabel>
+            {isCitizenshipKz && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="applicant.documentType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('documentType')}</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value || ''}>
                         <FormControl>
-                          <Input {...field} value={field.value || ''} />
+                          <SelectTrigger
+                            className={cn(
+                              '',
+                              isFieldChanged('documentType') ? 'border-yellow-500' : '',
+                            )}
+                          >
+                            <SelectValue placeholder={tDocument('selectDocumentType')} />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="firstname"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('firstName')}</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value || ''} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="middlename"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('middleName')}</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value || ''} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="birthDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('birthDate')}</FormLabel>
-                        <FormControl>
-                          <Input {...field} type="date" value={field.value || ''} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="birthPlace"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('birthPlace')}</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value || ''} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('email')}</FormLabel>
-                        <FormControl>
-                          <Input {...field} type="email" value={field.value || ''} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('phone')}</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value || ''} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="addressResidential"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('addressResidential')}</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value || ''} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="addressRegistration"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('addressRegistration')}</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value || ''} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                        <SelectContent>
+                          <SelectItem value="ID_CARD">{tDocument('ID_CARD')}</SelectItem>
+                          <SelectItem value="PASSPORT">{tDocument('PASSPORT')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </>
             )}
           </div>
-        </Form>
+
+          <div className="flex flex-col justify-start gap-4 md:flex-row">
+            <FormField
+              control={form.control}
+              name="applicant.identificationDoc.link"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {documentType === IdentificationDocumentType.ID_CARD
+                      ? tDocument('id_card')
+                      : tDocument('passport')}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="file"
+                      multiple={false}
+                      size={124 * 5}
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const formData = new FormData();
+                          formData.append('file', file);
+
+                          try {
+                            const response = await fetch('/api/upload', {
+                              method: 'POST',
+                              body: formData,
+                            });
+
+                            if (!response.ok) {
+                              throw new Error('Failed to upload file');
+                            }
+
+                            const data = await response.json();
+                            field.onChange(data.url);
+                          } catch (error) {
+                            console.error('Error uploading file:', error);
+                          }
+                        }
+                      }}
+                    />
+                  </FormControl>
+                  {field.value && (
+                    <div className="mt-2">
+                      <a
+                        href={field.value}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline"
+                      >
+                        {c('view')}
+                      </a>
+                    </div>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button className="my-5">Выгрузить данные из документа</Button>
+          </div>
+          <div className="my-auto grid grid-cols-1 gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="applicant.identificationDoc.number"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{tDocument('number')}</FormLabel>
+                  <FormControl>
+                    <Input {...field} value={field.value || ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="applicant.identificationDoc.issuingAuthority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{tDocument('issuingAuthority')}</FormLabel>
+                  <FormControl>
+                    <Input {...field} value={field.value || ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="applicant.identificationDoc.issueDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{tDocument('issueDate')}</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="date" value={field.value || ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="applicant.identificationDoc.expirationDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{tDocument('expirationDate')}</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="date" value={field.value || ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {(!isCitizenshipKz || (isCitizenshipKz && documentType)) && (
+            <>
+              <Divider className="my-12" />
+              {isCitizenshipKz && (
+                <FormField
+                  control={form.control}
+                  name="applicant.identificationNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{tDocument('identificationNumber')}</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value || ''} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              <div className={`grid grid-cols-1 gap-4 md:grid-cols-3`}>
+                <FormField
+                  control={form.control}
+                  name="applicant.surname"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('surname')}</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value || ''} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="applicant.givennames"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('givennames')}</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value || ''} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="applicant.patronymic"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('patronymic')}</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value || ''} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="applicant.birthDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('birthDate')}</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="date" value={field.value || ''} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="applicant.birthPlace"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('birthPlace')}</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value || ''} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="applicant.email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('email')}</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="email" value={field.value || ''} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="applicant.phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('phone')}</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value || ''} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="applicant.addressResidential"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('addressResidential')}</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value || ''} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="applicant.addressRegistration"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('addressRegistration')}</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value || ''} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

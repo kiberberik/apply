@@ -27,6 +27,8 @@ import { Button } from '@/components/ui/button';
 import { useTranslations } from 'next-intl';
 import { useApplicationsStore } from '@/store/useApplicationsStore';
 import { ApplicationWithRelations } from '@/types/applicationWithRelations';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 interface DataTableProps {
   columns: ColumnDef<ApplicationWithRelations, unknown>[];
@@ -37,9 +39,7 @@ export function DataTable({ columns }: DataTableProps) {
   const c = useTranslations('Common');
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const { applications, isLoading } = useApplicationsStore();
-
-  console.log('Applications data:', applications);
+  const { applications, isLoading, error } = useApplicationsStore();
 
   const table = useReactTable({
     data: applications || [],
@@ -57,11 +57,31 @@ export function DataTable({ columns }: DataTableProps) {
   });
 
   if (isLoading) {
-    return <div>{t('loading')}</div>;
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
+          <p className="mt-2 text-sm text-gray-600">{t('loading')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive" className="my-4">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
   }
 
   if (!applications || applications.length === 0) {
-    return <div className="py-4 text-center">{t('noApplications')}</div>;
+    return (
+      <div className="py-8 text-center">
+        <p className="text-gray-500">{t('noApplications')}</p>
+      </div>
+    );
   }
 
   return (

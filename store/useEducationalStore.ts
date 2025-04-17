@@ -13,6 +13,7 @@ interface EducationalStore {
   groups: EducationalProgramGroup[];
   fetchPrograms: () => Promise<void>;
   fetchGroups: () => Promise<void>;
+  getEducationalProgramDetails: (id: string) => Promise<ProgramWithLanguages | null>;
   addProgram: (
     program: Omit<EducationalProgram, 'id' | 'createdAt' | 'updatedAt'> & {
       languages: string[];
@@ -63,6 +64,23 @@ export const useEducationalStore = create<EducationalStore>((set) => ({
     } catch (error) {
       console.error('Ошибка при загрузке групп:', error);
       toast.error('Ошибка при загрузке групп');
+    }
+  },
+
+  getEducationalProgramDetails: async (id: string) => {
+    try {
+      const res = await fetch(`/api/educational-programs/${id}`);
+      if (!res.ok) {
+        const error = await res.json();
+        toast.error(error.error || 'Ошибка при получении деталей программы');
+        return null;
+      }
+      const data = await res.json();
+      return data;
+    } catch (error) {
+      console.error('Ошибка при получении деталей программы:', error);
+      toast.error('Ошибка при получении деталей программы');
+      return null;
     }
   },
 

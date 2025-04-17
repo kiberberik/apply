@@ -10,7 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { AcademicLevel, EducationalProgram, EducationalProgramGroup } from '@prisma/client';
+import {
+  AcademicLevel,
+  EducationalProgram,
+  EducationalProgramGroup,
+  Language,
+} from '@prisma/client';
 import { useEducationalStore } from '@/store/useEducationalStore';
 import { toast } from 'react-toastify';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
@@ -24,34 +29,37 @@ import Divider from '../ui/divider';
 import ProgramForm from './ProgramForm';
 import { useLocale } from 'next-intl';
 
+// Определяем тип EducationalProgramWithLanguages для обеспечения совместимости с ProgramForm
+interface EducationalProgramWithLanguages extends Omit<EducationalProgram, 'languages'> {
+  languages: {
+    language: Language;
+  }[];
+}
+
 interface GroupFormProps {
   groupToEdit: EducationalProgramGroup | null;
   onClose: () => void;
 }
 
 const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
-  const { addGroup, updateGroup, deleteProgram, programs, fetchPrograms } = useEducationalStore();
+  const { programs, fetchPrograms, addGroup, updateGroup, deleteProgram } = useEducationalStore();
   const t = useTranslations('EducationalPrograms');
   const c = useTranslations('Common');
   const a = useTranslations('AcademicLevel');
   const l = useTranslations('SupportLanguages');
   const locale = useLocale();
 
-  const [group, setGroup] = useState<
-    Omit<EducationalProgramGroup, 'programs' | 'id' | 'createdAt' | 'updatedAt'>
-  >({
-    name_rus: null,
-    name_kaz: null,
-    name_eng: null,
-    academic_level: AcademicLevel.BACHELORS,
-    code: null,
-    visibility: true,
-    isDeleted: false,
+  const [group, setGroup] = useState<Partial<EducationalProgramGroup>>({
+    code: groupToEdit?.code || '',
+    name_rus: groupToEdit?.name_rus || '',
+    name_kaz: groupToEdit?.name_kaz || '',
+    name_eng: groupToEdit?.name_eng || '',
+    academic_level: groupToEdit?.academic_level || AcademicLevel.BACHELORS,
+    visibility: groupToEdit?.visibility ?? true,
   });
 
-  // Состояние для управления модальным окном программы
   const [programFormOpen, setProgramFormOpen] = useState(false);
-  const [programToEdit, setProgramToEdit] = useState<EducationalProgram | null>(null);
+  const [programToEdit, setProgramToEdit] = useState<EducationalProgramWithLanguages | null>(null);
 
   // Загружаем программы при монтировании компонента или изменении groupToEdit
   useEffect(() => {
@@ -59,13 +67,12 @@ const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
     if (groupToEdit) {
       const { name_rus, name_kaz, name_eng, academic_level, code, visibility } = groupToEdit;
       setGroup({
-        name_rus: name_rus ?? null,
-        name_kaz: name_kaz ?? null,
-        name_eng: name_eng ?? null,
+        name_rus: name_rus ?? '',
+        name_kaz: name_kaz ?? '',
+        name_eng: name_eng ?? '',
         academic_level: academic_level ?? AcademicLevel.BACHELORS,
-        code: code ?? null,
+        code: code ?? '',
         visibility: visibility ?? true,
-        isDeleted: false,
       });
     }
   }, [groupToEdit, fetchPrograms]);
@@ -73,9 +80,9 @@ const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
   const handleSaveGroup = async () => {
     try {
       if (groupToEdit?.id) {
-        await updateGroup(groupToEdit.id, group);
+        await updateGroup(groupToEdit.id, group as EducationalProgramGroup);
       } else {
-        await addGroup(group);
+        await addGroup(group as EducationalProgramGroup);
       }
       onClose();
     } catch (err) {
@@ -95,7 +102,21 @@ const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
   };
 
   const handleOpenProgramForm = (program: EducationalProgram | null = null) => {
-    setProgramToEdit(program);
+    // Если программа не null, добавим массив languages для совместимости с EducationalProgramWithLanguages
+    if (program) {
+      // В Prisma есть languages, но в TypeScript типе его нет, поэтому используем приведение типов
+      // @ts-expect-error - свойство languages существует в БД, но отсутствует в TypeScript типе
+      const languages = program.languages || [];
+
+      const programWithLanguages = {
+        ...program,
+        languages, // Используем languages из объекта program или пустой массив
+      } as unknown as EducationalProgramWithLanguages;
+
+      setProgramToEdit(programWithLanguages);
+    } else {
+      setProgramToEdit(null);
+    }
     setProgramFormOpen(true);
   };
 
@@ -342,7 +363,7 @@ const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
       {/* Модальное окно для создания/редактирования программы */}
       {groupToEdit && programFormOpen && (
         <ProgramForm
-          programToEdit={programToEdit ? { ...programToEdit, languages: [] } : null}
+          programToEdit={programToEdit}
           groupId={groupToEdit.id}
           onClose={handleCloseProgramForm}
         />

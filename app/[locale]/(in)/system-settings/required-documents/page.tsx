@@ -37,8 +37,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-react';
 
 interface ExtendedRequiredDocument
   extends Omit<RequiredDocument, 'countries' | 'academicLevels' | 'studyTypes' | 'ageCategories'> {
@@ -216,7 +214,7 @@ export default function RequiredDocumentsPage() {
             <DialogHeader>
               <DialogTitle>{editingDocument ? t('editDocument') : t('addDocument')}</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-8">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="flex flex-col gap-2">
                   <Label>{t('code')}</Label>
@@ -279,126 +277,91 @@ export default function RequiredDocumentsPage() {
               </div>
               <div className="flex flex-col gap-2">
                 <Label>{t('countries')}</Label>
-                <Select value="" onValueChange={(value) => handleSelectChange(value, 'countries')}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('selectCountries')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[
-                      { value: 'KAZAKHSTAN', label: tCitizenship('KAZAKHSTAN') },
-                      { value: 'OTHER', label: tCitizenship('OTHER') },
-                    ].map(({ value, label }) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {formData.countries?.map((country) => (
-                    <Badge key={country} variant="secondary">
-                      {t(`${country.toLowerCase()}`)}
-                      <button
-                        type="button"
-                        className="ml-1"
-                        onClick={() => handleRemoveSelected(country, 'countries')}
-                      >
-                        <X size={14} />
-                      </button>
-                    </Badge>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { value: 'KAZAKHSTAN', label: tCitizenship('KAZAKHSTAN') },
+                    { value: 'OTHER', label: tCitizenship('OTHER') },
+                  ].map(({ value, label }) => (
+                    <div key={value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`country-${value}`}
+                        checked={formData.countries?.includes(value as Country)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            handleSelectChange(value as Country, 'countries');
+                          } else {
+                            handleRemoveSelected(value as Country, 'countries');
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`country-${value}`}>{label}</Label>
+                    </div>
                   ))}
                 </div>
               </div>
               <div className="flex flex-col gap-2">
                 <Label>{t('academicLevels')}</Label>
-                <div className="mb-2 flex flex-wrap gap-2">
-                  {(formData.academicLevels || []).map((level) => (
-                    <Badge key={level} variant="secondary">
-                      {tAcademicLevel(level)}
-                      <button
-                        type="button"
-                        className="ml-1 hover:text-red-500"
-                        onClick={() => handleRemoveSelected(level, 'academicLevels')}
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
+                <div className="grid grid-cols-3 gap-2">
+                  {Object.values(AcademicLevel).map((level) => (
+                    <div key={level} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`level-${level}`}
+                        checked={formData.academicLevels?.includes(level)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            handleSelectChange(level, 'academicLevels');
+                          } else {
+                            handleRemoveSelected(level, 'academicLevels');
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`level-${level}`}>{tAcademicLevel(level)}</Label>
+                    </div>
                   ))}
                 </div>
-                <Select onValueChange={(value) => handleSelectChange(value, 'academicLevels')}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('selectAcademicLevels')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.values(AcademicLevel).map((level) => (
-                      <SelectItem key={level} value={level}>
-                        {tAcademicLevel(level)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
               <div className="flex flex-col gap-2">
                 <Label>{t('studyTypes')}</Label>
-                <div className="mb-2 flex flex-wrap gap-2">
-                  {(formData.studyTypes || []).map((type) => (
-                    <Badge key={type} variant="secondary">
-                      {tStudyType(type)}
-                      <button
-                        type="button"
-                        className="ml-1 hover:text-red-500"
-                        onClick={() => handleRemoveSelected(type, 'studyTypes')}
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
+                <div className="grid grid-cols-2 gap-2">
+                  {Object.values(StudyType).map((type) => (
+                    <div key={type} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`type-${type}`}
+                        checked={formData.studyTypes?.includes(type)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            handleSelectChange(type, 'studyTypes');
+                          } else {
+                            handleRemoveSelected(type, 'studyTypes');
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`type-${type}`}>{tStudyType(type)}</Label>
+                    </div>
                   ))}
                 </div>
-                <Select onValueChange={(value) => handleSelectChange(value, 'studyTypes')}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('selectStudyTypes')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.values(StudyType).map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {tStudyType(type)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
               <div className="flex flex-col gap-2">
                 <Label>{t('ageCategories')}</Label>
-                <Select
-                  value=""
-                  onValueChange={(value) => handleSelectChange(value, 'ageCategories')}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('selectAgeCategories')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[
-                      { value: 'ADULT', label: tAgeCategory('ADULT') },
-                      { value: 'MINOR', label: tAgeCategory('MINOR') },
-                    ].map(({ value, label }) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {formData.ageCategories?.map((category) => (
-                    <Badge key={category} variant="secondary">
-                      {tAgeCategory(category)}
-                      <button
-                        type="button"
-                        className="ml-1"
-                        onClick={() => handleRemoveSelected(category, 'ageCategories')}
-                      >
-                        <X size={14} />
-                      </button>
-                    </Badge>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { value: 'ADULT', label: tAgeCategory('ADULT') },
+                    { value: 'MINOR', label: tAgeCategory('MINOR') },
+                  ].map(({ value, label }) => (
+                    <div key={value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`age-${value}`}
+                        checked={formData.ageCategories?.includes(value as AgeCategory)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            handleSelectChange(value as AgeCategory, 'ageCategories');
+                          } else {
+                            handleRemoveSelected(value as AgeCategory, 'ageCategories');
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`age-${value}`}>{label}</Label>
+                    </div>
                   ))}
                 </div>
               </div>

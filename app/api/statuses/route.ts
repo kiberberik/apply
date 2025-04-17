@@ -7,7 +7,7 @@ export async function POST(request: Request) {
     const data = await request.json();
     const status = await prisma.log.create({
       data: {
-        status: data.status as ApplicationStatus,
+        statusId: data.statusId as ApplicationStatus,
         description: data.description,
         createdBy: {
           connect: {

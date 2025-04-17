@@ -81,6 +81,11 @@ enum DocumentType {
     OTHER
 }
 
+enum IdentificationDocumentType {
+    ID_CARD
+    PASSPORT
+}
+
 enum Citizenship {
     KAZAKHSTAN
     OTHER
@@ -117,7 +122,6 @@ enum StudyType {
     GRANT
     NONE_DEGREE
     CONDITIONAL
-    OTHER
 }
 
 enum SupportLanguages {
@@ -143,19 +147,6 @@ enum AgeCategory {
     MINOR
 }
 
-model Status {
-    id           String        @id @default(cuid())
-    name         String
-    description  String?
-    color        String?
-    createdAt    DateTime      @default(now())
-    updatedAt    DateTime      @updatedAt
-    applications Application[]
-    logs         Log[]
-
-    @@map("statuses")
-}
-
 enum ContactSignType {
     TRUSTME
     OFFLINE
@@ -173,10 +164,8 @@ model Application {
     representative            Representative?            @relation(fields: [representativeId], references: [id])
     representativeId          String?
     documents                 Document[]
-    details                   Details?                   @relation(fields: [detailsId], references: [id]) // Указываем только тут
+    details                   Details?                   @relation(fields: [detailsId], references: [id])
     detailsId                 String?                    @unique
-    statusId                  String?
-    status                    Status?                    @relation(fields: [statusId], references: [id])
     createdAt                 DateTime                   @default(now())
     updatedAt                 DateTime                   @updatedAt
     Log                       Log[]
@@ -190,62 +179,67 @@ model Application {
 }
 
 model Details {
-    id                   String            @id @default(cuid())
-    application          Application?      @relation()
-    applicationId        String?           @unique
+    id                   String              @id @default(cuid())
+    application          Application?        @relation()
+    applicationId        String?             @unique
     type                 StudyType?
     academicLevel        AcademicLevel?
     isDormNeeds          Boolean?
     studyingLanguage     SupportLanguages?
+    educationalProgram   EducationalProgram? @relation(fields: [educationalProgramId], references: [id])
     educationalProgramId String?
-    createdAt            DateTime          @default(now())
-    updatedAt            DateTime          @updatedAt
+    createdAt            DateTime            @default(now())
+    updatedAt            DateTime            @updatedAt
 }
 
 model Applicant {
-    id                   String          @id @default(cuid())
+    id                   String                      @id @default(cuid())
     applications         Application[]
-    representative       Representative? @relation("ApplicantRepresentative")
-    firstname            String?
-    middlename           String?
-    lastname             String?
+    representative       Representative?             @relation("ApplicantRepresentative")
+    givennames           String?
+    patronymic           String?
+    surname              String?
     birthDate            DateTime?
     birthPlace           String?
+    isCitizenshipKz      Boolean?                    @default(true)
     citizenship          String?
     identificationNumber String?
-    identificationDoc    Document        @relation("ApplicantIdentification", fields: [identificationDocId], references: [id])
-    identificationDocId  String          @unique
+    documentType         IdentificationDocumentType?
+    identificationDoc    Document?                   @relation("ApplicantIdentification", fields: [identificationDocId], references: [id])
+    identificationDocId  String?                     @unique
     email                String?
     phone                String?
     addressResidential   String?
     addressRegistration  String?
-    documents            Document[]      @relation("ApplicantDocuments")
-    createdAt            DateTime?       @default(now())
-    updatedAt            DateTime?       @updatedAt
+    documents            Document[]                  @relation("ApplicantDocuments")
+    createdAt            DateTime?                   @default(now())
+    updatedAt            DateTime?                   @updatedAt
 }
 
 model Representative {
-    id                   String              @id @default(cuid())
-    applicant            Applicant?          @relation("ApplicantRepresentative", fields: [applicantId], references: [id])
-    applicantId          String?             @unique
+    id                   String                      @id @default(cuid())
+    applicant            Applicant?                  @relation("ApplicantRepresentative", fields: [applicantId], references: [id])
+    applicantId          String?                     @unique
     applications         Application[]
-    firstname            String?
-    middlename           String?
-    lastname             String?
+    givennames           String?
+    patronymic           String?
+    surname              String?
+    isCitizenshipKz      Boolean?                    @default(true)
     citizenship          String?
     identificationNumber String?
-    identificationDoc    Document?           @relation("RepresentativeIdentification", fields: [identificationDocId], references: [id])
-    identificationDocId  String?             @unique
-    relationshipDegree   RelationshipDegree? @default(PARENT)
-    representativeDoc    Document?           @relation("RepresentativeDoc", fields: [representativeDocId], references: [id])
-    representativeDocId  String?             @unique
+    documentType         IdentificationDocumentType?
+    identificationDoc    Document?                   @relation("RepresentativeIdentification", fields: [identificationDocId], references: [id])
+    identificationDocId  String?                     @unique
+    relationshipDegree   RelationshipDegree?         @default(PARENT)
+    representativeDoc    Document?                   @relation("RepresentativeDoc", fields: [representativeDocId], references: [id])
+    representativeDocId  String?                     @unique
     email                String?
     phone                String?
     addressResidential   String?
     addressRegistration  String?
-    documents            Document[]          @relation("RepresentativeDocuments")
-    createdAt            DateTime            @default(now())
-    updatedAt            DateTime            @updatedAt
+    documents            Document[]                  @relation("RepresentativeDocuments")
+    createdAt            DateTime                    @default(now())
+    updatedAt            DateTime                    @updatedAt
 }
 
 model Document {
@@ -298,16 +292,15 @@ model RequiredDocument {
 }
 
 model Log {
-    id            String       @id @default(cuid())
-    createdBy     User?        @relation("LogCreator", fields: [createdById], references: [id])
+    id            String             @id @default(cuid())
+    createdBy     User?              @relation("LogCreator", fields: [createdById], references: [id])
     createdById   String?
-    application   Application? @relation(fields: [applicationId], references: [id])
+    statusId      ApplicationStatus?
+    createdAt     DateTime           @default(now())
+    updatedAt     DateTime           @updatedAt
+    application   Application?       @relation(fields: [applicationId], references: [id])
     applicationId String?
-    statusId      String?
-    status        Status?      @relation(fields: [statusId], references: [id])
     description   String?
-    createdAt     DateTime     @default(now())
-    updatedAt     DateTime     @updatedAt
 }
 
 model EducationalProgramGroup {
@@ -353,6 +346,7 @@ model EducationalProgram {
     costPerCredit  String?
     createdAt      DateTime                     @default(now())
     updatedAt      DateTime                     @updatedAt
+    Details        Details[]
 }
 
 model EducationalProgramLanguage {

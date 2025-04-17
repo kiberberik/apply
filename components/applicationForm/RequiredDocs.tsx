@@ -1,98 +1,70 @@
-import React from 'react';
-import { useTranslations } from 'next-intl';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FormControl, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { useRequiredDocuments } from '@/store/useRequiredDocuments';
+import { ExtendedApplication } from '@/types/application';
+import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useApplicationsStore } from '@/store/useApplicationsStore';
-import { Country, AcademicLevel, StudyType } from '@prisma/client';
+import { differenceInYears } from 'date-fns';
+import { useEffect } from 'react';
 
-interface RequiredDoc {
-  id: string;
-  title: string;
-  description: string;
-  requiredFor: {
-    citizenship: Country[];
-    academicLevel: AcademicLevel[];
-    studyType: StudyType[];
-  };
+interface FormValues {
+  documents?: Record<string, File> | null;
 }
 
 interface RequiredDocsProps {
-  onDocumentUpload: (documentId: string, file: File) => void;
+  form: ReturnType<typeof useForm<FormValues>>;
+  application: ExtendedApplication;
 }
 
-function RequiredDocs({ onDocumentUpload }: RequiredDocsProps) {
-  const t = useTranslations('RequiredDocuments');
-  const { currentApplication } = useApplicationsStore();
+export const RequiredDocs = ({ form, application }: RequiredDocsProps) => {
+  const { documents, fetchDocuments } = useRequiredDocuments();
 
-  if (!currentApplication?.applicant || !currentApplication?.details) {
-    return null;
-  }
+  // console.log(documents);
+  const filteredDocuments = documents.filter((doc) => {
+    // Проверка гражданства
+    const isKzCitizen = application.applicant?.isCitizenshipKz;
+    const matchesCountry = doc.countries.some(
+      (country) => country === (isKzCitizen ? 'KAZAKHSTAN' : 'OTHER'),
+    );
 
-  const { citizenship } = currentApplication.applicant;
-  const { academicLevel, type: studyType } = currentApplication.details;
+    // Проверка возраста
+    const birthDate = application.applicant?.birthDate;
+    const age = birthDate ? differenceInYears(new Date(), new Date(birthDate)) : 0;
+    const isAdult = age >= 18;
+    const matchesAgeCategory = doc.ageCategories.some(
+      (category) => category === (isAdult ? 'ADULT' : 'MINOR'),
+    );
 
-  const requiredDocs: RequiredDoc[] = [
-    {
-      id: 'passport',
-      title: 'Паспорт',
-      description: 'Копия паспорта',
-      requiredFor: {
-        citizenship: [Country.KAZAKHSTAN],
-        academicLevel: [AcademicLevel.BACHELORS, AcademicLevel.MASTERS, AcademicLevel.DOCTORAL],
-        studyType: [StudyType.PAID, StudyType.GRANT],
-      },
-    },
-    {
-      id: 'diploma',
-      title: 'Диплом',
-      description: 'Копия диплома о предыдущем образовании',
-      requiredFor: {
-        citizenship: [Country.KAZAKHSTAN, Country.OTHER],
-        academicLevel: [AcademicLevel.MASTERS, AcademicLevel.DOCTORAL],
-        studyType: [StudyType.PAID, StudyType.GRANT],
-      },
-    },
-    {
-      id: 'transcript',
-      title: 'Академическая справка',
-      description: 'Копия академической справки',
-      requiredFor: {
-        citizenship: [Country.KAZAKHSTAN, Country.OTHER],
-        academicLevel: [AcademicLevel.MASTERS, AcademicLevel.DOCTORAL],
-        studyType: [StudyType.PAID, StudyType.GRANT],
-      },
-    },
-  ];
+    // Проверка академического уровня
+    const matchesAcademicLevel = doc.academicLevels.some(
+      (level) => level === application.details?.academicLevel,
+    );
 
-  const filteredDocs = requiredDocs.filter((doc) => {
-    if (citizenship && !doc.requiredFor.citizenship.includes(citizenship as Country)) {
-      return false;
-    }
-    if (academicLevel && !doc.requiredFor.academicLevel.includes(academicLevel)) {
-      return false;
-    }
-    if (studyType && !doc.requiredFor.studyType.includes(studyType)) {
-      return false;
-    }
-    return true;
+    // Проверка типа обучения
+    const matchesStudyType = doc.studyTypes.some((type) => type === application.details?.type);
+
+    return matchesCountry && matchesAgeCategory && matchesAcademicLevel && matchesStudyType;
   });
 
+  useEffect(() => {
+    fetchDocuments();
+  }, [fetchDocuments]);
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t('title')}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {filteredDocs.map((doc) => (
-            <FormItem key={doc.id}>
+    <div className="space-y-4">
+      {filteredDocuments.map((doc) => (
+        <FormField
+          key={doc.id}
+          control={form.control}
+          name={`documents.${doc.id}`}
+          render={({ field }) => (
+            <FormItem>
               <FormLabel>
-                {doc.title}{' '}
-                {citizenship &&
-                  doc.requiredFor.citizenship.includes(citizenship as Country) &&
-                  '(Оригинал)'}
+                {doc.name_rus || doc.name_eng || doc.name_kaz}
+                {doc.isScanRequired && <span className="ml-1 text-red-500">*</span>}
               </FormLabel>
+              {doc.description && (
+                <p className="text-muted-foreground mb-2 text-sm">{doc.description}</p>
+              )}
               <FormControl>
                 <Input
                   type="file"
@@ -100,21 +72,15 @@ function RequiredDocs({ onDocumentUpload }: RequiredDocsProps) {
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      onDocumentUpload(doc.id, file);
+                      field.onChange(file);
                     }
                   }}
                 />
               </FormControl>
-              {doc.description && (
-                <p className="text-muted-foreground text-sm">{doc.description}</p>
-              )}
-              <FormMessage />
             </FormItem>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+          )}
+        />
+      ))}
+    </div>
   );
-}
-
-export default RequiredDocs;
+};

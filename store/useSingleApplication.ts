@@ -6,15 +6,71 @@ import {
   Details,
   ApplicationStatus,
   Log,
+  Document,
+  EducationalProgram,
+  User,
 } from '@prisma/client';
 import { useApplicationsStore } from './useApplicationsStore';
+
+// Тип для запроса обновления заявки
+export interface UpdateApplicationRequest {
+  applicant?: {
+    id?: string;
+    email?: string | null;
+    givennames?: string | null;
+    patronymic?: string | null;
+    surname?: string | null;
+    birthDate?: string | null;
+    birthPlace?: string | null;
+    citizenship?: string | null;
+    gender?: string | null;
+    maritalStatus?: string | null;
+    phone?: string | null;
+    addressRegistration?: string | null;
+  } | null;
+  representative?: {
+    id?: string;
+    email?: string | null;
+    givennames?: string | null;
+    patronymic?: string | null;
+    surname?: string | null;
+    phone?: string | null;
+    address?: string | null;
+    relationship?: string | null;
+  } | null;
+  details?: {
+    id?: string;
+    type?: string | null;
+    academicLevel?: string | null;
+    studyingLanguage?: string | null;
+    educationalProgramId?: string | null;
+  } | null;
+  contractLanguage?: string | null;
+  // Документы загружаются через отдельный API-маршрут
+  statusId?: string;
+}
+
+interface ExtendedLog extends Log {
+  createdBy: {
+    id: string;
+    name: string | null;
+    email: string | null;
+  } | null;
+  status: ApplicationStatus | null;
+}
 
 interface ExtendedApplication extends Application {
   applicant: Applicant | null;
   representative: Representative | null;
-  details: Details | null;
+  details:
+    | (Details & {
+        educationalProgram: EducationalProgram | null;
+      })
+    | null;
   status: ApplicationStatus | null;
-  Log: Log[];
+  Log: ExtendedLog[];
+  documents: Document[];
+  createdBy: User | null;
 }
 
 interface SingleApplicationState {
@@ -26,7 +82,7 @@ interface SingleApplicationState {
   fetchApplication: (id: string) => Promise<void>;
   updateApplication: (
     id: string,
-    application: Partial<ExtendedApplication>,
+    application: UpdateApplicationRequest,
   ) => Promise<{ error?: string }>;
   clearApplication: () => void;
 }
@@ -39,11 +95,14 @@ export const useSingleApplication = create<SingleApplicationState>((set) => ({
   fetchApplication: async (id: string) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch(`/api/applications/${id}`);
+      console.log('Fetching application from API with ID:', id);
+      // Добавляю параметр noCache для обхода кэша браузера
+      const response = await fetch(`/api/applications/${id}?noCache=${Date.now()}`);
       if (!response.ok) {
         throw new Error('Заявка не найдена');
       }
       const data = await response.json();
+      console.log('Received fresh application data:', data);
 
       // Обновляем локальный стейт
       set({ application: data });
@@ -59,7 +118,7 @@ export const useSingleApplication = create<SingleApplicationState>((set) => ({
     }
   },
 
-  updateApplication: async (id: string, application: Partial<ExtendedApplication>) => {
+  updateApplication: async (id: string, application: UpdateApplicationRequest) => {
     set({ isLoading: true, error: null });
     try {
       const response = await fetch(`/api/applications/${id}`, {

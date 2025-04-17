@@ -96,9 +96,9 @@ CREATE TABLE `Details` (
 -- CreateTable
 CREATE TABLE `Applicant` (
     `id` VARCHAR(191) NOT NULL,
-    `firstname` VARCHAR(191) NULL,
-    `middlename` VARCHAR(191) NULL,
-    `lastname` VARCHAR(191) NULL,
+    `givennames` VARCHAR(191) NULL,
+    `patronymic` VARCHAR(191) NULL,
+    `surname` VARCHAR(191) NULL,
     `birthDate` DATETIME(3) NULL,
     `birthPlace` VARCHAR(191) NULL,
     `citizenship` VARCHAR(191) NULL,
@@ -119,9 +119,9 @@ CREATE TABLE `Applicant` (
 CREATE TABLE `Representative` (
     `id` VARCHAR(191) NOT NULL,
     `applicantId` VARCHAR(191) NULL,
-    `firstname` VARCHAR(191) NULL,
-    `middlename` VARCHAR(191) NULL,
-    `lastname` VARCHAR(191) NULL,
+    `givennames` VARCHAR(191) NULL,
+    `patronymic` VARCHAR(191) NULL,
+    `surname` VARCHAR(191) NULL,
     `citizenship` VARCHAR(191) NULL,
     `identificationNumber` VARCHAR(191) NULL,
     `identificationDocId` VARCHAR(191) NULL,

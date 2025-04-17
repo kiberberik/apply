@@ -11,6 +11,7 @@ import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 
 // Определяем интерфейс для формы программы
 interface ProgramFormData {
@@ -49,16 +50,17 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ programToEdit, groupId, onClo
 
   // Инициализируем состояние формы с пустыми значениями
   const [formData, setFormData] = useState<ProgramFormData>({
-    name_rus: '',
-    name_kaz: '',
-    name_eng: '',
-    code: '',
-    languages: [],
-    academic_level: group?.academic_level || AcademicLevel.BACHELORS,
-    duration: 1,
-    visibility: group?.visibility ?? true,
+    name_rus: programToEdit?.name_rus || '',
+    name_kaz: programToEdit?.name_kaz || '',
+    name_eng: programToEdit?.name_eng || '',
+    code: programToEdit?.code || '',
+    languages: programToEdit?.languages?.map((lang) => lang.language.id) || [],
+    academic_level:
+      programToEdit?.academic_level || group?.academic_level || AcademicLevel.BACHELORS,
+    duration: programToEdit?.duration || 1,
+    visibility: programToEdit?.visibility ?? group?.visibility ?? true,
     isDeleted: false,
-    costPerCredit: '',
+    costPerCredit: programToEdit?.costPerCredit || '',
   });
 
   // Состояние для ошибок валидации
@@ -73,6 +75,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ programToEdit, groupId, onClo
         const response = await fetch('/api/languages');
         if (!response.ok) throw new Error('Failed to fetch languages');
         const data = await response.json();
+        console.log('Доступные языки:', data);
         setAvailableLanguages(data);
       } catch (error) {
         console.error('Error fetching languages:', error);
@@ -88,22 +91,29 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ programToEdit, groupId, onClo
     fetchPrograms();
   }, [fetchPrograms]);
 
-  // Заполняем форму данными программы, если она передана для редактирования
+  // Обновляем форму при изменении programToEdit или group
   useEffect(() => {
     if (programToEdit) {
-      setFormData({
+      console.log('Полная структура программы:', programToEdit);
+      console.log('Языки программы (оригинал):', programToEdit.languages);
+
+      // Получаем ID языков из языков программы
+      const selectedLanguageIds = programToEdit.languages?.map((lang) => lang.language.id) || [];
+      console.log('Выбранные языки:', selectedLanguageIds);
+
+      setFormData((prev) => ({
+        ...prev,
         name_rus: programToEdit.name_rus || '',
         name_kaz: programToEdit.name_kaz || '',
         name_eng: programToEdit.name_eng || '',
         code: programToEdit.code || '',
-        languages: programToEdit.languages.map((lang) => lang.language.id),
+        languages: selectedLanguageIds,
         academic_level:
           programToEdit.academic_level || group?.academic_level || AcademicLevel.BACHELORS,
         duration: programToEdit.duration || 1,
         visibility: programToEdit.visibility ?? true,
-        isDeleted: false,
         costPerCredit: programToEdit.costPerCredit || '',
-      });
+      }));
     }
   }, [programToEdit, group]);
 
@@ -165,18 +175,20 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ programToEdit, groupId, onClo
     }
   };
 
-  // Обработчик изменения языков
-  const handleLanguageChange = (languageId: string, checked: boolean) => {
+  // Обработчик выбора языка явно указывает тип
+  const handleLanguageSelect = (languageId: string, checked: boolean) => {
+    console.log(`Выбор языка ${languageId}, статус: ${checked}`);
+
     if (checked) {
-      setFormData({
-        ...formData,
-        languages: [...formData.languages, languageId],
-      });
+      setFormData((prev) => ({
+        ...prev,
+        languages: [...prev.languages, languageId],
+      }));
     } else {
-      setFormData({
-        ...formData,
-        languages: formData.languages.filter((id) => id !== languageId),
-      });
+      setFormData((prev) => ({
+        ...prev,
+        languages: prev.languages.filter((id) => id !== languageId),
+      }));
     }
   };
 
@@ -276,15 +288,34 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ programToEdit, groupId, onClo
           <Card className={`p-4 transition-all ${errors.languages ? 'border-red-500' : ''}`}>
             <Label className="mb-2 block text-sm font-medium">{t('languages')}</Label>
             <div className="space-y-2">
-              {availableLanguages.map((language) => (
-                <div key={language.id} className="flex items-center space-x-2">
-                  <Switch
-                    checked={formData.languages.includes(language.id)}
-                    onCheckedChange={(checked) => handleLanguageChange(language.id, checked)}
-                  />
-                  <Label>{language.name_rus}</Label>
-                </div>
-              ))}
+              {availableLanguages.map((language) => {
+                const isChecked = formData.languages.includes(language.id);
+                console.log(`Язык ${language.name_rus} (${language.id}), выбран: ${isChecked}`);
+
+                return (
+                  <div key={language.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`language-${language.id}`}
+                      checked={isChecked}
+                      onCheckedChange={(checked) => handleLanguageSelect(language.id, !!checked)}
+                    />
+                    <div
+                      className={`flex flex-col rounded-md p-2 transition-colors ${
+                        isChecked ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                      }`}
+                    >
+                      <Label htmlFor={`language-${language.id}`} className="cursor-pointer text-sm">
+                        {language.name_rus}
+                      </Label>
+                      <div className="flex space-x-2 text-xs text-gray-500">
+                        <span>{language.name_kaz}</span>
+                        <span>|</span>
+                        <span>{language.name_eng}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
             {errors.languages && (
               <motion.p

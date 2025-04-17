@@ -1,9 +1,17 @@
-import { Application, Log } from '@prisma/client';
+import { Application, Applicant, Details, Log } from '@prisma/client';
 
 export type ApplicationWithRelations = Application & {
+  applicant:
+    | (Applicant & {
+        givennames: string | null;
+        surname: string | null;
+      })
+    | null;
+  details: Details | null;
   Log?: Log[];
-  applicant?: {
-    firstname: string;
-    lastname: string;
+  createdBy?: {
+    id: string;
+    name: string | null;
+    email: string | null;
   } | null;
 };

@@ -1,6 +1,7 @@
 {
   "Common": {
     "save": "Сохранить",
+    "saveDraft": "Сохранить черновик",
     "cancel": "Отмена",
     "delete": "Удалить",
     "edit": "Редактировать",
@@ -23,7 +24,10 @@
     "years": "лет",
     "selected": "Выбрано",
     "previous": "Предыдущий",
-    "next": "Следующий"
+    "next": "Следующий",
+    "submit": "Отправить",
+    "deleteConfirmation": "Подтверждение удаления",
+    "deleteApplicationConfirmation": "Вы уверены, что хотите удалить эту заявку? Это действие нельзя отменить."
   },
   "Roles": {
     "USER": "Пользователь",
@@ -164,7 +168,8 @@
     "nameKazRequired": "Название на казахском обязательно",
     "durationInvalid": "Длительность должна быть больше 0",
     "formValidationError": "Пожалуйста, исправьте ошибки в форме",
-    "academicLevelInherited": "Наследовано от группы"
+    "academicLevelInherited": "Наследовано от группы",
+    "accessLanguages": "Доступные языки обучения"
   },
   "AcademicLevel": {
     "BACHELORS": "Бакалавриат",
@@ -223,9 +228,9 @@
   },
   "Applicant": {
     "title": "Абитуриент",
-    "lastName": "Фамилия",
-    "firstName": "Имя",
-    "middleName": "Отчество",
+    "surname": "Фамилия",
+    "givennames": "Имя",
+    "patronymic": "Отчество",
     "birthDate": "Дата рождения",
     "birthPlace": "Место рождения",
     "citizenship": "Гражданство",
@@ -239,9 +244,9 @@
   },
   "Representative": {
     "title": "Представитель",
-    "firstName": "Имя",
-    "lastName": "Фамилия",
-    "middleName": "Отчество",
+    "givennames": "Имя",
+    "surname": "Фамилия",
+    "patronymic": "Отчество",
     "firstNameTranslit": "Имя на транслиторе",
     "lastNameTranslit": "Фамилия на транслиторе",
     "email": "Email",
@@ -265,6 +270,7 @@
     "addressResidential": "Адрес проживания",
     "addressRegistration": "Адрес регистрации",
     "relationshipDegree": "Степень родства",
+    "selectRelationshipDegree": "Выберите степень родства",
     "parent": "Родитель",
     "guardian": "Опекун",
     "trustee": "Доверитель",
@@ -285,12 +291,16 @@
     "selectStudyingLanguage": "Выберите язык обучения",
     "isDormNeeds": "Нуждается в общежитии",
     "contractLanguage": "Язык договора",
-    "selectContractLanguage": "Выберите язык договора"
+    "selectContractLanguage": "Выберите язык договора",
+    "educationalProgram": "Образовательная программа",
+    "selectEducationalProgram": "Выберите образовательную программу",
+    "years": "года"
   },
   "Citizenship": {
     "selectCitizenship": "Выберите гражданство",
     "KAZAKHSTAN": "Казахстан",
-    "OTHER": "Другое"
+    "OTHER": "Другое",
+    "enterCitizenship": "Введите гражданство"
   },
   "Documents": {
     "title": "Документы"

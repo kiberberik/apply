@@ -7,6 +7,20 @@ export async function GET() {
       where: {
         isDeleted: false, // Получаем только неудаленные группы
       },
+      include: {
+        programs: {
+          where: {
+            isDeleted: false,
+          },
+          include: {
+            languages: {
+              include: {
+                language: true,
+              },
+            },
+          },
+        },
+      },
     });
     return NextResponse.json(groups);
   } catch (error) {

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { RequiredDocument, Country, AcademicLevel, StudyType, AgeCategory } from '@prisma/client';
 
-interface ExtendedRequiredDocument
+export interface ExtendedRequiredDocument
   extends Omit<RequiredDocument, 'countries' | 'academicLevels' | 'studyTypes' | 'ageCategories'> {
   countries: Country[];
   academicLevels: AcademicLevel[];

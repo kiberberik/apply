@@ -1,20 +1,54 @@
 'use client';
 
 import { useApplicationsStore } from '@/store/useApplicationsStore';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Suspense } from 'react';
 import { useTranslations } from 'next-intl';
 import { DataTable } from '../../../../components/data-table';
 import { columns } from '../../../../components/columns';
 import { ApplicationsTableSkeleton } from '../../../../components/loading';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import { useRouter } from '@/i18n/navigation';
+import { toast } from 'react-toastify';
 
 export default function ApplicationsPage() {
-  const { isLoading, error, fetchApplications } = useApplicationsStore();
+  const { isLoading, error, fetchApplications, createNewApplication } = useApplicationsStore();
   const t = useTranslations('Applications');
+  const c = useTranslations('Common');
+  const router = useRouter();
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     fetchApplications();
   }, [fetchApplications]);
+
+  // Функция для создания пустой заявки
+  const handleCreateApplication = async () => {
+    if (creating) return; // Предотвращаем повторные клики
+
+    try {
+      setCreating(true);
+
+      // Создаем заявку через стор
+      const newApplication = await createNewApplication();
+
+      if (!newApplication) {
+        throw new Error('Не удалось создать заявку');
+      }
+
+      // Показываем уведомление об успешном создании
+      toast.success('Заявка успешно создана');
+
+      // Перенаправляем на страницу созданной заявки с учетом локали
+      router.push(`/applications/${newApplication.id}`);
+    } catch (error) {
+      console.error('Ошибка при создании заявки:', error);
+      toast.error(error instanceof Error ? error.message : 'Ошибка при создании заявки');
+    } finally {
+      setCreating(false);
+    }
+  };
 
   if (isLoading) {
     return <div>Загрузка...</div>;
@@ -28,6 +62,10 @@ export default function ApplicationsPage() {
     <div className="container mx-auto py-10">
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
+        <Button onClick={handleCreateApplication} disabled={creating}>
+          <Plus />
+          {c('add')}
+        </Button>
       </div>
       <div className="mt-8">
         <Suspense fallback={<ApplicationsTableSkeleton />}>

@@ -2,13 +2,13 @@ import {
   PrismaClient,
   Role,
   DocumentType,
-  Citizenship,
-  ApplicationStatus,
   AcademicLevel,
   StudyType,
   SupportLanguages,
   Country,
   AgeCategory,
+  ApplicationStatus,
+  IdentificationDocumentType,
 } from '@prisma/client';
 import { hash } from 'bcryptjs';
 
@@ -23,7 +23,6 @@ async function main() {
   await prisma.applicant.deleteMany();
   await prisma.representative.deleteMany();
   await prisma.details.deleteMany();
-  await prisma.status.deleteMany();
   await prisma.requiredDocument.deleteMany();
   await prisma.educationalProgramLanguage.deleteMany();
   await prisma.educationalProgram.deleteMany();
@@ -74,12 +73,23 @@ async function main() {
 
   await prisma.user.create({
     data: {
-      email: 's_kurmangaliuly@kazguu.kz',
+      email: 'sanzhar_k@mnu.kz',
       name: 'Санжар',
       password: await hash('123123', 12),
       role: Role.ADMIN,
       emailVerified: new Date(),
       emailVerificationToken: 'admin2-verified',
+    },
+  });
+
+  await prisma.user.create({
+    data: {
+      email: 'rasul_aisayev@kazguu.kz',
+      name: 'Расул',
+      password: await hash('123123', 12),
+      role: Role.ADMIN,
+      emailVerified: new Date(),
+      emailVerificationToken: 'admin3-verified',
     },
   });
 
@@ -151,23 +161,17 @@ async function main() {
 
   const user1 = await prisma.user.create({
     data: {
-      email: 'user1@mnu.kz',
-      name: 'Пользователь 1',
-      password: await hash('123123', 12),
-      role: Role.USER,
-      emailVerified: new Date(),
-      emailVerificationToken: 'user1-verified',
+      email: 'user1@example.com',
+      name: 'Regular User 1',
+      role: Role.ADMIN,
     },
   });
 
   const user2 = await prisma.user.create({
     data: {
-      email: 'user2@mnu.kz',
-      name: 'Пользователь 2',
-      password: await hash('123123', 12),
+      email: 'user2@example.com',
+      name: 'Regular User 2',
       role: Role.USER,
-      emailVerified: new Date(),
-      emailVerificationToken: 'user2-verified',
     },
   });
 
@@ -240,41 +244,41 @@ async function main() {
 
   await prisma.educationalProgramGroup.deleteMany();
 
-  const educationalProgramGroup = await prisma.educationalProgramGroup.create({
-    data: {
-      name_rus: 'Информационные технологии',
-      name_kaz: 'Ақпараттық технологиялар',
-      name_eng: 'Information Technology',
-      code: 'B057',
-      academic_level: AcademicLevel.BACHELORS,
-      programs: {
-        create: {
-          name_rus: 'Информационные системы',
-          name_kaz: 'Ақпараттық жүйелер',
-          name_eng: 'Information Systems',
-          code: 'B057-1',
-          academic_level: AcademicLevel.BACHELORS,
-          costPerCredit: '35000',
-          languages: {
-            create: [
-              { language: { connect: { id: russian.id } } },
-              { language: { connect: { id: kazakh.id } } },
-              { language: { connect: { id: english.id } } },
-            ],
-          },
-        },
-      },
-    },
-    include: {
-      programs: {
-        include: {
-          languages: true,
-        },
-      },
-    },
-  });
+  // const educationalProgramGroup = await prisma.educationalProgramGroup.create({
+  //   data: {
+  //     name_rus: 'Информационные технологии',
+  //     name_kaz: 'Ақпараттық технологиялар',
+  //     name_eng: 'Information Technology',
+  //     code: 'B057',
+  //     academic_level: AcademicLevel.BACHELORS,
+  //     programs: {
+  //       create: {
+  //         name_rus: 'Информационные системы',
+  //         name_kaz: 'Ақпараттық жүйелер',
+  //         name_eng: 'Information Systems',
+  //         code: 'B057-1',
+  //         academic_level: AcademicLevel.BACHELORS,
+  //         costPerCredit: '35000',
+  //         languages: {
+  //           create: [
+  //             { language: { connect: { id: russian.id } } },
+  //             { language: { connect: { id: kazakh.id } } },
+  //             { language: { connect: { id: english.id } } },
+  //           ],
+  //         },
+  //       },
+  //     },
+  //   },
+  //   include: {
+  //     programs: {
+  //       include: {
+  //         languages: true,
+  //       },
+  //     },
+  //   },
+  // });
 
-  await prisma.educationalProgramGroup.create({
+  const educationalProgramGroup = await prisma.educationalProgramGroup.create({
     data: {
       name_rus: 'Переводческое дело',
       name_kaz: 'Аударма ісі',
@@ -331,6 +335,9 @@ async function main() {
           },
         ],
       },
+    },
+    include: {
+      programs: true,
     },
   });
 
@@ -747,141 +754,159 @@ async function main() {
     },
   });
 
-  // Создаем документ
-  const document = await prisma.document.create({
+  // Создаем документы для заявителя
+  const applicant1idCard = await prisma.document.create({
     data: {
-      link: 'https://example.com/doc1',
-      name: 'Удостоверение личности',
-      number: '123456789',
-      issuingAuthority: 'МВД РК',
-      issueDate: new Date('2020-01-01'),
-      expirationDate: new Date('2030-01-01'),
+      link: 'https://example.com/applicant1_id_card',
+      name: 'Удостоверение личности заявителя',
       type: DocumentType.IDENTIFICATION,
-      uploadedById: admin.id,
-    },
-  });
-
-  // Создаем заявителя
-  const applicant = await prisma.applicant.create({
-    data: {
-      firstname: 'Серик',
-      lastname: 'Бериков',
-      middlename: 'Ерикович',
-      birthDate: new Date('1995-05-15'),
-      citizenship: Citizenship.KAZAKHSTAN,
-      birthPlace: 'Алматы',
-      identificationNumber: '950515300123',
-      email: 'user1@mnu.kz',
-      phone: '+77771234567',
-      addressResidential: 'г. Алматы, ул. Абая 1',
-      addressRegistration: 'г. Алматы, ул. Абая 1',
-      identificationDocId: document.id,
+      uploadedBy: {
+        connect: {
+          id: user1.id,
+        },
+      },
     },
   });
 
   // Создаем документы для представителя
-  const representativeDoc = await prisma.document.create({
+  const representative1idCard = await prisma.document.create({
     data: {
-      link: 'https://example.com/rep_doc',
-      name: 'Доверенность',
-      number: '987654321',
-      issuingAuthority: 'Нотариус',
-      issueDate: new Date('2020-01-01'),
-      expirationDate: new Date('2030-01-01'),
-      type: DocumentType.IDENTIFICATION,
-      uploadedById: admin.id,
-    },
-  });
-
-  const representativeIdDoc = await prisma.document.create({
-    data: {
-      link: 'https://example.com/rep_id',
+      link: 'https://example.com/representative1_id_card',
       name: 'Удостоверение личности представителя',
-      number: '987654322',
-      issuingAuthority: 'МВД РК',
-      issueDate: new Date('1980-01-01'),
-      expirationDate: new Date('2030-01-01'),
       type: DocumentType.IDENTIFICATION,
-      uploadedById: admin.id,
+      uploadedBy: {
+        connect: {
+          id: user1.id,
+        },
+      },
     },
   });
 
+  const representative1representativeDoc = await prisma.document.create({
+    data: {
+      link: 'https://example.com/representative1_doc',
+      name: 'Документ представителя',
+      type: DocumentType.OTHER,
+      uploadedBy: {
+        connect: {
+          id: user1.id,
+        },
+      },
+    },
+  });
+  // Создаем заявителя
+  const applicant = await prisma.applicant.create({
+    data: {
+      surname: 'Заманов',
+      givennames: 'Аман',
+      patronymic: 'Жаманович',
+      birthDate: new Date('2002-01-01'),
+      birthPlace: 'Казахстан, Мангистауская область',
+      isCitizenshipKz: true,
+      citizenship: 'KAZAKHSTAN',
+      identificationNumber: '020101888999',
+      documentType: IdentificationDocumentType.ID_CARD,
+      identificationDoc: {
+        connect: {
+          id: applicant1idCard.id,
+        },
+      },
+      email: 'aman@test.test',
+      phone: '+77071112233',
+      addressResidential: 'Казахстан, Астана, Нура, Айтеке би, 45',
+      addressRegistration: 'Казахстан, Астана, Нура, Айтеке би, 45',
+    },
+  });
+
+  // Создаем представителя
   const representative = await prisma.representative.create({
     data: {
-      applicantId: applicant.id,
-      firstname: 'Тестер',
-      lastname: 'Тестов',
-      middlename: 'Тестович',
-      citizenship: Citizenship.KAZAKHSTAN,
-      identificationNumber: '800101300123',
-      representativeDocId: representativeDoc.id,
-      identificationDocId: representativeIdDoc.id,
-      email: 'alex@example.com',
-      phone: '+77771234568',
+      givennames: 'Жаман',
+      patronymic: 'Романович',
+      surname: 'Саманов',
+      isCitizenshipKz: true,
+      citizenship: 'KAZAKHSTAN',
+      identificationNumber: '880202123321',
+      documentType: IdentificationDocumentType.ID_CARD,
+      identificationDoc: {
+        connect: {
+          id: representative1idCard.id,
+        },
+      },
+      relationshipDegree: 'PARENT',
+      representativeDoc: {
+        connect: {
+          id: representative1representativeDoc.id,
+        },
+      },
+      email: 'zhaman@test.test',
+      phone: '+77076665544',
+      addressResidential: 'Казахстан, Астана, Нура, Айтеке би, 45',
+      addressRegistration: 'Казахстан, Астана, Нура, Айтеке би, 45',
     },
   });
 
+  // Создаем детали заявки
   const details = await prisma.details.create({
     data: {
       type: StudyType.PAID,
       academicLevel: AcademicLevel.BACHELORS,
-      educationalProgramId: educationalProgramGroup.programs[0].id,
-      isDormNeeds: true,
-      studyingLanguage: SupportLanguages.RUS,
+      isDormNeeds: false,
+      studyingLanguage: SupportLanguages.ENG,
+      educationalProgram: {
+        connect: {
+          id: educationalProgramGroup.programs[0].id,
+        },
+      },
     },
   });
 
   // Создаем заявку
   const application = await prisma.application.create({
     data: {
-      createdById: user1.id,
-      consultantId: consultant1.id,
-      applicantId: applicant.id,
-      representativeId: representative.id,
-      detailsId: details.id,
-    },
-    include: {
-      representative: true,
-      details: true,
+      createdBy: {
+        connect: {
+          id: user1.id,
+        },
+      },
+      consultant: {
+        connect: {
+          id: consultant1.id,
+        },
+      },
+      applicant: {
+        connect: {
+          id: applicant.id,
+        },
+      },
+      representative: {
+        connect: {
+          id: representative.id,
+        },
+      },
+      details: {
+        connect: {
+          id: details.id,
+        },
+      },
+      Log: {
+        create: {
+          createdBy: {
+            connect: {
+              id: user1.id,
+            },
+          },
+          statusId: ApplicationStatus.PROCESSING,
+        },
+      },
     },
   });
 
-  // Создаем статус
-  const processingStatus = await prisma.status.create({
-    data: {
-      name: 'В обработке',
-      description: 'Заявка находится в обработке',
-      color: '#FFA500',
-    },
-  });
-
-  // Создаем лог
-  await prisma.log.create({
-    data: {
-      createdById: user1.id,
-      applicationId: application.id,
-      statusId: processingStatus.id,
-      description: 'Заявка создана',
-    },
-  });
+  console.log(application);
 
   // Создаем тестовые обязательные документы
   await prisma.requiredDocument.createMany({
     data: [
-      {
-        name_rus: 'Удостоверение личности',
-        name_kaz: 'Жеке куәлік',
-        name_eng: 'Identity Card',
-        code: 'ID-001',
-        type: DocumentType.IDENTIFICATION,
-        isNeedOriginal: true,
-        isScanRequired: true,
-        description: 'Документ, удостоверяющий личность',
-        countries: JSON.stringify([Country.KAZAKHSTAN]),
-        academicLevels: JSON.stringify([AcademicLevel.BACHELORS, AcademicLevel.MASTERS]),
-        studyTypes: JSON.stringify([StudyType.PAID, StudyType.GRANT]),
-        ageCategories: JSON.stringify([AgeCategory.ADULT, AgeCategory.MINOR]),
-      },
       {
         name_rus: 'Аттестат о среднем образовании',
         name_kaz: 'Орта білім туралы аттестат',
@@ -893,25 +918,35 @@ async function main() {
         description: 'Документ о среднем образовании',
         countries: JSON.stringify([Country.KAZAKHSTAN, Country.OTHER]),
         academicLevels: JSON.stringify([AcademicLevel.BACHELORS]),
-        studyTypes: JSON.stringify([StudyType.PAID, StudyType.GRANT]),
-        ageCategories: JSON.stringify([AgeCategory.ADULT]),
+        studyTypes: JSON.stringify([
+          StudyType.PAID,
+          StudyType.GRANT,
+          StudyType.CONDITIONAL,
+          StudyType.NONE_DEGREE,
+        ]),
+        ageCategories: JSON.stringify([AgeCategory.ADULT, AgeCategory.MINOR]),
       },
       {
-        name_rus: 'Медицинская справка',
-        name_kaz: 'Медициналық анықтама',
-        name_eng: 'Medical Certificate',
-        code: 'MED-001',
-        type: DocumentType.MEDICAL,
+        name_rus: 'Вступительный взнос',
+        name_kaz: 'Қабылдау жарнасы',
+        name_eng: 'Admission Fee',
+        code: 'ADMISSION-FEE',
+        type: DocumentType.FINANCIAL,
         isNeedOriginal: true,
         isScanRequired: true,
-        description: 'Справка о состоянии здоровья',
-        countries: JSON.stringify([Country.KAZAKHSTAN]),
+        description: 'Вступительный взнос',
+        countries: JSON.stringify([Country.KAZAKHSTAN, Country.OTHER]),
         academicLevels: JSON.stringify([
           AcademicLevel.BACHELORS,
           AcademicLevel.MASTERS,
           AcademicLevel.DOCTORAL,
         ]),
-        studyTypes: JSON.stringify([StudyType.PAID, StudyType.GRANT]),
+        studyTypes: JSON.stringify([
+          StudyType.PAID,
+          StudyType.GRANT,
+          StudyType.CONDITIONAL,
+          StudyType.NONE_DEGREE,
+        ]),
         ageCategories: JSON.stringify([AgeCategory.ADULT, AgeCategory.MINOR]),
       },
     ],

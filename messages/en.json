@@ -23,7 +23,10 @@
     "years": "years",
     "selected": "Selected",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "submit": "Submit",
+    "deleteConfirmation": "Delete Confirmation",
+    "deleteApplicationConfirmation": "Are you sure you want to delete this application? This action cannot be undone."
   },
   "Roles": {
     "USER": "User",
@@ -56,7 +59,7 @@
   "auth": {
     "signIn": "Sign In",
     "signUp": "Sign Up",
-    "name": "First Name",
+    "name": "Given Names",
     "email": "Email",
     "password": "Password",
     "newPassword": "New Password",
@@ -163,7 +166,8 @@
     "nameKazRequired": "Name in Kazakh is required",
     "durationInvalid": "Duration must be greater than 0",
     "formValidationError": "Please fix the errors in the form",
-    "academicLevelInherited": "Inherited from group"
+    "academicLevelInherited": "Inherited from group",
+    "accessLanguages": "Available study languages"
   },
   "AcademicLevel": {
     "BACHELORS": "Bachelors",
@@ -222,9 +226,9 @@
   },
   "Applicant": {
     "title": "Applicant",
-    "lastName": "Last Name",
-    "firstName": "First Name",
-    "middleName": "Middle Name",
+    "surname": "Surname",
+    "givennames": "Given Names",
+    "patronymic": "Patronymic",
     "birthDate": "Date of Birth",
     "birthPlace": "Place of Birth",
     "citizenship": "Citizenship",
@@ -238,10 +242,10 @@
   },
   "Representative": {
     "title": "Representative",
-    "firstName": "First Name",
-    "lastName": "Last Name",
-    "middleName": "Middle Name",
-    "firstNameTranslit": "First Name (Translit)",
+    "givennames": "Given Names",
+    "surname": "Surname",
+    "patronymic": "Patronymic",
+    "firstNameTranslit": "Given Names (Translit)",
     "lastNameTranslit": "Last Name (Translit)",
     "email": "Email",
     "phone": "Phone",
@@ -264,6 +268,7 @@
     "addressResidential": "Residential Address",
     "addressRegistration": "Registration Address",
     "relationshipDegree": "Degree of Relationship",
+    "selectRelationshipDegree": "Select Degree of Relationship",
     "parent": "Parent",
     "guardian": "Guardian",
     "trustee": "Trustee",
@@ -284,7 +289,10 @@
     "selectStudyingLanguage": "Select Study Language",
     "isDormNeeds": "Dormitory Needed",
     "contractLanguage": "Contract Language",
-    "selectContractLanguage": "Select Contract Language"
+    "selectContractLanguage": "Select Contract Language",
+    "educationalProgram": "Educational Program",
+    "selectEducationalProgram": "Select Educational Program",
+    "years": "years"
   },
   "Citizenship": {
     "selectCitizenship": "Select Citizenship",
