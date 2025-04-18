@@ -28,7 +28,8 @@
     "submit": "Жіберу",
     "deleteConfirmation": "Жоюды растау",
     "deleteApplicationConfirmation": "Өтінімді жоюды растауыңыз керек пе?",
-    "notFound": "Табылмады"
+    "notFound": "Табылмады",
+    "loadDataFromDocument": "Құжаттан деректерді толтыру"
   },
   "Roles": {
     "USER": "Пайдаланушы",
@@ -260,7 +261,9 @@
     "email": "Email",
     "phone": "Телефон",
     "addressResidential": "Тұрғылықты мекен-жайы",
-    "addressRegistration": "Тіркеу мекен-жайы"
+    "addressRegistration": "Тіркеу мекен-жайы",
+    "applicationSubmitted": "Өтінім жіберілді",
+    "applicationSubmittedDescription": "Өтінім жіберілді және өзгертілмейді."
   },
   "Representative": {
     "title": "Өкіл",
@@ -404,5 +407,10 @@
     "EARLY_REFUSED_TO_ENROLL": "Келісім-шартқа қол қоймай тұрып оқуға түсуден бас тартты",
     "REFUSED_TO_ENROLL": "Келісім-шартқа қол қойғаннан кейін оқуға түсуден бас тартты",
     "REJECTED": "Қабылданбады"
+  },
+  "LogHistory": {
+    "title": "Өтінім статусы өзгерістерінің тарихы",
+    "noLogs": "Өтінім статусы өзгерістерінің тарихы болмайды",
+    "loading": "Өтінім статусы өзгерістерінің тарихын жүктелуде..."
   }
 }

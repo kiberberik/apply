@@ -15,6 +15,7 @@ import {
   StudyType,
   AcademicLevel,
   SupportLanguages,
+  Role,
 } from '@prisma/client';
 import ApplicantForm from './Applicant';
 import RepresentativeForm from './Representative';
@@ -22,9 +23,20 @@ import Details from './Details';
 import { RequiredDocs } from './RequiredDocs';
 import { ExtendedApplication } from '@/types/application';
 import React from 'react';
+import { useAuthStore } from '@/store/useAuthStore';
 
 interface ApplicationFormProps {
   id?: string;
+}
+
+// Расширенный интерфейс для приложения с консультантом
+interface ApplicationWithConsultant extends Omit<ExtendedApplication, 'consultantId'> {
+  consultantId?: string | null;
+  consultant?: {
+    id: string;
+    name: string | null;
+    email: string | null;
+  } | null;
 }
 
 const draftSchema = z.object({
@@ -138,9 +150,10 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   const tRepresentative = useTranslations('Representative');
   const tDetails = useTranslations('Details');
   const tDocuments = useTranslations('Documents');
+  const tRoles = useTranslations('Roles');
   const [activeTab, setActiveTab] = React.useState('applicant');
   const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
-
+  const { user } = useAuthStore();
   const form = useForm<FormValues>({
     resolver: zodResolver(draftSchema),
     defaultValues: {
@@ -166,21 +179,32 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     },
   });
 
+  // Определяем, отправлена ли заявка
+  const isSubmitted = Boolean(application?.submittedAt);
+  // Определяем, должна ли форма быть заблокирована для редактирования (только для обычных пользователей)
+  const isReadOnly = isSubmitted && user?.role === Role.USER;
+
   // Отслеживаем изменения в форме
   React.useEffect(() => {
+    // Не отслеживаем изменения, если форма заблокирована
+    if (isReadOnly) return;
+
     const subscription = form.watch((value, { name }) => {
       if (name) {
         setHasUnsavedChanges(true);
       }
     });
     return () => subscription.unsubscribe();
-  }, [form]);
+  }, [form, isReadOnly]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
   };
 
   const handleSaveDraftClick = async () => {
+    // Если форма заблокирована, ничего не делаем
+    if (isReadOnly) return;
+
     try {
       // Получение текущих значений формы без валидации
       const values = form.getValues();
@@ -351,6 +375,9 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   };
 
   const handleSubmit = async (data: FormValues) => {
+    // Если форма заблокирована, ничего не делаем
+    if (isReadOnly) return;
+
     try {
       if (!id) return;
 
@@ -396,13 +423,22 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     }
   };
 
+  // Преобразуем тип application
+  const applicationWithConsultant = application as unknown as ApplicationWithConsultant;
+
   if (!application) {
-    return <div>Загрузка...</div>;
+    return <div>{c('loading')}</div>;
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+        {isSubmitted && user?.role === Role.USER && (
+          <div className="mb-4 rounded-lg border border-yellow-300 bg-yellow-50 p-4 text-yellow-800">
+            <p>{tApplicant('applicationSubmittedDescription')}</p>
+          </div>
+        )}
+
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
           <TabsList>
             <TabsTrigger value="applicant">
@@ -423,29 +459,72 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="applicant">
-            <ApplicantForm application={application as ExtendedApplication} />
-          </TabsContent>
+          <fieldset disabled={isReadOnly} className="space-y-4">
+            <TabsContent value="applicant">
+              <ApplicantForm
+                application={application as ExtendedApplication}
+                isSubmitted={isReadOnly}
+              />
+            </TabsContent>
 
-          <TabsContent value="representative">
-            <RepresentativeForm application={application as ExtendedApplication} />
-          </TabsContent>
+            <TabsContent value="representative">
+              <RepresentativeForm
+                application={application as ExtendedApplication}
+                isSubmitted={isReadOnly}
+              />
+            </TabsContent>
 
-          <TabsContent value="details">
-            <Details application={application as ExtendedApplication} />
-          </TabsContent>
+            <TabsContent value="details">
+              <Details application={application as ExtendedApplication} isSubmitted={isReadOnly} />
+            </TabsContent>
 
-          <TabsContent value="documents">
-            <RequiredDocs form={form} application={application as unknown as ExtendedApplication} />
-          </TabsContent>
+            <TabsContent value="documents">
+              <RequiredDocs
+                form={form}
+                application={application as unknown as ExtendedApplication}
+                isSubmitted={isReadOnly}
+              />
+            </TabsContent>
+          </fieldset>
         </Tabs>
 
-        <div className="flex justify-end space-x-4">
-          <Button type="button" onClick={handleSaveDraftClick} variant="outline">
-            {c('saveDraft')}
-          </Button>
+        <div className="flex justify-between space-x-4">
+          <div className="text-gray-600">
+            {isSubmitted && (
+              <>
+                <p>
+                  {tApplicant('applicationSubmitted')}{' '}
+                  {application.submittedAt &&
+                    new Date(application.submittedAt).toLocaleDateString()}
+                </p>
+                {applicationWithConsultant.consultant && (
+                  <>
+                    {tRoles('CONSULTANT')}: {applicationWithConsultant.consultant.name} (
+                    {applicationWithConsultant.consultant.email})
+                  </>
+                )}
+              </>
+            )}
+          </div>
 
-          <Button type="submit">{c('submit')}</Button>
+          {/* USER видит кнопки только когда заявка не отправлена (isSubmitted = false) */}
+          {/* CONSULTANT видит кнопки всегда */}
+          {(!isSubmitted || user?.role !== Role.USER) && (
+            <div className="flex justify-end space-x-4">
+              <Button
+                type="button"
+                onClick={handleSaveDraftClick}
+                variant="outline"
+                disabled={isReadOnly}
+              >
+                {c('saveDraft')}
+              </Button>
+
+              <Button type="submit" disabled={isReadOnly}>
+                {c('submit')}
+              </Button>
+            </div>
+          )}
         </div>
       </form>
     </Form>

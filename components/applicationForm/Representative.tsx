@@ -12,10 +12,11 @@ import { useDocumentStore } from '@/store/useDocumentStore';
 import { Button } from '../ui/button';
 
 interface RepresentativeProps {
-  application: ExtendedApplication | null;
+  application: ExtendedApplication;
+  isSubmitted?: boolean;
 }
 
-function Representative({ application }: RepresentativeProps) {
+function Representative({ application, isSubmitted = false }: RepresentativeProps) {
   const t = useTranslations('Representative');
 
   const c = useTranslations('Common');
@@ -50,6 +51,7 @@ function Representative({ application }: RepresentativeProps) {
                   <Select
                     onValueChange={(value) => field.onChange(value === 'true')}
                     defaultValue={field.value ? 'true' : 'false'}
+                    disabled={isSubmitted}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -75,7 +77,7 @@ function Representative({ application }: RepresentativeProps) {
                     <FormItem>
                       <FormLabel>{tCitizenship('enterCitizenship')}</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || ''} />
+                        <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -92,7 +94,11 @@ function Representative({ application }: RepresentativeProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{tDocument('documentType')}</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value || ''}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value || ''}
+                        disabled={isSubmitted}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder={tDocument('selectDocumentType')} />
@@ -128,6 +134,7 @@ function Representative({ application }: RepresentativeProps) {
                       multiple={false}
                       size={124 * 5}
                       accept="image/*"
+                      disabled={isSubmitted}
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (file) {
@@ -169,7 +176,9 @@ function Representative({ application }: RepresentativeProps) {
                 </FormItem>
               )}
             />
-            <Button className="my-5">Выгрузить данные из документа</Button>
+            <Button className="my-5" disabled={isSubmitted}>
+              {c('loadDataFromDocument')}
+            </Button>
           </div>
           <div className="my-auto grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
@@ -179,7 +188,7 @@ function Representative({ application }: RepresentativeProps) {
                 <FormItem>
                   <FormLabel>{tDocument('number')}</FormLabel>
                   <FormControl>
-                    <Input {...field} value={field.value || ''} />
+                    <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -192,7 +201,7 @@ function Representative({ application }: RepresentativeProps) {
                 <FormItem>
                   <FormLabel>{tDocument('issuingAuthority')}</FormLabel>
                   <FormControl>
-                    <Input {...field} value={field.value || ''} />
+                    <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -205,7 +214,12 @@ function Representative({ application }: RepresentativeProps) {
                 <FormItem>
                   <FormLabel>{tDocument('issueDate')}</FormLabel>
                   <FormControl>
-                    <Input {...field} type="date" value={field.value || ''} />
+                    <Input
+                      {...field}
+                      type="date"
+                      value={field.value || ''}
+                      disabled={isSubmitted}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -218,7 +232,12 @@ function Representative({ application }: RepresentativeProps) {
                 <FormItem>
                   <FormLabel>{tDocument('expirationDate')}</FormLabel>
                   <FormControl>
-                    <Input {...field} type="date" value={field.value || ''} />
+                    <Input
+                      {...field}
+                      type="date"
+                      value={field.value || ''}
+                      disabled={isSubmitted}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -237,7 +256,7 @@ function Representative({ application }: RepresentativeProps) {
                     <FormItem>
                       <FormLabel>{tDocument('identificationNumber')}</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || ''} />
+                        <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -253,7 +272,7 @@ function Representative({ application }: RepresentativeProps) {
                     <FormItem>
                       <FormLabel>{t('surname')}</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || ''} />
+                        <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -266,7 +285,7 @@ function Representative({ application }: RepresentativeProps) {
                     <FormItem>
                       <FormLabel>{t('givennames')}</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || ''} />
+                        <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -279,7 +298,7 @@ function Representative({ application }: RepresentativeProps) {
                     <FormItem>
                       <FormLabel>{t('patronymic')}</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || ''} />
+                        <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -295,7 +314,12 @@ function Representative({ application }: RepresentativeProps) {
                     <FormItem>
                       <FormLabel>{t('email')}</FormLabel>
                       <FormControl>
-                        <Input {...field} type="email" value={field.value || ''} />
+                        <Input
+                          {...field}
+                          type="email"
+                          value={field.value || ''}
+                          disabled={isSubmitted}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -308,7 +332,7 @@ function Representative({ application }: RepresentativeProps) {
                     <FormItem>
                       <FormLabel>{t('phone')}</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || ''} />
+                        <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -324,7 +348,7 @@ function Representative({ application }: RepresentativeProps) {
                     <FormItem>
                       <FormLabel>{t('addressResidential')}</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || ''} />
+                        <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -337,7 +361,7 @@ function Representative({ application }: RepresentativeProps) {
                     <FormItem>
                       <FormLabel>{t('addressRegistration')}</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || ''} />
+                        <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -352,7 +376,11 @@ function Representative({ application }: RepresentativeProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('relationshipDegree')}</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value || ''}>
+                      <Select
+                        disabled={isSubmitted}
+                        onValueChange={field.onChange}
+                        defaultValue={field.value || ''}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder={t('selectRelationshipDegree')} />
@@ -410,6 +438,7 @@ function Representative({ application }: RepresentativeProps) {
                                   }
                                 }
                               }}
+                              disabled={isSubmitted}
                             />
                           </FormControl>
                           {field.value && (
@@ -435,7 +464,7 @@ function Representative({ application }: RepresentativeProps) {
                         <FormItem>
                           <FormLabel>{t('representativeDocNumber')}</FormLabel>
                           <FormControl>
-                            <Input {...field} value={field.value || ''} />
+                            <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -448,7 +477,7 @@ function Representative({ application }: RepresentativeProps) {
                         <FormItem>
                           <FormLabel>{tDocument('issuingAuthority')}</FormLabel>
                           <FormControl>
-                            <Input {...field} value={field.value || ''} />
+                            <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -461,7 +490,12 @@ function Representative({ application }: RepresentativeProps) {
                         <FormItem>
                           <FormLabel>{tDocument('issueDate')}</FormLabel>
                           <FormControl>
-                            <Input {...field} type="date" value={field.value || ''} />
+                            <Input
+                              {...field}
+                              type="date"
+                              value={field.value || ''}
+                              disabled={isSubmitted}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -474,7 +508,12 @@ function Representative({ application }: RepresentativeProps) {
                         <FormItem>
                           <FormLabel>{tDocument('expirationDate')}</FormLabel>
                           <FormControl>
-                            <Input {...field} type="date" value={field.value || ''} />
+                            <Input
+                              {...field}
+                              type="date"
+                              value={field.value || ''}
+                              disabled={isSubmitted}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

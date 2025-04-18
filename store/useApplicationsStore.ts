@@ -264,6 +264,9 @@ export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
             ? { ...state.currentApplication, isDeleted: true }
             : state.currentApplication,
       }));
+
+      // Обновляем список заявок
+      await get().fetchApplications();
     } catch (error) {
       console.error('Error in deleteApplication:', error);
       set({

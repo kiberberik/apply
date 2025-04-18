@@ -27,9 +27,10 @@ interface GroupWithPrograms extends EducationalProgramGroup {
 
 interface DetailsProps {
   application?: ExtendedApplication;
+  isSubmitted?: boolean;
 }
 
-function Details({ application }: DetailsProps) {
+function Details({ application, isSubmitted = false }: DetailsProps) {
   const t = useTranslations('Details');
   const tAcademicLevel = useTranslations('AcademicLevel');
   const tSupportLanguages = useTranslations('SupportLanguages');
@@ -101,7 +102,11 @@ function Details({ application }: DetailsProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('type')}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value || ''}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value || ''}
+                    disabled={isSubmitted}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={t('selectType')} />
@@ -126,7 +131,11 @@ function Details({ application }: DetailsProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('academicLevel')}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value || ''}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value || ''}
+                    disabled={isSubmitted}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={t('selectAcademicLevel')} />
@@ -151,7 +160,11 @@ function Details({ application }: DetailsProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('studyingLanguage')}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value || ''}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value || ''}
+                    disabled={isSubmitted}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={t('selectStudyingLanguage')} />
@@ -174,7 +187,11 @@ function Details({ application }: DetailsProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('contractLanguage')}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value || ''}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value || ''}
+                    disabled={isSubmitted}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={t('selectContractLanguage')} />
@@ -199,7 +216,11 @@ function Details({ application }: DetailsProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('educationalProgram')}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value || ''}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value || ''}
+                    disabled={isSubmitted}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={t('selectEducationalProgram')} />
@@ -284,7 +305,11 @@ function Details({ application }: DetailsProps) {
                   <FormLabel className="text-base">{t('isDormNeeds')}</FormLabel>
                 </div>
                 <FormControl>
-                  <Switch checked={field.value || false} onCheckedChange={field.onChange} />
+                  <Switch
+                    checked={field.value || false}
+                    onCheckedChange={field.onChange}
+                    disabled={isSubmitted}
+                  />
                 </FormControl>
               </FormItem>
             )}

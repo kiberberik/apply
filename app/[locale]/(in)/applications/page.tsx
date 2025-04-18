@@ -56,7 +56,7 @@ export default function ApplicationsPage() {
   };
 
   if (isLoading) {
-    return <div>Загрузка...</div>;
+    return <div>{c('loading')}</div>;
   }
 
   if (error) {

@@ -13,9 +13,10 @@ interface FormValues {
 interface RequiredDocsProps {
   form: ReturnType<typeof useForm<FormValues>>;
   application: ExtendedApplication;
+  isSubmitted?: boolean;
 }
 
-export const RequiredDocs = ({ form, application }: RequiredDocsProps) => {
+export function RequiredDocs({ form, application, isSubmitted = false }: RequiredDocsProps) {
   const { documents, fetchDocuments } = useRequiredDocuments();
 
   // console.log(documents);
@@ -75,6 +76,7 @@ export const RequiredDocs = ({ form, application }: RequiredDocsProps) => {
                       field.onChange(file);
                     }
                   }}
+                  disabled={isSubmitted}
                 />
               </FormControl>
             </FormItem>
@@ -83,4 +85,4 @@ export const RequiredDocs = ({ form, application }: RequiredDocsProps) => {
       ))}
     </div>
   );
-};
+}

@@ -14,9 +14,10 @@ import { cn } from '@/lib/utils';
 
 interface ApplicantProps {
   application: ExtendedApplication | null;
+  isSubmitted?: boolean;
 }
 
-function Applicant({ application }: ApplicantProps) {
+function Applicant({ application, isSubmitted = false }: ApplicantProps) {
   const t = useTranslations('Applicant');
   const c = useTranslations('Common');
   const tCitizenship = useTranslations('Citizenship');
@@ -69,6 +70,7 @@ function Applicant({ application }: ApplicantProps) {
                   <Select
                     onValueChange={(value) => field.onChange(value === 'true')}
                     defaultValue={field.value ? 'true' : 'false'}
+                    disabled={isSubmitted}
                   >
                     <FormControl>
                       <SelectTrigger
@@ -106,6 +108,7 @@ function Applicant({ application }: ApplicantProps) {
                             '',
                             isFieldChanged('citizenship') ? 'border-yellow-500' : '',
                           )}
+                          disabled={isSubmitted}
                         />
                       </FormControl>
                       <FormMessage />
@@ -123,7 +126,11 @@ function Applicant({ application }: ApplicantProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('documentType')}</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value || ''}>
+                      <Select
+                        disabled={isSubmitted}
+                        onValueChange={field.onChange}
+                        defaultValue={field.value || ''}
+                      >
                         <FormControl>
                           <SelectTrigger
                             className={cn(
@@ -164,6 +171,7 @@ function Applicant({ application }: ApplicantProps) {
                       multiple={false}
                       size={124 * 5}
                       accept="image/*"
+                      disabled={isSubmitted}
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (file) {
@@ -205,7 +213,9 @@ function Applicant({ application }: ApplicantProps) {
                 </FormItem>
               )}
             />
-            <Button className="my-5">Выгрузить данные из документа</Button>
+            <Button className="my-5" disabled={isSubmitted}>
+              {c('loadDataFromDocument')}
+            </Button>
           </div>
           <div className="my-auto grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
@@ -215,7 +225,7 @@ function Applicant({ application }: ApplicantProps) {
                 <FormItem>
                   <FormLabel>{tDocument('number')}</FormLabel>
                   <FormControl>
-                    <Input {...field} value={field.value || ''} />
+                    <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -228,7 +238,7 @@ function Applicant({ application }: ApplicantProps) {
                 <FormItem>
                   <FormLabel>{tDocument('issuingAuthority')}</FormLabel>
                   <FormControl>
-                    <Input {...field} value={field.value || ''} />
+                    <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -241,7 +251,12 @@ function Applicant({ application }: ApplicantProps) {
                 <FormItem>
                   <FormLabel>{tDocument('issueDate')}</FormLabel>
                   <FormControl>
-                    <Input {...field} type="date" value={field.value || ''} />
+                    <Input
+                      {...field}
+                      type="date"
+                      value={field.value || ''}
+                      disabled={isSubmitted}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -254,7 +269,12 @@ function Applicant({ application }: ApplicantProps) {
                 <FormItem>
                   <FormLabel>{tDocument('expirationDate')}</FormLabel>
                   <FormControl>
-                    <Input {...field} type="date" value={field.value || ''} />
+                    <Input
+                      {...field}
+                      type="date"
+                      value={field.value || ''}
+                      disabled={isSubmitted}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -273,7 +293,7 @@ function Applicant({ application }: ApplicantProps) {
                     <FormItem>
                       <FormLabel>{tDocument('identificationNumber')}</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || ''} />
+                        <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -289,7 +309,7 @@ function Applicant({ application }: ApplicantProps) {
                     <FormItem>
                       <FormLabel>{t('surname')}</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || ''} />
+                        <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -302,7 +322,7 @@ function Applicant({ application }: ApplicantProps) {
                     <FormItem>
                       <FormLabel>{t('givennames')}</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || ''} />
+                        <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -315,7 +335,7 @@ function Applicant({ application }: ApplicantProps) {
                     <FormItem>
                       <FormLabel>{t('patronymic')}</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || ''} />
+                        <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -331,7 +351,12 @@ function Applicant({ application }: ApplicantProps) {
                     <FormItem>
                       <FormLabel>{t('birthDate')}</FormLabel>
                       <FormControl>
-                        <Input {...field} type="date" value={field.value || ''} />
+                        <Input
+                          {...field}
+                          type="date"
+                          value={field.value || ''}
+                          disabled={isSubmitted}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -344,7 +369,7 @@ function Applicant({ application }: ApplicantProps) {
                     <FormItem>
                       <FormLabel>{t('birthPlace')}</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || ''} />
+                        <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -360,7 +385,12 @@ function Applicant({ application }: ApplicantProps) {
                     <FormItem>
                       <FormLabel>{t('email')}</FormLabel>
                       <FormControl>
-                        <Input {...field} type="email" value={field.value || ''} />
+                        <Input
+                          {...field}
+                          type="email"
+                          value={field.value || ''}
+                          disabled={isSubmitted}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -373,7 +403,7 @@ function Applicant({ application }: ApplicantProps) {
                     <FormItem>
                       <FormLabel>{t('phone')}</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || ''} />
+                        <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -389,7 +419,7 @@ function Applicant({ application }: ApplicantProps) {
                     <FormItem>
                       <FormLabel>{t('addressResidential')}</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || ''} />
+                        <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -402,7 +432,7 @@ function Applicant({ application }: ApplicantProps) {
                     <FormItem>
                       <FormLabel>{t('addressRegistration')}</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || ''} />
+                        <Input {...field} value={field.value || ''} disabled={isSubmitted} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

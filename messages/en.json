@@ -28,7 +28,8 @@
     "submit": "Submit",
     "deleteConfirmation": "Delete Confirmation",
     "deleteApplicationConfirmation": "Are you sure you want to delete this application? This action cannot be undone.",
-    "notFound": "Not Found"
+    "notFound": "Not Found",
+    "loadDataFromDocument": "Fill Data from Document"
   },
   "Roles": {
     "USER": "User",
@@ -260,7 +261,9 @@
     "email": "Email",
     "phone": "Phone",
     "addressResidential": "Residential Address",
-    "addressRegistration": "Registration Address"
+    "addressRegistration": "Registration Address",
+    "applicationSubmitted": "Application Submitted",
+    "applicationSubmittedDescription": "Application already submitted and cannot be changed."
   },
   "Representative": {
     "title": "Representative",
@@ -404,5 +407,10 @@
     "EARLY_REFUSED_TO_ENROLL": "Early Refused to Enroll",
     "REFUSED_TO_ENROLL": "Refused to Enroll",
     "REJECTED": "Rejected"
+  },
+  "LogHistory": {
+    "title": "Application Status History",
+    "noLogs": "No Application Status History",
+    "loading": "Loading Application Status History..."
   }
 }

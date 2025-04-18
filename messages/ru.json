@@ -28,7 +28,8 @@
     "submit": "Отправить",
     "deleteConfirmation": "Подтверждение удаления",
     "deleteApplicationConfirmation": "Вы уверены, что хотите удалить эту заявку? Это действие нельзя отменить.",
-    "notFound": "Не найдено"
+    "notFound": "Не найдено",
+    "loadDataFromDocument": "Заполнить данные из документа"
   },
   "Roles": {
     "USER": "Пользователь",
@@ -260,7 +261,9 @@
     "email": "Email",
     "phone": "Телефон",
     "addressResidential": "Адрес проживания",
-    "addressRegistration": "Адрес регистрации"
+    "addressRegistration": "Адрес регистрации",
+    "applicationSubmitted": "Заявка подана",
+    "applicationSubmittedDescription": "Заявка уже отправлена и не может быть изменена."
   },
   "Representative": {
     "title": "Представитель",
@@ -404,5 +407,10 @@
     "EARLY_REFUSED_TO_ENROLL": "Отказался от зачисления до подписания договора",
     "REFUSED_TO_ENROLL": "Отказался от зачисления после подписания договора",
     "REJECTED": "Отклонен"
+  },
+  "LogHistory": {
+    "title": "История изменений статуса заявки",
+    "noLogs": "История изменений статуса заявки отсутствует",
+    "loading": "Загрузка истории изменений статуса заявки..."
   }
 }

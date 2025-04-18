@@ -5,6 +5,9 @@ import ApplicationForm from '@/components/applicationForm/application-form';
 import Warning from '@/components/applicationForm/Warning';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useTranslations } from 'next-intl';
+import LogHistory from '@/components/applicationForm/LogHistory';
+import { hasAccess } from '@/lib/hasAccess';
+import { Role } from '@prisma/client';
 
 interface ApplicationPageProps {
   params: Promise<{
@@ -43,7 +46,7 @@ export default function ApplicationPage({ params }: ApplicationPageProps) {
   }
 
   // Проверка прав доступа
-  const hasAccess =
+  const hasAccessForm =
     user?.role === 'ADMIN' ||
     user?.role === 'MANAGER' ||
     (user?.createdApplications && user.createdApplications.some((app) => app.id === id)) ||
@@ -51,7 +54,7 @@ export default function ApplicationPage({ params }: ApplicationPageProps) {
     // Проверяем createdById в текущей заявке, если она доступна
     (application?.createdById && application.createdById === user?.id);
 
-  if (!hasAccess) {
+  if (!hasAccessForm) {
     return <div className="container mx-auto py-10 text-red-500">{c('noAccess')}</div>;
   }
 
@@ -279,6 +282,7 @@ export default function ApplicationPage({ params }: ApplicationPageProps) {
         </div> */}
         <Suspense fallback={'Загрузка...'}>
           <ApplicationForm id={id} />
+          {hasAccess(user?.role, Role.CONSULTANT) && <LogHistory />}
         </Suspense>
       </div>
     </div>
