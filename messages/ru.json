@@ -8,7 +8,7 @@
     "create": "Создать",
     "add": "Добавить",
     "close": "Закрыть",
-    "noAccess": "У вас нет доступа к этой странице",
+    "noAccess": "У вас нет доступа",
     "view": "Просмотр",
     "search": "Поиск",
     "loading": "Загрузка...",
@@ -27,7 +27,8 @@
     "next": "Следующий",
     "submit": "Отправить",
     "deleteConfirmation": "Подтверждение удаления",
-    "deleteApplicationConfirmation": "Вы уверены, что хотите удалить эту заявку? Это действие нельзя отменить."
+    "deleteApplicationConfirmation": "Вы уверены, что хотите удалить эту заявку? Это действие нельзя отменить.",
+    "notFound": "Не найдено"
   },
   "Roles": {
     "USER": "Пользователь",
@@ -53,10 +54,26 @@
     "title": "",
     "greeting": "Здравствуйте",
     "about": "Русский",
-    "status": "Статус",
     "started": "Начато",
     "submitted": "Подано",
-    "noApplication": "Вы еще не начали заполнение заявки."
+    "noApplication": "Вы еще не начали заполнение заявки.",
+    "emailNotVerified": "Ваш Email адрес не подтвержден. Пожалуйста, подтвердите его для подачи заявки.",
+    "resendVerification": "Отправить Email подтверждения",
+    "createApplication": "Создать заявку",
+    "emailSent": "Email подтверждения отправлен на вашу электронную почту:",
+    "applicationCreated": "Заявка успешно создана",
+    "applicationCreatedError": "Ошибка при создании заявки",
+    "applicationStatus": "Статус",
+    "applicationType": "Тип заявки",
+    "applicationDetails": "Детали заявки",
+    "applicationDocuments": "Документы заявки",
+    "applicationLog": "Лог заявки",
+    "yourApplications": "Ваши заявки",
+    "noApplications": "Нет заявок",
+    "createdAt": "Дата создания",
+    "submittedAt": "Дата подачи",
+    "applicationAcademicLevel": "Академическая степень",
+    "consultant": "Консультант"
   },
   "auth": {
     "signIn": "Вход",
@@ -120,7 +137,10 @@
     "successMessage": "Инструкции по подтверждению Email адреса отправлены на Email",
     "error": "Ошибка при подтверждении Email адреса",
     "invalidToken": "Недействительная или истекшая ссылка",
-    "emailVerified": "Email успешно подтвержден"
+    "emailVerified": "Email успешно подтвержден",
+    "emailVerifiedDescription": "Ваш email был успешно подтвержден. Перенаправляем вас на главную страницу...",
+    "returnToProfile": "Вернуться к профилю",
+    "checkingToken": "Проверка токена..."
   },
   "UserSettings": {
     "title": "Настройки профиля",
@@ -371,5 +391,18 @@
     "PREFERENTIAL": "Льготный",
     "FINANCIAL": "Финансовый",
     "OTHER": "Другой"
+  },
+  "ApplicationStatus": {
+    "DRAFT": "Черновик",
+    "PROCESSING": "В обработке",
+    "NEED_SIGNATURE": "Нужно подписать",
+    "REFUSED_TO_SIGN": "Отказался подписать",
+    "CHECK_DOCS": "Проверка документов",
+    "NEED_DOCS": "Необходимо дополнить документы",
+    "RE_PROCESSING": "Повторно в обработке",
+    "ENROLLED": "Зачислен",
+    "EARLY_REFUSED_TO_ENROLL": "Отказался от зачисления до подписания договора",
+    "REFUSED_TO_ENROLL": "Отказался от зачисления после подписания договора",
+    "REJECTED": "Отклонен"
   }
 }

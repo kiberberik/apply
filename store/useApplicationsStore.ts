@@ -1,25 +1,34 @@
 import { create } from 'zustand';
-import { Application, Applicant, Details, Log } from '@prisma/client';
+import { Application, Applicant, Details, Log, User } from '@prisma/client';
+import { useAuthStore } from './useAuthStore';
 
 interface ExtendedApplication extends Application {
   applicant: Applicant | null;
   details: Details | null;
   Log?: Log[];
+  consultant?: User | null;
 }
 
 interface ApplicationsState {
   applications: ExtendedApplication[];
+  userApplications: ExtendedApplication[]; // Заявки текущего пользователя
   currentApplication: ExtendedApplication | null;
   isLoading: boolean;
+  isLoadingUserApps: boolean; // Состояние загрузки заявок пользователя
   error: string | null;
+  userAppsError: string | null; // Ошибки при работе с заявками пользователя
 
-  // Actions
+  // Actions для всех заявок
   fetchApplications: () => Promise<void>;
   createApplication: (application: ExtendedApplication) => void;
   createNewApplication: () => Promise<ExtendedApplication | null>;
   updateApplication: (id: string, application: Partial<ExtendedApplication>) => void;
   deleteApplication: (id: string) => void;
   setCurrentApplication: (application: ExtendedApplication | null) => void;
+
+  // Actions для заявок пользователя
+  fetchUserApplications: () => Promise<void>; // Загрузка заявок пользователя
+  fetchDetailedUserApplications: () => Promise<void>; // Загрузка деталей заявок пользователя
 
   // Filters
   searchQuery: string;
@@ -32,9 +41,12 @@ interface ApplicationsState {
 
 export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
   applications: [],
+  userApplications: [], // Инициализация пустым массивом
   currentApplication: null,
   isLoading: false,
+  isLoadingUserApps: false, // Начальное состояние загрузки
   error: null,
+  userAppsError: null, // Начальное состояние ошибок
   searchQuery: '',
   sortBy: 'createdAt',
   sortDirection: 'desc',
@@ -73,15 +85,107 @@ export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
     }
   },
 
+  // Загрузка заявок текущего пользователя из API /api/me
+  fetchUserApplications: async () => {
+    set({ isLoadingUserApps: true, userAppsError: null });
+    try {
+      console.log('Fetching user applications...');
+      const response = await fetch('/api/me');
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Не удалось загрузить заявки пользователя');
+      }
+
+      const userData = await response.json();
+
+      if (!userData.createdApplications) {
+        console.log('User has no applications');
+        set({ userApplications: [], userAppsError: null });
+        return;
+      }
+
+      // Фильтрация: только не удаленные заявки
+      const userApps = userData.createdApplications.filter(
+        (app: ExtendedApplication) => app.isDeleted !== true,
+      );
+
+      console.log(`User has ${userApps.length} active applications`);
+      set({ userApplications: userApps, userAppsError: null });
+    } catch (error) {
+      console.error('Error fetching user applications:', error);
+      set({
+        userAppsError: error instanceof Error ? error.message : 'Ошибка загрузки заявок',
+        userApplications: [],
+      });
+    } finally {
+      set({ isLoadingUserApps: false });
+    }
+  },
+
+  // Загрузка детальной информации о заявках пользователя
+  fetchDetailedUserApplications: async () => {
+    const { userApplications } = get();
+
+    if (!userApplications.length) {
+      await get().fetchUserApplications();
+    }
+
+    const apps = get().userApplications;
+    if (!apps.length) return;
+
+    set({ isLoadingUserApps: true, userAppsError: null });
+
+    try {
+      console.log('Fetching detailed information for user applications...');
+
+      // Получаем детальные данные для каждой заявки пользователя
+      const applicationPromises = apps.map(async (app) => {
+        try {
+          const response = await fetch(`/api/applications/${app.id}?noCache=${Date.now()}`);
+          if (!response.ok) {
+            console.error(`Ошибка при загрузке заявки ${app.id}: ${response.status}`);
+            return app;
+          }
+          return await response.json();
+        } catch (error) {
+          console.error(`Ошибка при загрузке заявки ${app.id}:`, error);
+          return app;
+        }
+      });
+
+      const detailedApps = await Promise.all(applicationPromises);
+      console.log(`Loaded detailed data for ${detailedApps.length} applications`);
+
+      set({ userApplications: detailedApps, userAppsError: null });
+    } catch (error) {
+      console.error('Error loading detailed application data:', error);
+      set({
+        userAppsError:
+          error instanceof Error ? error.message : 'Ошибка при загрузке детальных данных заявок',
+      });
+    } finally {
+      set({ isLoadingUserApps: false });
+    }
+  },
+
   createNewApplication: async () => {
     set({ isLoading: true, error: null });
     try {
+      // Получаем id текущего пользователя из AuthStore
+      const authStore = useAuthStore.getState();
+      const userId = authStore.user?.id;
+
+      if (!userId) {
+        throw new Error('Пользователь не авторизован');
+      }
+
       const response = await fetch('/api/applications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({}), // Пустое тело запроса для создания заявки со значениями по умолчанию
+        body: JSON.stringify({ createdById: userId }), // Используем правильное поле createdById
       });
 
       if (!response.ok) {
@@ -92,8 +196,13 @@ export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
       const newApplication = await response.json();
       console.log('Создана новая заявка:', newApplication);
 
-      // Добавляем созданную заявку в состояние
+      // Добавляем созданную заявку в состояние общих заявок
       get().createApplication(newApplication);
+
+      // Добавляем также в заявки пользователя
+      set((state) => ({
+        userApplications: [...state.userApplications, newApplication],
+      }));
 
       return newApplication;
     } catch (error) {
@@ -116,6 +225,9 @@ export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
   updateApplication: (id, application) =>
     set((state) => ({
       applications: state.applications.map((app) =>
+        app.id === id ? { ...app, ...application } : app,
+      ),
+      userApplications: state.userApplications.map((app) =>
         app.id === id ? { ...app, ...application } : app,
       ),
       currentApplication:
@@ -142,6 +254,9 @@ export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
       // Обновляем состояние: устанавливаем isDeleted = true вместо удаления
       set((state) => ({
         applications: state.applications.map((app) =>
+          app.id === id ? { ...app, isDeleted: true } : app,
+        ),
+        userApplications: state.userApplications.map((app) =>
           app.id === id ? { ...app, isDeleted: true } : app,
         ),
         currentApplication:

@@ -130,23 +130,6 @@ const submitSchema = z.object({
 
 type FormValues = z.infer<typeof draftSchema>;
 
-// interface ApplicantFormProps {
-//   application: ExtendedApplication;
-// }
-
-// interface RepresentativeFormProps {
-//   application: ExtendedApplication;
-// }
-
-// interface DetailsFormProps {
-//   application: ExtendedApplication;
-// }
-
-// interface RequiredDocsProps {
-//   form: UseFormReturn<FormValues>;
-//   application: ExtendedApplication;
-// }
-
 export default function ApplicationForm({ id }: ApplicationFormProps) {
   const c = useTranslations('Common');
   const router = useRouter();

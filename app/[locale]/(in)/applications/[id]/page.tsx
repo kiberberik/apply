@@ -3,6 +3,8 @@ import { Suspense, useEffect, use } from 'react';
 import { useSingleApplication } from '@/store/useSingleApplication';
 import ApplicationForm from '@/components/applicationForm/application-form';
 import Warning from '@/components/applicationForm/Warning';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useTranslations } from 'next-intl';
 
 interface ApplicationPageProps {
   params: Promise<{
@@ -13,6 +15,10 @@ interface ApplicationPageProps {
 
 export default function ApplicationPage({ params }: ApplicationPageProps) {
   const { id } = use(params);
+  const { user } = useAuthStore();
+  const c = useTranslations('Common');
+  console.log('user', user);
+
   const { fetchApplication, application, isLoading, error } = useSingleApplication();
 
   useEffect(() => {
@@ -21,15 +27,32 @@ export default function ApplicationPage({ params }: ApplicationPageProps) {
   }, [id, fetchApplication]);
 
   if (isLoading) {
-    return <div className="container mx-auto py-10">Загрузка...</div>;
+    return <div className="container mx-auto py-10">{c('loading')}</div>;
   }
 
   if (error) {
-    return <div className="container mx-auto py-10 text-red-500">Ошибка: {error}</div>;
+    return (
+      <div className="container mx-auto py-10 text-red-500">
+        {c('error')}: {error}
+      </div>
+    );
   }
 
   if (!application) {
-    return <div className="container mx-auto py-10">Заявка не найдена</div>;
+    return <div className="container mx-auto py-10">{c('notFound')}</div>;
+  }
+
+  // Проверка прав доступа
+  const hasAccess =
+    user?.role === 'ADMIN' ||
+    user?.role === 'MANAGER' ||
+    (user?.createdApplications && user.createdApplications.some((app) => app.id === id)) ||
+    (user?.consultedApplications && user.consultedApplications.some((app) => app.id === id)) ||
+    // Проверяем createdById в текущей заявке, если она доступна
+    (application?.createdById && application.createdById === user?.id);
+
+  if (!hasAccess) {
+    return <div className="container mx-auto py-10 text-red-500">{c('noAccess')}</div>;
   }
 
   // const lastLog = application.Log?.[0];
@@ -37,7 +60,7 @@ export default function ApplicationPage({ params }: ApplicationPageProps) {
   return (
     <div className="container mx-auto py-10">
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Редактирование заявки</h2>
+        <h2 className="text-3xl font-bold tracking-tight">{c('edit')}</h2>
       </div>
       <Warning />
       <div className="mt-8">

@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { Button } from '@/components/ui/button';
 
 const VerifyEmail = () => {
   const { vToken } = useParams<{ vToken: string }>();
@@ -13,6 +14,7 @@ const VerifyEmail = () => {
   const [verified, setVerified] = useState(false);
   const router = useRouter();
   const locale = useLocale();
+  const t = useTranslations('emailVerification');
 
   useEffect(() => {
     let isMounted = true; // Флаг для предотвращения обновлений после размонтирования
@@ -20,8 +22,8 @@ const VerifyEmail = () => {
     const verify = async () => {
       if (!vToken) {
         if (isMounted) {
-          setError('Отсутствует токен верификации.');
-          toast.error('Отсутствует токен верификации.');
+          setError(t('invalidToken'));
+          toast.error(t('invalidToken'));
           setLoading(false);
         }
         return;
@@ -32,16 +34,13 @@ const VerifyEmail = () => {
         if (isMounted) {
           setLoading(false);
           setVerified(true); // Устанавливаем verified сразу после успешного вызова
-          toast.success('Email успешно подтвержден!');
-          setTimeout(() => {
-            if (isMounted) router.push('/');
-          }, 2000);
+          // toast.success(t('emailVerified'));
         }
       } catch (err) {
         if (isMounted) {
           setLoading(false);
           console.error('Ошибка верификации:', err);
-          const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
+          const errorMessage = err instanceof Error ? err.message : t('error');
           setError(errorMessage);
           toast.error(errorMessage);
         }
@@ -55,45 +54,48 @@ const VerifyEmail = () => {
     return () => {
       isMounted = false; // Очищаем флаг при размонтировании
     };
-  }, [vToken, verifyEmail, locale, router, error, verified]); // Убрали isEmailVerified из зависимостей
+  }, [vToken, verifyEmail, locale, router, error, verified, t]); // Убрали isEmailVerified из зависимостей
 
   useEffect(() => {
     if (error) {
       toast.error(error);
+      // setTimeout(() => {
+      //   router.push('/');
+      // }, 2000);
     }
     if (verified) {
-      toast.success('Email verified successfully');
+      toast.success(t('emailVerified'));
+      // Добавляем перенаправление после успешной верификации
+      setTimeout(() => {
+        router.push('/');
+      }, 2000);
     }
-  }, [error, verified]);
+  }, [error, verified, t, router]);
 
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <p>Проверка токена...</p>
+        <p>{t('checkingToken')}</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center text-red-500">
-        <h1 className="text-2xl font-semibold">Ошибка</h1>
+      <div className="flex h-screen flex-col items-center justify-center gap-6 text-red-500">
+        <h1 className="text-2xl font-semibold">{t('error')}</h1>
         <p>{error}</p>
-        <button
-          onClick={() => router.push('/')}
-          className="mt-4 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-        >
-          Вернуться к профилю
-        </button>
+        <Button onClick={() => router.push('/')}>{t('returnToProfile')}</Button>
       </div>
     );
   }
 
   if (verified) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center text-green-600">
-        <h1 className="text-2xl font-semibold">Email успешно подтвержден!</h1>
-        <p>Ваш email был успешно подтвержден. Перенаправляем вас на главную страницу...</p>
+      <div className="flex h-screen flex-col items-center justify-center gap-6 text-green-600">
+        <h1 className="text-2xl font-semibold">{t('emailVerified')}</h1>
+        <p>{t('emailVerifiedDescription')}</p>
+        <Button onClick={() => router.push('/')}>{t('returnToProfile')}</Button>
       </div>
     );
   }

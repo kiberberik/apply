@@ -52,14 +52,16 @@ export async function POST(req: Request) {
     const data = await req.json();
     console.log('Creating new application with data:', data);
 
+    const { createdById, ...restData } = data;
+
     const application = await prisma.application.create({
       data: {
-        ...data,
-        createdById: null,
+        ...restData,
+        createdById: createdById || null,
         Log: {
           create: {
             statusId: 'DRAFT',
-            createdById: null,
+            createdById: createdById || null,
           },
         },
       },

@@ -1,13 +1,14 @@
 {
   "Common": {
     "save": "Save",
+    "saveDraft": "Save Draft",
     "cancel": "Cancel",
     "delete": "Delete",
     "edit": "Edit",
     "create": "Create",
     "add": "Add",
     "close": "Close",
-    "noAccess": "You do not have access to this page",
+    "noAccess": "You do not have access",
     "view": "View",
     "search": "Search",
     "loading": "Loading...",
@@ -26,7 +27,8 @@
     "next": "Next",
     "submit": "Submit",
     "deleteConfirmation": "Delete Confirmation",
-    "deleteApplicationConfirmation": "Are you sure you want to delete this application? This action cannot be undone."
+    "deleteApplicationConfirmation": "Are you sure you want to delete this application? This action cannot be undone.",
+    "notFound": "Not Found"
   },
   "Roles": {
     "USER": "User",
@@ -54,7 +56,24 @@
     "about": "English",
     "started": "Started",
     "submitted": "Submitted",
-    "noApplication": "You have not yet started filling out the application."
+    "noApplication": "You have not yet started filling out the application.",
+    "emailNotVerified": "Your email is not verified. Please verify it for application submission.",
+    "resendVerification": "Send Verification Email",
+    "createApplication": "Create Application",
+    "emailSent": "Verification email sent to your email:",
+    "applicationCreated": "Application created successfully",
+    "applicationCreatedError": "Error creating application",
+    "applicationStatus": "Status",
+    "applicationType": "Application Type",
+    "applicationDetails": "Application Details",
+    "applicationDocuments": "Application Documents",
+    "applicationLog": "Application Log",
+    "yourApplications": "Your Applications",
+    "noApplications": "No Applications",
+    "createdAt": "Created At",
+    "submittedAt": "Submitted At",
+    "applicationAcademicLevel": "Academic Level",
+    "consultant": "Consultant"
   },
   "auth": {
     "signIn": "Sign In",
@@ -107,18 +126,21 @@
     "passwordChanged": "Password changed successfully"
   },
   "emailVerification": {
-    "notFound": "Пользователь не найден",
-    "emailSubject": "Подтверждение Email",
-    "emailTitle": "Подтверждение Email",
-    "emailDescription": "Вы получили это письмо для подтверждения Email адреса.",
-    "emailInstruction": "Для подтверждения Email адреса перейдите по ссылке:",
-    "confirmationButton": "Подтвердить Email",
-    "validityPeriod": "Ссылка действительна в течение 24 часов.",
-    "ignoreMessage": "Если вы не запрашивали подтверждение Email адреса, проигнорируйте это письмо.",
-    "successMessage": "Инструкции по подтверждению Email адреса отправлены на Email",
-    "error": "Ошибка при подтверждении Email адреса",
-    "invalidToken": "Недействительная или истекшая ссылка",
-    "emailVerified": "Email успешно подтвержден"
+    "notFound": "User not found",
+    "emailSubject": "Email Verification",
+    "emailTitle": "Email Verification",
+    "emailDescription": "You received this email to verify your email address.",
+    "emailInstruction": "To verify your email address, follow the link:",
+    "confirmationButton": "Verify Email",
+    "validityPeriod": "The link is valid for 24 hours.",
+    "ignoreMessage": "If you didn't request an email verification, please ignore this email.",
+    "successMessage": "Email verification instructions have been sent to your email",
+    "error": "Error during email verification",
+    "invalidToken": "Invalid or expired link",
+    "emailVerified": "Email successfully verified",
+    "emailVerifiedDescription": "Your email has been successfully verified. Redirecting you to the main page...",
+    "returnToProfile": "Return to profile",
+    "checkingToken": "Checking token..."
   },
   "UserSettings": {
     "title": "Profile Settings",
@@ -297,7 +319,8 @@
   "Citizenship": {
     "selectCitizenship": "Select Citizenship",
     "KAZAKHSTAN": "Kazakhstan",
-    "OTHER": "Other"
+    "OTHER": "Other",
+    "enterCitizenship": "Enter Citizenship"
   },
   "Documents": {
     "title": "Documents"
@@ -368,5 +391,18 @@
     "PREFERENTIAL": "Preferential",
     "FINANCIAL": "Financial",
     "OTHER": "Other"
+  },
+  "ApplicationStatus": {
+    "DRAFT": "Draft",
+    "PROCESSING": "Processing",
+    "NEED_SIGNATURE": "Need Signature",
+    "REFUSED_TO_SIGN": "Refused to Sign",
+    "CHECK_DOCS": "Check Docs",
+    "NEED_DOCS": "Need Docs",
+    "RE_PROCESSING": "Re-Processing",
+    "ENROLLED": "Enrolled",
+    "EARLY_REFUSED_TO_ENROLL": "Early Refused to Enroll",
+    "REFUSED_TO_ENROLL": "Refused to Enroll",
+    "REJECTED": "Rejected"
   }
 }

@@ -168,6 +168,7 @@ model Application {
     detailsId                 String?                    @unique
     createdAt                 DateTime                   @default(now())
     updatedAt                 DateTime                   @updatedAt
+    submittedAt               DateTime?
     Log                       Log[]
     User                      User?                      @relation(fields: [userId], references: [id])
     userId                    String?

@@ -39,6 +39,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
             role: true,
           },
         },
+        consultant: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
     });
 

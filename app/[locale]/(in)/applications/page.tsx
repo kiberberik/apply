@@ -1,6 +1,7 @@
 'use client';
 
 import { useApplicationsStore } from '@/store/useApplicationsStore';
+import { useAuthStore } from '@/store/useAuthStore';
 import { useEffect, useState } from 'react';
 import { Suspense } from 'react';
 import { useTranslations } from 'next-intl';
@@ -14,6 +15,7 @@ import { toast } from 'react-toastify';
 
 export default function ApplicationsPage() {
   const { isLoading, error, fetchApplications, createNewApplication } = useApplicationsStore();
+  const { fetchUser } = useAuthStore();
   const t = useTranslations('Applications');
   const c = useTranslations('Common');
   const router = useRouter();
@@ -36,6 +38,9 @@ export default function ApplicationsPage() {
       if (!newApplication) {
         throw new Error('Не удалось создать заявку');
       }
+
+      // Обновляем данные пользователя, чтобы получить информацию о новой заявке
+      await fetchUser();
 
       // Показываем уведомление об успешном создании
       toast.success('Заявка успешно создана');

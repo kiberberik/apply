@@ -1,13 +1,14 @@
 {
   "Common": {
     "save": "Сақтау",
+    "saveDraft": "Черновикті сақтау",
     "cancel": "Болдырмау",
     "delete": "Жою",
     "edit": "Өңдеу",
     "create": "Құру",
     "add": "Қосу",
     "close": "Жабу",
-    "noAccess": "Бұл парақшаға сізде рұқсат жоқ",
+    "noAccess": "Сізде рұқсат жоқ",
     "view": "Көру",
     "search": "Іздеу",
     "loading": "Жүктелуде...",
@@ -26,7 +27,8 @@
     "next": "Келесі",
     "submit": "Жіберу",
     "deleteConfirmation": "Жоюды растау",
-    "deleteApplicationConfirmation": "Өтінімді жоюды растауыңыз керек пе?"
+    "deleteApplicationConfirmation": "Өтінімді жоюды растауыңыз керек пе?",
+    "notFound": "Табылмады"
   },
   "Roles": {
     "USER": "Пайдаланушы",
@@ -54,7 +56,24 @@
     "about": "Қазақша",
     "started": "Басталды",
     "submitted": "Жолданды",
-    "noApplication": "Сіз өтінім толтыруды әлі бастаған жоқсыз."
+    "noApplication": "Сіз өтінім толтыруды әлі бастаған жоқсыз.",
+    "emailNotVerified": "Сіздің Email мекенжайыңыз расталмаған. Өтінім жолдау үшін растауыңызды сұраймыз.",
+    "resendVerification": "Email растауын жіберу",
+    "createApplication": "Өтінім құру",
+    "emailSent": "Email растауы сіздің электрондық поштаңызға жіберілді:",
+    "applicationCreated": "Өтінім сәтті қосылды",
+    "applicationCreatedError": "Өтінім қосу кезінде қате орын алды",
+    "applicationStatus": "Статусы",
+    "applicationType": "Өтінім түрі",
+    "applicationDetails": "Өтінім толық мәліметтері",
+    "applicationDocuments": "Өтінім құжаттары",
+    "applicationLog": "Өтінім журналы",
+    "yourApplications": "Сіздің өтінімдеріңіз",
+    "noApplications": "Өтінімдер жоқ",
+    "createdAt": "Құрылған күні",
+    "submittedAt": "Жолданған күні",
+    "applicationAcademicLevel": "Академиялық дәреже",
+    "consultant": "Кеңесші"
   },
   "auth": {
     "signIn": "Кіру",
@@ -107,18 +126,21 @@
     "passwordChanged": "Құпия сөз сәтті өзгертілді"
   },
   "emailVerification": {
-    "notFound": "Пользователь не найден",
-    "emailSubject": "Подтверждение Email",
-    "emailTitle": "Подтверждение Email",
-    "emailDescription": "Вы получили это письмо для подтверждения Email адреса.",
-    "emailInstruction": "Для подтверждения Email адреса перейдите по ссылке:",
-    "confirmationButton": "Подтвердить Email",
-    "validityPeriod": "Ссылка действительна в течение 24 часов.",
-    "ignoreMessage": "Если вы не запрашивали подтверждение Email адреса, проигнорируйте это письмо.",
-    "successMessage": "Инструкции по подтверждению Email адреса отправлены на Email",
-    "error": "Ошибка при подтверждении Email адреса",
-    "invalidToken": "Недействительная или истекшая ссылка",
-    "emailVerified": "Email успешно подтвержден"
+    "notFound": "Пайдаланушы табылмады",
+    "emailSubject": "Email растауы",
+    "emailTitle": "Email растауы",
+    "emailDescription": "Сіз осы хатты алдыңыз, себебі Email адресіңізді растауыңызды сұрағаныңыз үшін.",
+    "emailInstruction": "Email адресіңізді растау үшін сілтемеге өтіңіз:",
+    "confirmationButton": "Email растауы",
+    "validityPeriod": "Сілтеме 24 сағат бойы жарамды.",
+    "ignoreMessage": "Егер сіз Email адресіңізді растауыңызды сұрамаған болсаңыз, бұл хатты елемеңіз.",
+    "successMessage": "Email растауы нұсқаулары электрондық поштаға жіберілді",
+    "error": "Email растауы кезінде қате пайда болды",
+    "invalidToken": "Жарамсыз немесе мерзімі өткен сілтеме",
+    "emailVerified": "Email сәтті расталған",
+    "emailVerifiedDescription": "Сіздің email сәтті расталған. Басты бетке оралу...",
+    "returnToProfile": "Басты бетке оралу",
+    "checkingToken": "Токенді тексеру..."
   },
   "UserSettings": {
     "title": "Профиль қондырғылары",
@@ -297,7 +319,8 @@
   "Citizenship": {
     "selectCitizenship": "Азаматтықты таңдаңыз",
     "KAZAKHSTAN": "Қазақстан",
-    "OTHER": "Басқа"
+    "OTHER": "Басқа",
+    "enterCitizenship": "Азаматтығыңызды енгізіңіз"
   },
   "Documents": {
     "title": "Құжаттар"
@@ -357,8 +380,8 @@
   "StudyType": {
     "PAID": "Ақылы",
     "GRANT": "Грант",
-    "CONDITIONAL": "Conditional",
-    "NONE_DEGREE": "Non-degree",
+    "CONDITIONAL": "Шартты",
+    "NONE_DEGREE": "Дәрежесіз",
     "OTHER": "Басқа"
   },
   "DocumentType": {
@@ -368,5 +391,18 @@
     "PREFERENTIAL": "Артықшылықты",
     "FINANCIAL": "Қаржылық",
     "OTHER": "Басқа"
+  },
+  "ApplicationStatus": {
+    "DRAFT": "Черновик",
+    "PROCESSING": "Өңделуде",
+    "NEED_SIGNATURE": "Қол қою қажет",
+    "REFUSED_TO_SIGN": "Қол қоюдан бас тартты",
+    "CHECK_DOCS": "Құжаттарды тексеру",
+    "NEED_DOCS": "Құжаттарды толықтыру қажет",
+    "RE_PROCESSING": "Қайта өңдеуде",
+    "ENROLLED": "Қабылданды",
+    "EARLY_REFUSED_TO_ENROLL": "Келісім-шартқа қол қоймай тұрып оқуға түсуден бас тартты",
+    "REFUSED_TO_ENROLL": "Келісім-шартқа қол қойғаннан кейін оқуға түсуден бас тартты",
+    "REJECTED": "Қабылданбады"
   }
 }
