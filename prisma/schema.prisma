@@ -1,0 +1,377 @@
+datasource db {
+    provider = "mysql"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+enum Role {
+    USER
+    CONSULTANT
+    MANAGER
+    LAWYER
+    ADMIN
+}
+
+model User {
+    id                     String        @id @default(cuid())
+    name                   String?
+    email                  String?       @unique
+    password               String?
+    role                   Role          @default(USER)
+    emailVerified          DateTime?
+    emailVerificationToken String?       @unique
+    image                  String?
+    accounts               Account[]
+    sessions               Session[]
+    createdApplications    Application[] @relation("CreatedApplications")
+    consultedApplications  Application[] @relation("ConsultedApplications")
+    uploadedDocuments      Document[]    @relation("UploadedBy")
+    logs                   Log[]         @relation("LogCreator")
+
+    // Отношения только между менеджером и его консультантами
+    manager     User?         @relation("ManagerConsultant", fields: [managerId], references: [id])
+    managerId   String?
+    consultants User[]        @relation("ManagerConsultant")
+    Application Application[]
+}
+
+model Account {
+    id                String  @id @default(cuid())
+    userId            String
+    user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    type              String
+    provider          String
+    providerAccountId String
+    refresh_token     String? @db.Text
+    access_token      String? @db.Text
+    expires_at        Int?
+    token_type        String?
+    scope             String?
+    id_token          String? @db.Text
+    session_state     String?
+
+    @@unique([provider, providerAccountId])
+}
+
+model Session {
+    id           String   @id @default(cuid())
+    sessionToken String   @unique
+    userId       String
+    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    expires      DateTime
+}
+
+model VerificationToken {
+    identifier String
+    token      String   @unique
+    expires    DateTime
+
+    @@unique([identifier, token])
+}
+
+enum DocumentType {
+    IDENTIFICATION
+    EDUCATIONAL
+    PREFERENTIAL
+    MEDICAL
+    FINANCIAL
+    OTHER
+}
+
+enum IdentificationDocumentType {
+    ID_CARD
+    PASSPORT
+}
+
+enum Citizenship {
+    KAZAKHSTAN
+    OTHER
+}
+
+enum ApplicationStatus {
+    DRAFT
+    PROCESSING
+    NEED_SIGNATURE
+    REFUSED_TO_SIGN
+    CHECK_DOCS
+    NEED_DOCS
+    RE_PROCESSING
+    ENROLLED
+    EARLY_REFUSED_TO_ENROLL
+    REFUSED_TO_ENROLL
+    REJECTED
+}
+
+enum ContractTerminationStatus {
+    NEED_SIGNATURE_TERMINATE_CONTRACT
+    REFUSED_TO_SIGN_TERMINATE_CONTRACT
+    SIGNED_TERMINATE_CONTRACT
+}
+
+enum AcademicLevel {
+    BACHELORS
+    MASTERS
+    DOCTORAL
+}
+
+enum StudyType {
+    PAID
+    GRANT
+    NONE_DEGREE
+    CONDITIONAL
+}
+
+enum SupportLanguages {
+    RUS
+    KAZ
+    ENG
+}
+
+enum RelationshipDegree {
+    PARENT
+    GUARDIAN
+    TRUSTEE
+}
+
+enum Country {
+    KAZAKHSTAN
+    OTHER
+}
+
+enum AgeCategory {
+    ADULT
+    MINOR
+}
+
+enum ContactSignType {
+    TRUSTME
+    OFFLINE
+    NOT_SIGNED
+}
+
+model Application {
+    id                        String                     @id @default(cuid())
+    createdBy                 User?                      @relation("CreatedApplications", fields: [createdById], references: [id])
+    createdById               String?
+    consultant                User?                      @relation("ConsultedApplications", fields: [consultantId], references: [id])
+    consultantId              String?
+    applicant                 Applicant?                 @relation(fields: [applicantId], references: [id])
+    applicantId               String?
+    representative            Representative?            @relation(fields: [representativeId], references: [id])
+    representativeId          String?
+    documents                 Document[]
+    details                   Details?                   @relation(fields: [detailsId], references: [id])
+    detailsId                 String?                    @unique
+    createdAt                 DateTime                   @default(now())
+    updatedAt                 DateTime                   @updatedAt
+    submittedAt               DateTime?
+    Log                       Log[]
+    User                      User?                      @relation(fields: [userId], references: [id])
+    userId                    String?
+    isDeleted                 Boolean?                   @default(false)
+    contractSignType          ContactSignType?           @default(NOT_SIGNED)
+    contractTerminationStatus ContractTerminationStatus?
+    contractTerminationDate   DateTime?
+    contractLanguage          SupportLanguages?          @default(RUS)
+}
+
+model Details {
+    id                   String              @id @default(cuid())
+    application          Application?        @relation()
+    applicationId        String?             @unique
+    type                 StudyType?
+    academicLevel        AcademicLevel?
+    isDormNeeds          Boolean?
+    studyingLanguage     SupportLanguages?
+    educationalProgram   EducationalProgram? @relation(fields: [educationalProgramId], references: [id])
+    educationalProgramId String?
+    createdAt            DateTime            @default(now())
+    updatedAt            DateTime            @updatedAt
+}
+
+model Applicant {
+    id                       String                      @id @default(cuid())
+    applications             Application[]
+    representative           Representative?             @relation("ApplicantRepresentative")
+    givennames               String?
+    patronymic               String?
+    surname                  String?
+    birthDate                DateTime?
+    birthPlace               String?
+    isCitizenshipKz          Boolean?                    @default(true)
+    citizenship              String?
+    identificationNumber     String?
+    documentType             IdentificationDocumentType?
+    documentNumber           String?
+    documentIssueDate        DateTime?
+    documentExpiryDate       DateTime?
+    documentIssuingAuthority String?
+    documentFileLinks        String?                     @db.Text
+    email                    String?
+    phone                    String?
+    addressResidential       String?
+    addressRegistration      String?
+    documents                Document[]                  @relation("ApplicantDocuments")
+    createdAt                DateTime?                   @default(now())
+    updatedAt                DateTime?                   @updatedAt
+}
+
+model Representative {
+    id                                     String                      @id @default(cuid())
+    applicant                              Applicant?                  @relation("ApplicantRepresentative", fields: [applicantId], references: [id])
+    applicantId                            String?                     @unique
+    applications                           Application[]
+    givennames                             String?
+    patronymic                             String?
+    surname                                String?
+    isCitizenshipKz                        Boolean?                    @default(true)
+    citizenship                            String?
+    identificationNumber                   String?
+    documentType                           IdentificationDocumentType?
+    documentNumber                         String?
+    documentIssueDate                      DateTime?
+    documentExpiryDate                     DateTime?
+    documentIssuingAuthority               String?
+    documentFileLinks                      String?                     @db.Text
+    representativeDocumentNumber           String?
+    representativeDocumentIssueDate        DateTime?
+    representativeDocumentExpiryDate       DateTime?
+    representativeDocumentIssuingAuthority String?
+    representativeDocumentFileLinks        String?                     @db.Text
+    relationshipDegree                     RelationshipDegree?         @default(PARENT)
+    email                                  String?
+    phone                                  String?
+    addressResidential                     String?
+    addressRegistration                    String?
+    createdAt                              DateTime                    @default(now())
+    updatedAt                              DateTime                    @updatedAt
+}
+
+model Document {
+    id                  String        @id @default(cuid())
+    user                Applicant?    @relation("ApplicantDocuments", fields: [userId], references: [id])
+    userId              String?
+    application         Application?  @relation(fields: [applicationId], references: [id])
+    applicationId       String?
+    uploadedBy          User?         @relation("UploadedBy", fields: [uploadedById], references: [id])
+    uploadedById        String?
+    link                String?
+    code                String?
+    name                String?
+    number              String?
+    issuingAuthority    String?
+    issueDate           DateTime?
+    expirationDate      DateTime?
+    diplomaSerialNumber String?
+    additionalInfo1     String?
+    additionalInfo2     String?
+    isDelivered         Boolean?      @default(false)
+    description         String?
+    type                DocumentType?
+    createdAt           DateTime      @default(now())
+    updatedAt           DateTime      @updatedAt
+}
+
+model RequiredDocument {
+    id             String        @id @default(cuid())
+    name_rus       String?
+    name_kaz       String?
+    name_eng       String?
+    code           String?
+    type           DocumentType?
+    isNeedOriginal Boolean?      @default(true)
+    isScanRequired Boolean?      @default(true)
+    description    String?
+    isDeleted      Boolean       @default(false)
+    countries      String        @db.Text // JSON string of Country[]
+    academicLevels String        @db.Text // JSON string of AcademicLevel[]
+    studyTypes     String        @db.Text // JSON string of StudyType[]
+    ageCategories  String        @db.Text // JSON string of AgeCategory[]
+    createdAt      DateTime      @default(now())
+    updatedAt      DateTime      @updatedAt
+}
+
+model Log {
+    id            String             @id @default(cuid())
+    createdBy     User?              @relation("LogCreator", fields: [createdById], references: [id])
+    createdById   String?
+    statusId      ApplicationStatus?
+    createdAt     DateTime           @default(now())
+    updatedAt     DateTime           @updatedAt
+    application   Application?       @relation(fields: [applicationId], references: [id])
+    applicationId String?
+    description   String?
+}
+
+model EducationalProgramGroup {
+    id             String               @id @default(cuid())
+    name_rus       String?
+    name_kaz       String?
+    name_eng       String?
+    code           String?
+    programs       EducationalProgram[]
+    academic_level AcademicLevel?
+    visibility     Boolean?             @default(true)
+    isDeleted      Boolean?             @default(false)
+    createdAt      DateTime             @default(now())
+    updatedAt      DateTime             @updatedAt
+}
+
+model Language {
+    id        String                       @id @default(cuid())
+    code      SupportLanguages
+    name_rus  String?
+    name_kaz  String?
+    name_eng  String?
+    programs  EducationalProgramLanguage[]
+    createdAt DateTime                     @default(now())
+    updatedAt DateTime                     @updatedAt
+
+    @@unique([code])
+}
+
+model EducationalProgram {
+    id             String                       @id @default(cuid())
+    name_rus       String?
+    name_kaz       String?
+    name_eng       String?
+    code           String?
+    group          EducationalProgramGroup?     @relation(fields: [groupId], references: [id])
+    groupId        String?
+    academic_level AcademicLevel?
+    duration       Int?
+    languages      EducationalProgramLanguage[]
+    visibility     Boolean?                     @default(true)
+    isDeleted      Boolean?                     @default(false)
+    costPerCredit  String?
+    createdAt      DateTime                     @default(now())
+    updatedAt      DateTime                     @updatedAt
+    Details        Details[]
+}
+
+model EducationalProgramLanguage {
+    id                   String             @id @default(cuid())
+    educationalProgram   EducationalProgram @relation(fields: [educationalProgramId], references: [id], onDelete: Cascade)
+    educationalProgramId String
+    language             Language           @relation(fields: [languageId], references: [id])
+    languageId           String
+
+    @@unique([educationalProgramId, languageId])
+}
+
+model Instruction {
+    id        String   @id @default(cuid())
+    content   String   @db.Text
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model ApplicantAccepting {
+    id        String   @id @default(cuid())
+    isOpen    Boolean? @default(true)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}

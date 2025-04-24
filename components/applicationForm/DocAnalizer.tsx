@@ -1,0 +1,314 @@
+import React, { useEffect, useState } from 'react';
+import { DocumentUpload } from '../docReader/DocumentUpload';
+import { CameraCapture } from '../docReader/CameraCapture';
+import { OpenAIResponse } from '../docReader/OpenAIResponse';
+import { useTranslations } from 'next-intl';
+import { IdentificationDocumentType } from '@prisma/client';
+import { useSingleApplication } from '@/store/useSingleApplication';
+import { useFormContext, Path, PathValue } from 'react-hook-form';
+import { formatToDatabaseDate } from '@/lib/dateUtils';
+import { toast } from 'react-toastify';
+import { useLogStore } from '@/store/useLogStore';
+
+interface DocAnalizerProps {
+  id: string;
+  activeTab?: string;
+  setHasUnsavedChanges: (hasUnsavedChanges: boolean) => void;
+  setActiveTab: (activeTab: string) => void;
+  isAdult: boolean;
+  setFormValue: <T extends Record<string, unknown>, K extends Path<T>>(
+    path: K,
+    value: PathValue<T, K>,
+    options?: { shouldValidate?: boolean; shouldDirty?: boolean; shouldTouch?: boolean },
+  ) => void;
+}
+interface DocumentData {
+  docType?: string;
+  type?: string;
+  givennames?: string;
+  surname?: string;
+  patronymic?: string;
+  birthDate?: string;
+  birthPlace?: string;
+  documentNumber?: string;
+  issueDate?: string;
+  expirationDate?: string;
+  issuingAuthority?: string;
+  identificationNumber?: string;
+  citizenship?: string;
+  error?: string;
+  documentIds?: string[];
+  documentUrls?: string[];
+  activeTab?: string;
+  [key: string]: unknown;
+}
+
+const DocAnalizer = ({ id, activeTab, setActiveTab, isAdult, setFormValue }: DocAnalizerProps) => {
+  const [images, setImages] = useState<string[]>([]);
+  const c = useTranslations('Common');
+  const [openAIResponse, setOpenAIResponse] = useState<DocumentData | string>();
+  const { updateApplication, fetchApplication } = useSingleApplication();
+  const form = useFormContext();
+  const [processingData, setProcessingData] = useState(false);
+  const { getLatestLogByApplicationId } = useLogStore();
+  const latestLog = getLatestLogByApplicationId(id);
+
+  const handleOpenAIResponse = async (response: string | object, tabName?: string) => {
+    try {
+      setProcessingData(true);
+
+      let parsedData: DocumentData | undefined;
+
+      if (typeof response === 'string') {
+        const jsonMatch = response.match(/```json\s*\n([\s\S]*?)\n```/);
+
+        if (jsonMatch && jsonMatch[1]) {
+          parsedData = JSON.parse(jsonMatch[1]) as DocumentData;
+          console.log('Извлеченные данные из OpenAI (markdown):', parsedData);
+        } else {
+          try {
+            parsedData = JSON.parse(response) as DocumentData;
+            console.log('Извлеченные данные из OpenAI (прямой парсинг):', parsedData);
+          } catch (error) {
+            console.error('Ошибка парсинга JSON:', error);
+            setOpenAIResponse(response);
+            setProcessingData(false);
+            return;
+          }
+        }
+      } else {
+        // Если response уже является объектом, используем его напрямую
+        parsedData = response as DocumentData;
+        console.log('Данные уже в формате объекта:', parsedData);
+      }
+
+      const currentTab = tabName || activeTab;
+      let success = false;
+
+      if (currentTab === 'representative' && !isAdult) {
+        success = await applyDocumentDataToRepresentativeForm(parsedData);
+      } else {
+        success = await applyDocumentDataToApplicantForm(parsedData);
+      }
+
+      if (success) {
+        setOpenAIResponse(parsedData);
+        toast.success(c('dataProcessedSuccessfully'));
+      } else {
+        setOpenAIResponse(typeof response === 'string' ? response : JSON.stringify(response));
+        toast.error(c('dataProcessingError'));
+      }
+    } catch (error) {
+      console.error('Ошибка при обработке ответа OpenAI:', error);
+      setOpenAIResponse(typeof response === 'string' ? response : JSON.stringify(response));
+      toast.error(c('dataProcessingError'));
+    } finally {
+      setProcessingData(false);
+    }
+  };
+
+  const applyDocumentDataToApplicantForm = async (documentData: DocumentData) => {
+    try {
+      let docType: IdentificationDocumentType = IdentificationDocumentType.ID_CARD;
+
+      if (documentData.docType === 'PASSPORT') {
+        docType = IdentificationDocumentType.PASSPORT;
+      }
+
+      let isCitizenshipKz = true;
+      if (documentData.citizenship && documentData.citizenship !== 'Казахстан') {
+        isCitizenshipKz = false;
+      }
+
+      const hasForm = form !== null && form !== undefined;
+      const currentValues = hasForm ? form.getValues() : { applicant: {} };
+
+      let documentFileLinks = null;
+      if (documentData.documentUrls && documentData.documentUrls.length > 0) {
+        documentFileLinks = JSON.stringify(documentData.documentUrls);
+      } else if (documentData.documentIds && documentData.documentIds.length > 0) {
+        documentFileLinks = JSON.stringify(documentData.documentIds);
+      }
+
+      const updateData = {
+        applicant: {
+          givennames: documentData.givennames || currentValues.applicant?.givennames || '',
+          surname: documentData.surname || currentValues.applicant?.surname || '',
+          patronymic: documentData.patronymic || currentValues.applicant?.patronymic || '',
+          identificationNumber:
+            documentData.identificationNumber ||
+            currentValues.applicant?.identificationNumber ||
+            '',
+          birthPlace: documentData.birthPlace || currentValues.applicant?.birthPlace || '',
+          birthDate: documentData.birthDate
+            ? formatToDatabaseDate(documentData.birthDate)
+            : undefined,
+          isCitizenshipKz: isCitizenshipKz,
+          citizenship: documentData.citizenship || currentValues.applicant?.citizenship || '',
+          documentType: docType,
+          documentNumber: documentData.documentNumber || '',
+          documentIssueDate: documentData.issueDate
+            ? formatToDatabaseDate(documentData.issueDate)
+            : undefined,
+          documentExpiryDate: documentData.expirationDate
+            ? formatToDatabaseDate(documentData.expirationDate)
+            : undefined,
+          documentIssuingAuthority: documentData.issuingAuthority || '',
+          documentFileLinks: documentFileLinks,
+        },
+      };
+
+      // Обновляем значения формы
+      setFormValue('applicant', updateData.applicant, {
+        shouldDirty: false,
+        shouldTouch: false,
+        shouldValidate: false,
+      });
+
+      if (id) {
+        try {
+          await updateApplication(id, updateData);
+          await fetchApplication(id);
+        } catch (error) {
+          console.error('Ошибка при обновлении заявки:', error);
+          return false;
+        }
+      }
+
+      setActiveTab('applicant');
+      return true;
+    } catch (error) {
+      console.error('Ошибка при применении данных к форме заявителя:', error);
+      return false;
+    }
+  };
+
+  const applyDocumentDataToRepresentativeForm = async (documentData: DocumentData) => {
+    try {
+      let docType: IdentificationDocumentType = IdentificationDocumentType.ID_CARD;
+
+      if (documentData.docType === 'PASSPORT') {
+        docType = IdentificationDocumentType.PASSPORT;
+      }
+
+      let isCitizenshipKz = true;
+      if (documentData.citizenship && documentData.citizenship !== 'Казахстан') {
+        isCitizenshipKz = false;
+      }
+
+      const hasForm = form !== null && form !== undefined;
+      const currentValues = hasForm ? form.getValues() : { representative: {} };
+
+      let documentFileLinks = null;
+      if (documentData.documentUrls && documentData.documentUrls.length > 0) {
+        documentFileLinks = JSON.stringify(documentData.documentUrls);
+      } else if (documentData.documentIds && documentData.documentIds.length > 0) {
+        documentFileLinks = JSON.stringify(documentData.documentIds);
+      }
+
+      const updateData = {
+        representative: {
+          givennames: documentData.givennames || currentValues.representative?.givennames || '',
+          surname: documentData.surname || currentValues.representative?.surname || '',
+          patronymic: documentData.patronymic || currentValues.representative?.patronymic || '',
+          identificationNumber:
+            documentData.identificationNumber ||
+            currentValues.representative?.identificationNumber ||
+            '',
+          isCitizenshipKz: isCitizenshipKz,
+          citizenship: documentData.citizenship || currentValues.representative?.citizenship || '',
+          documentType: docType,
+          // Поля документа удостоверения личности
+          documentNumber: documentData.documentNumber || '',
+          documentIssueDate: documentData.issueDate
+            ? formatToDatabaseDate(documentData.issueDate)
+            : undefined,
+          documentExpiryDate: documentData.expirationDate
+            ? formatToDatabaseDate(documentData.expirationDate)
+            : undefined,
+          documentIssuingAuthority: documentData.issuingAuthority || '',
+          documentFileLinks: documentFileLinks,
+        },
+      };
+
+      setFormValue('representative', updateData.representative, {
+        shouldDirty: false,
+        shouldTouch: false,
+        shouldValidate: false,
+      });
+
+      if (id) {
+        try {
+          await updateApplication(id, updateData);
+          await fetchApplication(id);
+        } catch (error) {
+          console.error('Ошибка при обновлении заявки:', error);
+          return false;
+        }
+      }
+      setActiveTab('representative');
+      return true;
+    } catch (error) {
+      console.error('Ошибка при применении данных к форме представителя:', error);
+      return false;
+    }
+  };
+
+  const handleImageAdd = (newImages: string[]) => {
+    setImages((prev) => [...prev, ...newImages]);
+  };
+
+  const handleImageDelete = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  useEffect(() => {
+    console.log('openAIResponse изменился:', openAIResponse);
+  }, [openAIResponse]);
+
+  if (
+    latestLog?.statusId !== 'PROCESSING' &&
+    latestLog?.statusId !== 'RE_PROCESSING' &&
+    latestLog?.statusId !== 'DRAFT'
+  ) {
+    return null;
+  }
+
+  if (activeTab !== 'applicant' && activeTab !== 'representative') {
+    return null;
+  }
+
+  return (
+    <div className="rounded-md bg-gray-100 p-2 md:p-8">
+      <div className="mx-auto max-w-6xl space-y-4">
+        <h2 className="text-center text-lg font-bold">
+          {c(activeTab === 'applicant' ? 'applicant' : 'representative')}
+        </h2>
+        <p className="text-center text-sm text-gray-500">{c('uploadDocumentsDescription')}</p>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <DocumentUpload
+            onImagesAdd={handleImageAdd}
+            images={images}
+            onDelete={handleImageDelete}
+          />
+          <CameraCapture onImagesAdd={handleImageAdd} />
+        </div>
+        <OpenAIResponse
+          images={images}
+          onResponse={(response) => handleOpenAIResponse(response, activeTab)}
+          applicationId={id}
+          activeTab={activeTab}
+          isProcessing={processingData}
+        />
+
+        {openAIResponse && typeof openAIResponse === 'object' && 'error' in openAIResponse && (
+          <div className="mt-4 flex justify-center">
+            <p className="text-2xl text-red-500">{c('criteriaError')}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default DocAnalizer;
