@@ -146,7 +146,7 @@ export function DataTable({ columns, data }: DataTableProps) {
   const [searchValue, setSearchValue] = useState('');
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 4,
+    pageSize: 10,
   });
   const { applications, isLoading, error } = useApplicationsStore();
   const c = useTranslations('Common');

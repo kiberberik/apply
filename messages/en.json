@@ -275,7 +275,7 @@
     "columnsSubmittedAt": "Date",
     "contractSignType": "Contract Sign",
     "infoTitle": "Application Information",
-    "searchPlaceholder": "Search by applicant"
+    "searchPlaceholder": "Search for applicant"
   },
   "Applicant": {
     "title": "Applicant",

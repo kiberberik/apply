@@ -275,7 +275,7 @@
     "columnsSubmittedAt": "Дата",
     "contractSignType": "Заключение договора",
     "infoTitle": "Информация о заявке",
-    "searchPlaceholder": "Поиск по абитуриента"
+    "searchPlaceholder": "Поиск абитуриента"
   },
   "Applicant": {
     "title": "Абитуриент",
