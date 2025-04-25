@@ -221,7 +221,7 @@ function Details({ application, isSubmitted = false }: DetailsProps) {
 
             <FormField
               control={form.control}
-              name="details.contractLanguage"
+              name="contractLanguage"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('contractLanguage')}</FormLabel>

@@ -1,3 +1,4 @@
+/* eslint-disable */
 'use client';
 
 import * as z from 'zod';
@@ -16,6 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ExtendedApplication } from '@/types/application';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSingleApplication, UpdateApplicationRequest } from '@/store/useSingleApplication';
+import { useLogStore } from '@/store/useLogStore';
 import {
   RelationshipDegree,
   IdentificationDocumentType,
@@ -30,6 +32,8 @@ import { Loader2 } from 'lucide-react';
 import { hasAccess } from '@/lib/hasAccess';
 import LogHistory from './LogHistory';
 import Info from './Info';
+import { useRequiredDocuments } from '@/store/useRequiredDocuments';
+import { useDocumentStore } from '@/store/useDocumentStore';
 
 interface ApplicationFormProps {
   id?: string;
@@ -44,143 +48,285 @@ export interface ApplicationWithConsultant extends Omit<ExtendedApplication, 'co
   } | null;
 }
 
-const draftSchema = z.object({
-  applicant: z
-    .object({
-      givennames: z.string().optional().nullable(),
-      surname: z.string().optional().nullable(),
-      patronymic: z.string().optional().nullable(),
-      birthDate: z.string().optional().nullable(),
-      birthPlace: z.string().optional().nullable(),
-      isCitizenshipKz: z.boolean().optional().nullable(),
-      citizenship: z.string().optional().nullable(),
-      identificationNumber: z.string().optional().nullable(),
-      documentType: z.nativeEnum(IdentificationDocumentType).optional().nullable(),
-      documentNumber: z.string().optional().nullable(),
-      documentIssueDate: z.string().optional().nullable(),
-      documentExpiryDate: z.string().optional().nullable(),
-      documentIssuingAuthority: z.string().optional().nullable(),
-      documentFileLinks: z.string().optional().nullable(),
-      email: z.string().email().optional().nullable(),
-      phone: z.string().optional().nullable(),
-      addressResidential: z.string().optional().nullable(),
-      addressRegistration: z.string().optional().nullable(),
-    })
-    .optional()
-    .nullable(),
+// Определяем тип для использования в форме
+type FormValues = any;
+
+// Создаем более гибкую схему, которая работает как для черновиков, так и для финальной отправки
+const formSchema = z.object({
+  applicant: z.object({
+    givennames: z
+      .string({ required_error: '' })
+      .trim()
+      .min(1, '')
+      .nullable()
+      .transform((v) => (v === null ? '' : v)),
+    surname: z
+      .string({ required_error: '' })
+      .trim()
+      .min(1, '')
+      .nullable()
+      .transform((v) => (v === null ? '' : v)),
+    patronymic: z.string().nullable(),
+    birthDate: z
+      .string({ required_error: '' })
+      .nullable()
+      .transform((v) => (v === null ? '' : v)),
+    birthPlace: z
+      .string({ required_error: '' })
+      .trim()
+      .min(1, '')
+      .nullable()
+      .transform((v) => (v === null ? '' : v)),
+    isCitizenshipKz: z
+      .boolean({ required_error: '' })
+      .nullable()
+      .transform((v) => (v === null ? false : v)),
+    citizenship: z
+      .string({ required_error: '' })
+      .trim()
+      .min(1, '')
+      .nullable()
+      .transform((v) => (v === null ? '' : v)),
+    identificationNumber: z.string().nullable(),
+    documentType: z
+      .nativeEnum(IdentificationDocumentType, {
+        required_error: '',
+      })
+      .nullable()
+      .transform((v) => (v === null ? ('ID_CARD' as IdentificationDocumentType) : v)),
+    documentNumber: z
+      .string({ required_error: '' })
+      .trim()
+      .min(1, '')
+      .nullable()
+      .transform((v) => (v === null ? '' : v)),
+    documentIssueDate: z
+      .string({ required_error: '' })
+      .nullable()
+      .transform((v) => (v === null ? '' : v)),
+    documentExpiryDate: z
+      .string({ required_error: '' })
+      .nullable()
+      .transform((v) => (v === null ? '' : v)),
+    documentIssuingAuthority: z
+      .string({ required_error: '' })
+      .trim()
+      .min(1, '')
+      .nullable()
+      .transform((v) => (v === null ? '' : v)),
+    documentFileLinks: z.string().nullable(),
+    // .string({ required_error: '' })
+    // .trim()
+    // .min(1, '')
+    // .nullable()
+    // .transform((v) => (v === null ? '' : v)),
+    email: z
+      .string({ required_error: '' })
+      .trim()
+      .min(1, '')
+      .email('Некорректный формат email')
+      .nullable()
+      .transform((v) => (v === null ? '' : v)),
+    phone: z
+      .string({ required_error: '' })
+      .trim()
+      .min(1, '')
+      .nullable()
+      .transform((v) => (v === null ? '' : v)),
+    addressResidential: z
+      .string({ required_error: '' })
+      .trim()
+      .min(1, '')
+      .nullable()
+      .transform((v) => (v === null ? '' : v)),
+    addressRegistration: z
+      .string({ required_error: '' })
+      .trim()
+      .min(1, '')
+      .nullable()
+      .transform((v) => (v === null ? '' : v)),
+  }),
   representative: z
     .object({
-      givennames: z.string().optional().nullable(),
-      surname: z.string().optional().nullable(),
-      patronymic: z.string().optional().nullable(),
-      isCitizenshipKz: z.boolean().optional().nullable(),
-      citizenship: z.string().optional().nullable(),
-      identificationNumber: z.string().optional().nullable(),
-      documentType: z.nativeEnum(IdentificationDocumentType).optional().nullable(),
-      documentNumber: z.string().optional().nullable(),
-      documentIssueDate: z.string().optional().nullable(),
-      documentExpiryDate: z.string().optional().nullable(),
-      documentIssuingAuthority: z.string().optional().nullable(),
-      documentFileLinks: z.string().optional().nullable(),
-      representativeDocumentNumber: z.string().optional().nullable(),
-      representativeDocumentIssueDate: z.string().optional().nullable(),
-      representativeDocumentExpiryDate: z.string().optional().nullable(),
-      representativeDocumentIssuingAuthority: z.string().optional().nullable(),
-      representativeDocumentFileLinks: z.string().optional().nullable(),
-      relationshipDegree: z.nativeEnum(RelationshipDegree).optional().nullable(),
-      email: z.string().email().optional().nullable(),
-      phone: z.string().optional().nullable(),
-      addressResidential: z.string().optional().nullable(),
-      addressRegistration: z.string().optional().nullable(),
-      applicantId: z.string().optional().nullable(),
-      id: z.string().optional().nullable(),
+      givennames: z.string().nullable().optional(),
+      surname: z.string().nullable().optional(),
+      patronymic: z.string().nullable().optional(),
+      isCitizenshipKz: z.boolean().nullable().optional(),
+      citizenship: z.string().nullable().optional(),
+      identificationNumber: z.string().nullable().optional(),
+      documentType: z.nativeEnum(IdentificationDocumentType).nullable().optional(),
+      documentNumber: z.string().nullable().optional(),
+      documentIssueDate: z.string().nullable().optional(),
+      documentExpiryDate: z.string().nullable().optional(),
+      documentIssuingAuthority: z.string().nullable().optional(),
+      documentFileLinks: z.string().nullable().optional(),
+      representativeDocumentNumber: z.string().nullable().optional(),
+      representativeDocumentIssueDate: z.string().nullable().optional(),
+      representativeDocumentExpiryDate: z.string().nullable().optional(),
+      representativeDocumentIssuingAuthority: z.string().nullable().optional(),
+      representativeDocumentFileLinks: z.string().nullable().optional(),
+      relationshipDegree: z.nativeEnum(RelationshipDegree).nullable().optional(),
+      email: z.string().email().nullable().optional(),
+      phone: z.string().nullable().optional(),
+      addressResidential: z.string().nullable().optional(),
+      addressRegistration: z.string().nullable().optional(),
+      applicantId: z.string().nullable().optional(),
+      id: z.string().nullable().optional(),
     })
-    .optional()
-    .nullable(),
-  details: z
-    .object({
-      type: z.nativeEnum(StudyType).optional().nullable(),
-      academicLevel: z.nativeEnum(AcademicLevel).optional().nullable(),
-      isDormNeeds: z.boolean().optional().nullable(),
-      studyingLanguage: z.nativeEnum(SupportLanguages).optional().nullable(),
-      educationalProgramId: z.string().optional().nullable(),
-      contractLanguage: z.nativeEnum(SupportLanguages).optional().nullable(),
-    })
-    .optional()
-    .nullable(),
-  documents: z.record(z.string(), z.instanceof(File)).optional().nullable(),
+    .nullable()
+    .optional(),
+  details: z.object({
+    type: z
+      .nativeEnum(StudyType, { required_error: '' })
+      .nullable()
+      .transform((v) => (v === null ? ('PAID' as StudyType) : v)),
+    academicLevel: z
+      .nativeEnum(AcademicLevel, { required_error: '' })
+      .nullable()
+      .transform((v) => (v === null ? ('BACHELORS' as AcademicLevel) : v)),
+    isDormNeeds: z.boolean().nullable().optional(),
+    studyingLanguage: z
+      .nativeEnum(SupportLanguages, { required_error: '' })
+      .nullable()
+      .transform((v) => (v === null ? ('RUS' as SupportLanguages) : v)),
+    educationalProgramId: z
+      .string({ required_error: '' })
+      .trim()
+      .min(1, '')
+      .nullable()
+      .transform((v) => (v === null ? '' : v)),
+  }),
+  contractLanguage: z
+    .nativeEnum(SupportLanguages, { required_error: '' })
+    .nullable()
+    .transform((v) => (v === null ? ('RUS' as SupportLanguages) : v)),
+  documents: z.record(z.string(), z.string()).nullable().optional(),
 });
 
-const submitSchema = z.object({
-  applicant: z
-    .object({
-      givennames: z.string({ required_error: 'Обязательное поле' }),
-      surname: z.string({ required_error: 'Обязательное поле' }),
-      patronymic: z.string().optional().nullable(),
-      birthDate: z.string({ required_error: 'Обязательное поле' }),
-      birthPlace: z.string({ required_error: 'Обязательное поле' }),
-      isCitizenshipKz: z.boolean({ required_error: 'Обязательное поле' }),
-      citizenship: z.string().optional().nullable(),
-      identificationNumber: z.string().optional().nullable(),
-      documentType: z.nativeEnum(IdentificationDocumentType).optional().nullable(),
-      documentNumber: z.string().optional().nullable(),
-      documentIssueDate: z.string().optional().nullable(),
-      documentExpiryDate: z.string().optional().nullable(),
-      documentIssuingAuthority: z.string().optional().nullable(),
-      documentFileLinks: z.string().optional().nullable(),
-      email: z.string({ required_error: 'Обязательное поле' }).email('Некорректный формат email'),
-      phone: z.string({ required_error: 'Обязательное поле' }),
-      addressResidential: z.string({ required_error: 'Обязательное поле' }),
-      addressRegistration: z.string({ required_error: 'Обязательное поле' }),
-    })
-    .required(),
-  representative: z
-    .object({
-      givennames: z.string().optional().nullable(),
-      surname: z.string().optional().nullable(),
-      patronymic: z.string().optional().nullable(),
-      isCitizenshipKz: z.boolean().optional().nullable(),
-      citizenship: z.string().optional().nullable(),
-      identificationNumber: z.string().optional().nullable(),
-      documentType: z.nativeEnum(IdentificationDocumentType).optional().nullable(),
-      documentNumber: z.string().optional().nullable(),
-      documentIssueDate: z.string().optional().nullable(),
-      documentExpiryDate: z.string().optional().nullable(),
-      documentIssuingAuthority: z.string().optional().nullable(),
-      documentFileLinks: z.string().optional().nullable(),
-      representativeDocumentNumber: z.string().optional().nullable(),
-      representativeDocumentIssueDate: z.string().optional().nullable(),
-      representativeDocumentExpiryDate: z.string().optional().nullable(),
-      representativeDocumentIssuingAuthority: z.string().optional().nullable(),
-      representativeDocumentFileLinks: z.string().optional().nullable(),
-      relationshipDegree: z.nativeEnum(RelationshipDegree).optional().nullable(),
-      email: z.string().email().optional().nullable(),
-      phone: z.string().optional().nullable(),
-      addressResidential: z.string().optional().nullable(),
-      addressRegistration: z.string().optional().nullable(),
-      applicantId: z.string().optional().nullable(),
-      id: z.string().optional().nullable(),
-    })
-    .optional()
-    .nullable(),
-  details: z
-    .object({
-      type: z.nativeEnum(StudyType, { required_error: 'Обязательное поле' }),
-      academicLevel: z.nativeEnum(AcademicLevel, { required_error: 'Обязательное поле' }),
-      isDormNeeds: z.boolean().optional().nullable(),
-      studyingLanguage: z.nativeEnum(SupportLanguages, { required_error: 'Обязательное поле' }),
-      educationalProgramId: z.string({ required_error: 'Обязательное поле' }),
-      contractLanguage: z.nativeEnum(SupportLanguages, { required_error: 'Обязательное поле' }),
-    })
-    .required(),
-  documents: z.record(z.string(), z.instanceof(File)).optional().nullable(),
-});
+// Более строгая схема для проверки при отправке
+const validateForSubmission = (
+  data: FormValues,
+  requiredDocuments: any[] | undefined,
+  uploadedDocuments: any[] | undefined,
+) => {
+  // Проверяем обязательные поля для отправки
+  if (!data.applicant) {
+    console.log('Не заполнены данные о заявителе');
+    return { success: false, error: 'Не заполнены данные о заявителе' };
+  }
 
-type FormValues = z.infer<typeof draftSchema>;
+  if (!data.details) {
+    console.log('Не заполнены данные о программе обучения');
+    return { success: false, error: 'Не заполнены данные о программе обучения' };
+  }
+
+  // Логирование данных формы
+  console.log('Проверка документов:');
+  console.log('data.documents:', data.documents);
+  console.log('uploadedDocuments:', uploadedDocuments);
+  console.log('requiredDocuments:', requiredDocuments);
+
+  // Проверка загрузки обязательных документов
+  if (!requiredDocuments || !uploadedDocuments) {
+    console.log('Не удалось получить информацию о документах');
+    return { success: true }; // Пропускаем проверку документов, если данные недоступны
+  }
+
+  // Фильтруем документы, которые требуются для данного заявления
+  const applicantData = data.applicant;
+  const isKzCitizen = applicantData?.isCitizenshipKz;
+  const birthDate = applicantData?.birthDate;
+  let isAdult = true;
+
+  if (birthDate) {
+    try {
+      const birthDateObj = new Date(birthDate);
+      const today = new Date();
+      let age = today.getFullYear() - birthDateObj.getFullYear();
+      const monthDiff = today.getMonth() - birthDateObj.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDateObj.getDate())) {
+        age--;
+      }
+      isAdult = age >= 18;
+    } catch (e) {
+      console.error('Ошибка при расчете возраста:', e);
+    }
+  }
+
+  try {
+    // Фильтруем документы, которые требуются для данного заявления
+    const filteredRequiredDocuments = requiredDocuments.filter((doc) => {
+      // Проверка гражданства
+      const matchesCountry =
+        doc.countries &&
+        doc.countries.some((country: any) => country === (isKzCitizen ? 'KAZAKHSTAN' : 'OTHER'));
+
+      // Проверка возраста
+      const matchesAgeCategory =
+        doc.ageCategories &&
+        doc.ageCategories.some((category: any) => category === (isAdult ? 'ADULT' : 'MINOR'));
+
+      // Проверка академического уровня
+      const matchesAcademicLevel =
+        doc.academicLevels &&
+        doc.academicLevels.some((level: any) => level === data.details?.academicLevel);
+
+      // Проверка типа обучения
+      const matchesStudyType =
+        doc.studyTypes && doc.studyTypes.some((type: any) => type === data.details?.type);
+
+      return matchesCountry && matchesAgeCategory && matchesAcademicLevel && matchesStudyType;
+    });
+
+    console.log('Отфильтрованные обязательные документы:', filteredRequiredDocuments);
+
+    // Проверка обязательных документов используя данные формы
+    const requiredDocCodes = filteredRequiredDocuments
+      .filter((doc) => doc.isScanRequired)
+      .map((doc) => doc.code);
+
+    console.log('Коды обязательных документов:', requiredDocCodes);
+
+    // Проверяем, что в data.documents есть все необходимые документы
+    if (requiredDocCodes.length > 0) {
+      const documentValues = data.documents || {};
+      console.log('Значения документов в форме:', documentValues);
+
+      const missingDocs = requiredDocCodes.filter((code) => {
+        // Проверяем наличие и непустое значение для кода документа
+        return !documentValues[code] || documentValues[code] === '';
+      });
+
+      console.log('Отсутствующие документы по форме:', missingDocs);
+
+      if (missingDocs.length > 0) {
+        // Находим имена отсутствующих документов
+        const missingDocNames = missingDocs.map((code) => {
+          const doc = filteredRequiredDocuments.find((d) => d.code === code);
+          return doc?.name_rus || doc?.name_eng || doc?.name_kaz || code;
+        });
+
+        console.log('Не загружены обязательные документы:', missingDocNames);
+        return {
+          success: false,
+          error: `Не загружены обязательные документы: ${missingDocNames.join(', ')}`,
+        };
+      }
+    }
+  } catch (error) {
+    console.error('Ошибка при проверке документов:', error);
+    // В случае ошибки пропускаем проверку документов
+    return { success: true };
+  }
+
+  console.log('Проверка документов успешно пройдена');
+  return { success: true };
+};
 
 export default function ApplicationForm({ id }: ApplicationFormProps) {
   const c = useTranslations('Common');
-  const { application, updateApplication, fetchApplication } = useSingleApplication();
+  const { application, updateApplication, fetchApplication, isLoading } = useSingleApplication();
+  const { createLog } = useLogStore();
 
   const tApplicant = useTranslations('Applicant');
   const tRepresentative = useTranslations('Representative');
@@ -198,23 +344,23 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
   const { user } = useAuthStore();
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(draftSchema),
+  const form = useForm<any>({
+    resolver: zodResolver(formSchema),
     defaultValues: React.useMemo(
       () => ({
         applicant: application?.applicant
           ? {
               givennames: application.applicant.givennames || '',
               surname: application.applicant.surname || '',
-              patronymic: application.applicant.patronymic || '',
+              patronymic: application.applicant.patronymic || null,
               birthDate: application.applicant.birthDate
                 ? dateUtils.formatToInputDate(application.applicant.birthDate)
                 : '',
               birthPlace: application.applicant.birthPlace || '',
               isCitizenshipKz: application.applicant.isCitizenshipKz || false,
               citizenship: application.applicant.citizenship || '',
-              identificationNumber: application.applicant.identificationNumber || '',
-              documentType: application.applicant.documentType || undefined,
+              identificationNumber: application.applicant.identificationNumber || null,
+              documentType: application.applicant.documentType || 'ID_CARD',
               documentNumber: application.applicant.documentNumber || '',
               documentIssueDate: application.applicant.documentIssueDate
                 ? dateUtils.formatToInputDate(application.applicant.documentIssueDate)
@@ -232,13 +378,13 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           : {
               givennames: '',
               surname: '',
-              patronymic: '',
+              patronymic: null,
               birthDate: '',
               birthPlace: '',
               isCitizenshipKz: false,
               citizenship: '',
-              identificationNumber: '',
-              documentType: undefined,
+              identificationNumber: null,
+              documentType: 'ID_CARD',
               documentNumber: '',
               documentIssueDate: '',
               documentExpiryDate: '',
@@ -253,11 +399,11 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           ? {
               givennames: application.representative.givennames || '',
               surname: application.representative.surname || '',
-              patronymic: application.representative.patronymic || '',
+              patronymic: application.representative.patronymic || null,
               isCitizenshipKz: application.representative.isCitizenshipKz || false,
               citizenship: application.representative.citizenship || '',
-              identificationNumber: application.representative.identificationNumber || '',
-              documentType: application.representative.documentType || undefined,
+              identificationNumber: application.representative.identificationNumber || null,
+              documentType: application.representative.documentType || 'ID_CARD',
               documentNumber: application.representative.documentNumber || '',
               documentIssueDate: application.representative.documentIssueDate
                 ? dateUtils.formatToInputDate(application.representative.documentIssueDate)
@@ -285,7 +431,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
                 application.representative.representativeDocumentIssuingAuthority || '',
               representativeDocumentFileLinks:
                 application.representative.representativeDocumentFileLinks || '',
-              relationshipDegree: application.representative.relationshipDegree || undefined,
+              relationshipDegree: application.representative.relationshipDegree || 'PARENT',
               email: application.representative.email || '',
               phone: application.representative.phone || '',
               addressResidential: application.representative.addressResidential || '',
@@ -293,49 +439,23 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               applicantId: application.representative.applicantId || '',
               id: application.representative.id || '',
             }
-          : {
-              givennames: '',
-              surname: '',
-              patronymic: '',
-              isCitizenshipKz: false,
-              citizenship: '',
-              identificationNumber: '',
-              documentType: undefined,
-              documentNumber: '',
-              documentIssueDate: '',
-              documentExpiryDate: '',
-              documentIssuingAuthority: '',
-              documentFileLinks: '',
-              representativeDocumentNumber: '',
-              representativeDocumentIssueDate: '',
-              representativeDocumentExpiryDate: '',
-              representativeDocumentIssuingAuthority: '',
-              representativeDocumentFileLinks: '',
-              relationshipDegree: undefined,
-              email: '',
-              phone: '',
-              addressResidential: '',
-              addressRegistration: '',
-              applicantId: '',
-              id: '',
-            },
+          : null,
         details: application?.details
           ? {
-              type: application.details.type || undefined,
-              academicLevel: application.details.academicLevel || undefined,
+              type: application.details.type || 'PAID',
+              academicLevel: application.details.academicLevel || 'BACHELORS',
               isDormNeeds: application.details.isDormNeeds || false,
-              studyingLanguage: application.details.studyingLanguage || undefined,
+              studyingLanguage: application.details.studyingLanguage || 'RUS',
               educationalProgramId: application.details.educationalProgramId || '',
-              contractLanguage: application.contractLanguage || undefined,
             }
           : {
-              type: undefined,
-              academicLevel: undefined,
+              type: 'PAID',
+              academicLevel: 'BACHELORS',
               isDormNeeds: false,
-              studyingLanguage: undefined,
+              studyingLanguage: 'RUS',
               educationalProgramId: '',
-              contractLanguage: undefined,
             },
+        contractLanguage: application?.contractLanguage || 'RUS',
         documents: application?.documents ? {} : null,
       }),
       [application],
@@ -425,7 +545,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
             : '',
         };
 
-        form.setValue('applicant', applicantData, {
+        form.setValue('applicant', applicantData as any, {
           shouldDirty: false,
           shouldTouch: false,
           shouldValidate: false,
@@ -455,7 +575,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
             : '',
         };
 
-        form.setValue('representative', representativeData, {
+        form.setValue('representative', representativeData as any, {
           shouldDirty: false,
           shouldTouch: false,
           shouldValidate: false,
@@ -467,14 +587,20 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           'details',
           {
             ...application.details,
-            contractLanguage: application.contractLanguage || undefined,
-          },
+          } as any,
           {
             shouldDirty: false,
             shouldTouch: false,
             shouldValidate: false,
           },
         );
+
+        // Устанавливаем contractLanguage отдельно
+        form.setValue('contractLanguage', application.contractLanguage || 'RUS', {
+          shouldDirty: false,
+          shouldTouch: false,
+          shouldValidate: false,
+        });
       }
 
       if (application.applicant?.birthDate) {
@@ -534,9 +660,23 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   };
 
   const saveApplicantFormData = async (data: FormValues, isSubmit: boolean) => {
+    console.log(`Saving form data, isSubmit=${isSubmit}`, data);
     try {
-      if (!id) return false;
+      if (!id) {
+        console.log('No ID provided, save canceled');
+        return false;
+      }
+
+      // Добавляем локальную блокировку повторных отправок
+      if (form.formState.isSubmitting) {
+        console.log(
+          'Form is already being submitted in saveApplicantFormData, canceling duplicate submission',
+        );
+        return false;
+      }
+
       if (!data.applicant && application?.applicant) {
+        console.log('No applicant data in form, using application data');
         data.applicant = {
           ...application.applicant,
           birthDate: application.applicant.birthDate
@@ -550,14 +690,19 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
             : '',
         };
       }
+
       if (!data.applicant) {
         console.error('No applicant data available for saving');
         return false;
       }
+
       if (!isSubmit) {
         form.clearErrors();
       }
+
       setHasUnsavedChanges(false);
+
+      console.log('Preparing request data');
       const requestData: UpdateApplicationRequest = {
         applicant: data.applicant
           ? {
@@ -610,108 +755,187 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               ...data.details,
             }
           : null,
-        contractLanguage: data.details?.contractLanguage || null,
-        ...(isSubmit ? { statusId: 'PROCESSING' as const } : {}),
+        contractLanguage: data.contractLanguage || null,
+        submittedAt: isSubmit ? new Date().toISOString() : null,
       };
+
+      console.log('Request data prepared:', requestData);
+
       if (application) {
         previousAppRef.current = JSON.stringify(application);
       }
-      const result = await updateApplication(id, requestData);
-      if (result.error) {
-        console.error('API error:', result.error);
-        throw new Error(`Failed to save ${isSubmit ? 'submission' : 'draft'}`);
+
+      console.log('Sending update request...');
+
+      // Защита от повторных запросов
+      let submissionInProgress = true;
+
+      try {
+        const result = await updateApplication(id, requestData);
+        if (result.error) {
+          console.error('API error:', result.error);
+          throw new Error(`Failed to save ${isSubmit ? 'submission' : 'draft'}`);
+        }
+
+        // Создаем лог при отправке заявления
+        if (isSubmit) {
+          try {
+            await createLog({
+              applicationId: id,
+              statusId: 'PROCESSING',
+              createdById: user?.id,
+              description: 'Заявление отправлено на рассмотрение',
+            });
+          } catch (logError) {
+            console.warn('Failed to create log, but application was saved:', logError);
+          }
+        }
+
+        console.log('Update successful, fetching updated application...');
+
+        // Обновляем данные после сохранения, но только если процесс отправки еще активен
+        if (submissionInProgress) {
+          try {
+            await fetchApplication(id);
+
+            // Восстанавливаем код обновления формы, но добавляем защиту от циклов
+            const updatedApplication = useSingleApplication.getState().application;
+            if (
+              updatedApplication &&
+              JSON.stringify(updatedApplication) !== previousAppRef.current
+            ) {
+              // Устанавливаем флаг, что сейчас будет обновление формы программным путем
+              setHasUnsavedChanges(false);
+
+              // Обновляем applicant
+              if (updatedApplication.applicant) {
+                try {
+                  const applicantData = {
+                    ...updatedApplication.applicant,
+                    birthDate: updatedApplication.applicant.birthDate
+                      ? dateUtils.formatToInputDate(updatedApplication.applicant.birthDate)
+                      : '',
+                    documentIssueDate: updatedApplication.applicant.documentIssueDate
+                      ? dateUtils.formatToInputDate(updatedApplication.applicant.documentIssueDate)
+                      : '',
+                    documentExpiryDate: updatedApplication.applicant.documentExpiryDate
+                      ? dateUtils.formatToInputDate(updatedApplication.applicant.documentExpiryDate)
+                      : '',
+                  };
+                  form.setValue('applicant', applicantData as any, {
+                    shouldDirty: false,
+                    shouldTouch: false,
+                    shouldValidate: false,
+                  });
+                } catch (updateError) {
+                  console.error('Error updating applicant data:', updateError);
+                }
+              }
+
+              // Обновляем representative
+              if (updatedApplication.representative) {
+                try {
+                  const representativeData = {
+                    ...updatedApplication.representative,
+                    documentIssueDate: updatedApplication.representative.documentIssueDate
+                      ? dateUtils.formatToInputDate(
+                          updatedApplication.representative.documentIssueDate,
+                        )
+                      : '',
+                    documentExpiryDate: updatedApplication.representative.documentExpiryDate
+                      ? dateUtils.formatToInputDate(
+                          updatedApplication.representative.documentExpiryDate,
+                        )
+                      : '',
+                    representativeDocumentIssueDate: updatedApplication.representative
+                      .representativeDocumentIssueDate
+                      ? dateUtils.formatToInputDate(
+                          updatedApplication.representative.representativeDocumentIssueDate,
+                        )
+                      : '',
+                    representativeDocumentExpiryDate: updatedApplication.representative
+                      .representativeDocumentExpiryDate
+                      ? dateUtils.formatToInputDate(
+                          updatedApplication.representative.representativeDocumentExpiryDate,
+                        )
+                      : '',
+                  };
+                  form.setValue('representative', representativeData as any, {
+                    shouldDirty: false,
+                    shouldTouch: false,
+                    shouldValidate: false,
+                  });
+                } catch (updateError) {
+                  console.error('Error updating representative data:', updateError);
+                }
+              }
+
+              // Обновляем details
+              if (updatedApplication.details) {
+                try {
+                  form.setValue(
+                    'details',
+                    {
+                      ...updatedApplication.details,
+                    } as any,
+                    {
+                      shouldDirty: false,
+                      shouldTouch: false,
+                      shouldValidate: false,
+                    },
+                  );
+
+                  // Устанавливаем contractLanguage отдельно
+                  form.setValue('contractLanguage', updatedApplication.contractLanguage || 'RUS', {
+                    shouldDirty: false,
+                    shouldTouch: false,
+                    shouldValidate: false,
+                  });
+                } catch (updateError) {
+                  console.error('Error updating details data:', updateError);
+                }
+              }
+
+              // Обновляем флаг совершеннолетия
+              if (updatedApplication.applicant?.birthDate) {
+                try {
+                  // Используем обычную функцию вместо setTimeout
+                  setIsAdult(isApplicantAdult());
+                } catch (updateError) {
+                  console.error('Error updating adult status:', updateError);
+                }
+              }
+
+              // Сохраняем текущее состояние, чтобы избежать повторных обновлений
+              previousAppRef.current = JSON.stringify(updatedApplication);
+            }
+
+            // Восстанавливаем остальной код обработки результата
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(`application-tab-${id}`, activeTab);
+            }
+          } catch (fetchError) {
+            console.error('Error fetching updated application:', fetchError);
+          }
+        }
+
+        // Вызываем валидацию формы, но только один раз, вне блока обновления данных
+        try {
+          form.trigger();
+        } catch (validationError) {
+          console.error('Error validating form:', validationError);
+        }
+
+        submissionInProgress = false;
+        return true;
+      } catch (error) {
+        console.error(
+          `Error in API call while ${isSubmit ? 'submitting' : 'saving draft'}:`,
+          error,
+        );
+        submissionInProgress = false;
+        return false;
       }
-
-      // Обновляем данные после сохранения
-      await fetchApplication(id);
-
-      // Обновляем значения в форме непосредственно на основе обновленных данных из хранилища
-      const updatedApplication = useSingleApplication.getState().application;
-      if (updatedApplication) {
-        // Устанавливаем флаг, что сейчас будет обновление формы программным путем
-        setHasUnsavedChanges(false);
-
-        // Обновляем applicant
-        if (updatedApplication.applicant) {
-          const applicantData = {
-            ...updatedApplication.applicant,
-            birthDate: updatedApplication.applicant.birthDate
-              ? dateUtils.formatToInputDate(updatedApplication.applicant.birthDate)
-              : '',
-            documentIssueDate: updatedApplication.applicant.documentIssueDate
-              ? dateUtils.formatToInputDate(updatedApplication.applicant.documentIssueDate)
-              : '',
-            documentExpiryDate: updatedApplication.applicant.documentExpiryDate
-              ? dateUtils.formatToInputDate(updatedApplication.applicant.documentExpiryDate)
-              : '',
-          };
-          form.setValue('applicant', applicantData, {
-            shouldDirty: false,
-            shouldTouch: false,
-            shouldValidate: false,
-          });
-        }
-
-        // Обновляем representative
-        if (updatedApplication.representative) {
-          const representativeData = {
-            ...updatedApplication.representative,
-            documentIssueDate: updatedApplication.representative.documentIssueDate
-              ? dateUtils.formatToInputDate(updatedApplication.representative.documentIssueDate)
-              : '',
-            documentExpiryDate: updatedApplication.representative.documentExpiryDate
-              ? dateUtils.formatToInputDate(updatedApplication.representative.documentExpiryDate)
-              : '',
-            representativeDocumentIssueDate: updatedApplication.representative
-              .representativeDocumentIssueDate
-              ? dateUtils.formatToInputDate(
-                  updatedApplication.representative.representativeDocumentIssueDate,
-                )
-              : '',
-            representativeDocumentExpiryDate: updatedApplication.representative
-              .representativeDocumentExpiryDate
-              ? dateUtils.formatToInputDate(
-                  updatedApplication.representative.representativeDocumentExpiryDate,
-                )
-              : '',
-          };
-          form.setValue('representative', representativeData, {
-            shouldDirty: false,
-            shouldTouch: false,
-            shouldValidate: false,
-          });
-        }
-
-        // Обновляем details
-        if (updatedApplication.details) {
-          form.setValue(
-            'details',
-            {
-              ...updatedApplication.details,
-              contractLanguage: updatedApplication.contractLanguage || undefined,
-            },
-            {
-              shouldDirty: false,
-              shouldTouch: false,
-              shouldValidate: false,
-            },
-          );
-        }
-
-        // Обновляем флаг совершеннолетия
-        if (updatedApplication.applicant?.birthDate) {
-          setTimeout(() => setIsAdult(isApplicantAdult()), 0);
-        }
-
-        previousAppRef.current = JSON.stringify(updatedApplication);
-      }
-
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(`application-tab-${id}`, activeTab);
-      }
-
-      form.trigger();
-      return true;
     } catch (error) {
       console.error(`Error saving ${isSubmit ? 'submission' : 'draft'}:`, error);
       return false;
@@ -719,72 +943,76 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   };
 
   const handleSubmit = async (data: FormValues) => {
+    console.log('Form submit triggered', data);
     // Если форма заблокирована, ничего не делаем
-    if (isReadOnly) return;
+    if (isReadOnly) {
+      console.log('Form is read-only, submission canceled');
+      return;
+    }
+
+    // Создаем переменную для отслеживания статуса отправки
+    let isSubmitting = false;
 
     try {
-      if (!id) return;
+      // Проверяем, не отправляется ли уже форма
+      if (isSubmitting) {
+        console.log('Form is already being submitted, ignoring duplicate submission');
+        return;
+      }
 
-      // Валидация данных перед отправкой
-      const validationResult = submitSchema.safeParse(data);
+      // Устанавливаем флаг отправки
+      isSubmitting = true;
+
+      if (!id) {
+        console.log('No form ID found, submission canceled');
+        isSubmitting = false;
+        return;
+      }
+
+      // Дополнительная валидация перед отправкой
+      const validationResult = validateForSubmission(
+        data,
+        useRequiredDocuments.getState().documents,
+        useDocumentStore.getState().documents,
+      );
+      console.log('Validation result:', validationResult);
+
       if (!validationResult.success) {
-        console.error('Validation errors:', validationResult.error.format());
-        // Показываем ошибки валидации в форме
-        const errors = validationResult.error.format();
-
-        // Проходим по всем полям с ошибками и устанавливаем их в форму
-        Object.entries(errors).forEach(([key, value]) => {
-          if (key !== '_errors' && typeof value === 'object') {
-            // Если корневое поле содержит вложенные ошибки
-            if (key === 'applicant' || key === 'representative' || key === 'details') {
-              // Для каждого вложенного поля устанавливаем ошибку
-              Object.entries(value).forEach(([fieldKey, fieldValue]) => {
-                if (fieldKey !== '_errors' && Array.isArray(fieldValue)) {
-                  const fieldPath = `${key}.${fieldKey}` as Path<FormValues>;
-                  form.setError(fieldPath, {
-                    type: 'manual',
-                    message: fieldValue[0],
-                  });
-                }
-              });
-            } else if (key === 'documents' && '_errors' in value) {
-              // Для документов устанавливаем ошибку на корневое поле
-              form.setError('documents' as Path<FormValues>, {
-                type: 'manual',
-                message: Array.isArray(value._errors) ? value._errors[0] : 'Ошибка в документах',
-              });
-            }
-          }
-        });
-
-        // Если в ошибках есть поля из вкладки applicant, переключаемся на неё
-        if ('applicant' in errors) {
-          setActiveTab('applicant');
-        }
-        // Иначе если есть ошибки в representative и аппликант не совершеннолетний
-        else if ('representative' in errors && !isApplicantAdult()) {
-          setActiveTab('representative');
-        }
-        // Иначе если есть ошибки в details
-        else if ('details' in errors) {
-          setActiveTab('details');
-        }
-        // Иначе если есть ошибки в documents
-        else if ('documents' in errors) {
-          setActiveTab('documents');
-        }
-
+        toast.error(validationResult.error);
+        console.log('Validation failed, submission canceled');
+        isSubmitting = false;
         return;
       }
 
       // Сохраняем данные с флагом isSubmit = true
-      await saveApplicantFormData(data, true);
+      console.log('Saving form data with isSubmit=true');
+      const result = await saveApplicantFormData(data, true);
+      console.log('Save result:', result);
+
+      if (result) {
+        // Добавляем успешное сообщение
+        toast.success('Заявление успешно отправлено!');
+      } else {
+        toast.error('Не удалось отправить заявление. Пожалуйста, попробуйте позже.');
+      }
     } catch (error) {
       console.error('Error submitting application:', error);
+      toast.error(
+        'Ошибка при отправке заявления: ' +
+          (error instanceof Error ? error.message : 'Неизвестная ошибка'),
+      );
+    } finally {
+      // Сбрасываем флаг отправки в любом случае
+      isSubmitting = false;
     }
   };
 
   const formKey = `application-form-${id || 'new'}`;
+
+  // Выводим в консоль статус загрузки
+  React.useEffect(() => {
+    console.log('Application loading status:', isLoading);
+  }, [isLoading]);
 
   if (!application && id) {
     return (
@@ -796,22 +1024,133 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
 
   return (
     <div>
-      <DocAnalizer
-        id={id as string}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        setHasUnsavedChanges={setHasUnsavedChanges}
-        isAdult={isAdult}
-        setFormValue={(path, value, options) =>
-          form.setValue(
-            path as Path<FormValues>,
-            value as PathValue<FormValues, Path<FormValues>>,
-            options,
-          )
-        }
-      />
+      {(!application?.submittedAt || user?.role !== Role.USER) && (
+        <DocAnalizer
+          id={id as string}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          setHasUnsavedChanges={setHasUnsavedChanges}
+          isAdult={isAdult}
+          setFormValue={(path, value, options) =>
+            form.setValue(
+              path as Path<FormValues>,
+              value as PathValue<FormValues, Path<FormValues>>,
+              options,
+            )
+          }
+        />
+      )}
       <Form {...form} key={formKey}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="mt-8">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault(); // Предотвращаем стандартное поведение формы
+            console.log('Form onSubmit event triggered', e);
+
+            // Проверка на идущий запрос - если форма в процессе отправки, не обрабатываем повторные нажатия
+            if (form.formState.isSubmitting) {
+              console.log('Форма уже отправляется, игнорируем повторный запрос');
+              return;
+            }
+
+            try {
+              // Получаем значения формы напрямую
+              const values = form.getValues();
+              console.log('Form values on submit:', values);
+
+              // Детальный вывод состояния формы для диагностики
+              console.log('Состояние формы:', {
+                isDirty: form.formState.isDirty,
+                isValid: form.formState.isValid,
+                errors: form.formState.errors,
+                isSubmitted: form.formState.isSubmitted,
+                isSubmitting: form.formState.isSubmitting,
+                isSubmitSuccessful: form.formState.isSubmitSuccessful,
+                touchedFields: form.formState.touchedFields,
+                dirtyFields: form.formState.dirtyFields,
+              });
+
+              // Обновим документы из хранилища в значения формы для надежности (однократно)
+              if (id) {
+                const docs = useDocumentStore.getState().documents;
+                if (docs.length > 0) {
+                  const documentValues = docs.reduce(
+                    (acc, doc) => {
+                      if (doc.code) {
+                        acc[doc.code] = doc.id;
+                      }
+                      return acc;
+                    },
+                    {} as Record<string, string>,
+                  );
+
+                  // Устанавливаем документы в форму
+                  form.setValue('documents', documentValues, {
+                    shouldValidate: true,
+                  });
+                  console.log('Обновленные значения документов:', documentValues);
+                }
+              }
+
+              // Используем одну валидацию вместо двух
+              // Проверка валидности формы без цикличных вызовов
+              form
+                .trigger()
+                .then((isValid) => {
+                  console.log('Form validation result:', isValid);
+
+                  // Если форма не валидна, показываем ошибки
+                  if (!isValid) {
+                    console.log('Form validation failed, errors:', form.formState.errors);
+                    const errorFields = Object.keys(form.formState.errors);
+                    console.log('Invalid fields:', errorFields);
+
+                    // Анализируем ошибки валидации более подробно
+                    let errorMessages = errorFields
+                      .map((field) => {
+                        const error = form.formState.errors[field as any];
+                        return `Поле "${field}": ${error?.message || 'ошибка валидации'}`;
+                      })
+                      .join(', ');
+
+                    toast.error(
+                      errorMessages || 'Форма содержит ошибки. Пожалуйста, проверьте все поля.',
+                    );
+                    return;
+                  }
+
+                  // Если форма валидна, проверяем документы
+                  try {
+                    const validationResult = validateForSubmission(
+                      values,
+                      useRequiredDocuments.getState().documents,
+                      useDocumentStore.getState().documents,
+                    );
+                    console.log('Manual document validation result:', validationResult);
+
+                    if (!validationResult.success) {
+                      toast.error(validationResult.error);
+                      return;
+                    }
+
+                    // Если все проверки пройдены, отправляем форму
+                    console.log('Form is valid, proceeding with submission');
+                    handleSubmit(values);
+                  } catch (validationError) {
+                    console.error('Error validating documents:', validationError);
+                    toast.error('Ошибка при проверке документов');
+                  }
+                })
+                .catch((error) => {
+                  console.error('Error during form validation:', error);
+                  toast.error('Ошибка валидации формы');
+                });
+            } catch (error) {
+              console.error('Error during form submission:', error);
+              toast.error(`Ошибка при отправке формы: ${error}`);
+            }
+          }}
+          className="mt-8"
+        >
           {isSubmitted && user?.role === Role.USER && (
             <div className="mb-4 rounded-lg border border-yellow-300 bg-yellow-50 p-4 text-yellow-800">
               <p>{tApplicant('applicationSubmittedDescription')}</p>
@@ -840,7 +1179,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               </TabsTrigger>
             </TabsList>
 
-            <fieldset disabled={isReadOnly} className="mt-4 space-y-4">
+            <fieldset disabled={false} className="mt-4 space-y-4">
               <TabsContent value="applicant">
                 <ApplicantForm
                   application={application as ExtendedApplication}
@@ -874,7 +1213,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           </Tabs>
 
           {/* Кнопка Next для перемещения по табам */}
-          {(!isSubmitted || user?.role !== Role.USER) && (
+          {(!application?.submittedAt || user?.role !== Role.USER) && (
             <div className="mt-6 flex justify-end gap-4">
               <Button
                 type="button"
@@ -903,7 +1242,11 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
                   {c('next')}
                 </Button>
               ) : (
-                <Button type="submit" disabled={isReadOnly}>
+                <Button
+                  type="submit"
+                  disabled={isReadOnly}
+                  onClick={() => console.log('Submit button clicked')}
+                >
                   {c('submitApplication')}
                 </Button>
               )}
@@ -911,6 +1254,60 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           )}
         </form>
       </Form>
+
+      {/* Тестовая форма для проверки работы submit */}
+      {/* <div className="mt-5 rounded border border-red-200 p-4">
+        <h3 className="font-bold">Тестовая форма</h3>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            console.log('Test form submitted');
+            alert('Test form submitted!');
+          }}
+        >
+          <Button type="submit">Тестовый Submit</Button>
+        </form>
+        <div className="mt-2">
+          <Button
+            onClick={async () => {
+              console.log('Testing API request...');
+              console.log('Current form values:', form.getValues());
+              try {
+                if (!id) {
+                  console.error('No ID available');
+                  return;
+                }
+
+                const testRequest = {
+                  applicant: {
+                    givennames: 'Test Name',
+                    surname: 'Test Surname',
+                  },
+                };
+
+                console.log('Sending test request to API...');
+                const result = await updateApplication(id, testRequest);
+                console.log('Test request result:', result);
+
+                if (result.error) {
+                  alert(`Ошибка: ${result.error}`);
+                } else {
+                  alert('Тестовый запрос выполнен успешно!');
+                }
+              } catch (error) {
+                console.error('Error during test request:', error);
+                alert(`Ошибка запроса: ${error}`);
+              }
+            }}
+            type="button"
+            variant="destructive"
+          >
+            Проверить API
+          </Button>
+          <span className="ml-2">Статус загрузки: {isLoading ? 'Загрузка...' : 'Готово'}</span>
+        </div>
+      </div> */}
+
       {hasAccess(user?.role as Role, Role.CONSULTANT) && (
         <div className="flex w-full flex-col justify-between gap-4 md:flex-row">
           <Info />

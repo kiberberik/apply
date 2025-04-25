@@ -49,8 +49,8 @@
     "dataProcessingError": "Құжаттарды өңдеу кезінде қате орын алды",
     "invalidDate": "Қате күні",
     "submitApplication": "Өтінімді жолдау",
-    "applicant": "Абитуриентті идентификациалау құжаты",
-    "representative": "Өкілді идентификациалау құжаты",
+    "applicant": "Абитуриенттің сәйкестендіру құжаты",
+    "representative": "Абитуриент Өкілінің сәйкестендіру құжаты",
     "update": "Жаңарту"
   },
   "Roles": {
@@ -273,8 +273,8 @@
     "columnsAcademicLevel": "Дәрежесі",
     "columnsType": "Оқу түрі",
     "columnsSubmittedAt": "Күні",
-    "contractSignType": "Келісім-шарт жасалуы",
-    "infoTitle": "Өтінімнің ақпараты",
+    "contractSignType": "Келісім-шарт",
+    "infoTitle": "Өтінім деректері",
     "searchPlaceholder": "Абитуриентті іздеу"
   },
   "Applicant": {
@@ -335,16 +335,16 @@
     "selectType": "Оқу түрін таңдаңыз",
     "paid": "Ақылы",
     "grant": "Грант",
-    "noneDegree": "Дәрежесіз",
-    "conditional": "Шартты",
+    "noneDegree": "Non-degree",
+    "conditional": "Conditional",
     "other": "Басқа",
     "academicLevel": "Академиялық дәреже",
     "selectAcademicLevel": "Академиялық дәрежені таңдаңыз",
     "studyingLanguage": "Оқу тілі",
     "selectStudyingLanguage": "Оқу тілін таңдаңыз",
     "isDormNeeds": "Жатақхана қажет",
-    "contractLanguage": "Шарт тілі",
-    "selectContractLanguage": "Шарт тілін таңдаңыз",
+    "contractLanguage": "Келісімшарт тілі",
+    "selectContractLanguage": "Келісімшарт тілін таңдаңыз",
     "educationalProgram": "Білім беру бағдарламасы",
     "selectEducationalProgram": "Білім беру бағдарламасын таңдаңыз",
     "years": "жыл"
@@ -372,7 +372,7 @@
     "identificationNumber": "ЖСН"
   },
   "RequiredDocuments": {
-    "title": "Міндетті құжаттар",
+    "title": "Құжаттарды жүктеу",
     "loading": "Жүктелуде...",
     "addDocument": "Құжат қосу",
     "editDocument": "Құжатты өңдеу",
@@ -440,7 +440,7 @@
   },
   "LogHistory": {
     "title": "Өтінім статусы",
-    "statusHistory": "Статус өзгерістерінің тарихы",
+    "statusHistory": "Тарихы",
     "noLogs": "Статус өзгерістерінің тарихы жоқ",
     "loading": "Статус өзгерістерінің тарихы жүктелуде...",
     "currentStatus": "Қазіргі статус",
@@ -450,8 +450,8 @@
     "user": "Пайдаланушы"
   },
   "ContractSignType": {
-    "TRUSTME": "Trust Me",
-    "OFFLINE": "Оффлайн",
+    "TRUSTME": "Trust Me арқылы қол қойылды",
+    "OFFLINE": "Оффлайн қол қойылды",
     "NOT_SIGNED": "Қол қойылмаған"
   }
 }

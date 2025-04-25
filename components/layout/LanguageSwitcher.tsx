@@ -7,9 +7,9 @@ import { Menu, MenuButton, MenuItem, MenuItems, Transition } from '@headlessui/r
 import { LanguageIcon } from '@heroicons/react/24/outline';
 
 const languages = {
-  ru: 'Рус',
-  en: 'Eng',
-  kz: 'Қаз',
+  ru: 'Русский',
+  en: 'English',
+  kz: 'Қазақша',
 };
 
 function classNames(...classes: string[]) {

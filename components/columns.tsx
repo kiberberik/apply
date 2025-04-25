@@ -3,12 +3,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowUpDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import type { ExtendedApplication } from '@/store/useApplicationsStore';
-import { AcademicLevel, ApplicationStatus, StudyType, User } from '@prisma/client';
+import type { ExtendedApplication } from '@/store/useApplicationStore';
+import { AcademicLevel, ApplicationStatus, StudyType, User, Role } from '@prisma/client';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { FilterMenu } from './ui/filter-menu';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useConsultants } from '@/hooks/useConsultants';
 
 const HeaderComponent = ({
   column,
@@ -44,11 +46,13 @@ const FilterHeaderComponent = ({
     setFilterValue: (value: string[] | undefined) => void;
   };
   title: string;
-  filterType: 'academicLevel' | 'studyType' | 'status';
+  filterType: 'academicLevel' | 'studyType' | 'status' | 'consultant';
 }) => {
   const tAcademicLevel = useTranslations('AcademicLevel');
   const tStudyType = useTranslations('StudyType');
   const tApplicationStatus = useTranslations('ApplicationStatus');
+  const { user } = useAuthStore();
+  const { consultants } = useConsultants();
   const [options, setOptions] = useState(() => {
     let initialOptions: { id: string; label: string; checked: boolean }[] = [];
 
@@ -74,12 +78,42 @@ const FilterHeaderComponent = ({
           checked: true,
         }));
         break;
+      case 'consultant':
+        // По умолчанию пустой массив, будет заполнен в useEffect
+        break;
     }
 
     return initialOptions;
   });
 
-  const handleFilterChange = useCallback(
+  // Обновляем опции консультантов при их загрузке
+  useEffect(() => {
+    if (filterType === 'consultant' && consultants.length > 0) {
+      const allConsultants = [...consultants];
+
+      // Добавляем текущего пользователя в список, если он ADMIN или MANAGER
+      if (user && (user.role === Role.ADMIN || user.role === Role.MANAGER)) {
+        const currentUserExists = allConsultants.some((c) => c.id === user.id);
+        if (!currentUserExists) {
+          allConsultants.push(user);
+        }
+      }
+
+      const newOptions = allConsultants.map((consultant) => ({
+        id: consultant.id,
+        label: consultant.name || consultant.email || 'Консультант',
+        // Для CONSULTANT выбран только он сам, для ADMIN/MANAGER все заявки
+        checked: user?.role === Role.CONSULTANT ? consultant.id === user.id : true,
+      }));
+      setOptions(newOptions);
+
+      // Устанавливаем начальное значение фильтра
+      const selectedIds = newOptions.filter((option) => option.checked).map((option) => option.id);
+      column.setFilterValue(selectedIds.length === allConsultants.length ? undefined : selectedIds);
+    }
+  }, [consultants, filterType, user, column]);
+
+  const handleOptionChange = useCallback(
     (selectedOptions: string[]) => {
       column.setFilterValue(
         selectedOptions.length === options.length ? undefined : selectedOptions,
@@ -99,7 +133,7 @@ const FilterHeaderComponent = ({
       {/* <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
         {t(title)}
       </Button> */}
-      <FilterMenu title={title} options={options} onChange={handleFilterChange} />
+      <FilterMenu title={title} options={options} onChange={handleOptionChange} />
     </div>
   );
 };
@@ -140,14 +174,14 @@ const TypeCell = ({ type }: { type: string }) => {
 
 const ConsultantCell = ({ consultant }: { consultant: User | null }) => {
   return (
-    <div className="mx-auto flex flex-wrap items-center justify-center">
+    <div className="mx-auto flex flex-wrap items-center justify-start">
       {consultant ? (
         <div>
           <h3 className="w-full text-left text-wrap">{consultant?.name}</h3>
           <p className="text-sm text-wrap text-gray-500">{consultant?.email}</p>
         </div>
       ) : (
-        '-'
+        <div className="w-full text-center">-</div>
       )}
     </div>
   );
@@ -260,7 +294,13 @@ export const columns: ColumnDef<ExtendedApplication, unknown>[] = [
   },
   {
     accessorKey: 'consultant',
-    header: () => <SimpleHeaderComponent title="columnsConsultant" />,
+    header: ({ column }) => (
+      <FilterHeaderComponent column={column} title="columnsConsultant" filterType="consultant" />
+    ),
     cell: ({ row }) => <ConsultantCell consultant={row.original.consultant || null} />,
+    filterFn: (row, id, filterValue: string[]) => {
+      if (!filterValue?.length) return true;
+      return filterValue.includes(row.original.consultant?.id || '');
+    },
   },
 ];

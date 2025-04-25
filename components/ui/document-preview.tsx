@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Image from 'next/image';
 import {
   Dialog,
@@ -10,81 +10,69 @@ import {
 } from './dialog';
 import { Button } from './button';
 import { toast } from 'react-toastify';
+import { useTranslations } from 'next-intl';
 
 interface DocumentPreviewProps {
   documentFileLinks: string | null;
-  translationPrefix?: string;
-  translations: {
-    uploadedDocuments: string;
-    view: string;
-  };
   onDocumentRemoved?: () => void;
   applicantId?: string;
   representativeId?: string;
+  isSubmitted?: boolean;
 }
 
 export function DocumentPreview({
   documentFileLinks,
-  translations,
   onDocumentRemoved,
   applicantId,
   representativeId,
+  isSubmitted,
 }: DocumentPreviewProps) {
   const [selectedImage, setSelectedImage] = React.useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<string | null>(null);
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const [localLinks, setLocalLinks] = React.useState<string[]>([]);
+  const c = useTranslations('Common');
 
-  if (!documentFileLinks) return null;
-
-  let links: string[] = [];
-  try {
-    // Если documentFileLinks - это строка
-    if (documentFileLinks) {
-      // Пытаемся распарсить как JSON
-      try {
-        const parsed = JSON.parse(documentFileLinks);
-
-        // Если это массив, обрабатываем каждый элемент
-        if (Array.isArray(parsed)) {
-          links = parsed.flatMap((item) => {
-            // Если элемент сам является JSON строкой, распарсим его
-            if (typeof item === 'string') {
-              if (item.startsWith('[') || item.startsWith('"')) {
-                try {
-                  const innerParsed = JSON.parse(item);
-                  // Если это массив, возвращаем его элементы
-                  if (Array.isArray(innerParsed)) {
-                    return innerParsed;
+  useEffect(() => {
+    let links: string[] = [];
+    try {
+      if (documentFileLinks) {
+        try {
+          const parsed = JSON.parse(documentFileLinks);
+          if (Array.isArray(parsed)) {
+            links = parsed.flatMap((item) => {
+              if (typeof item === 'string') {
+                if (item.startsWith('[') || item.startsWith('"')) {
+                  try {
+                    const innerParsed = JSON.parse(item);
+                    if (Array.isArray(innerParsed)) {
+                      return innerParsed;
+                    }
+                    return [innerParsed];
+                  } catch {
+                    return [item];
                   }
-                  return [innerParsed];
-                } catch {
-                  // Если не удалось распарсить как JSON, считаем обычной строкой
-                  return [item];
                 }
+                return [item];
               }
-              // Обычная строка URL
-              return [item];
-            }
-            return [];
-          });
-        } else if (typeof parsed === 'string') {
-          // Если распарсенное значение - строка
-          links = [parsed];
+              return [];
+            });
+          } else if (typeof parsed === 'string') {
+            links = [parsed];
+          }
+        } catch {
+          links = [documentFileLinks];
         }
-      } catch {
-        // Если не удалось распарсить как JSON, считаем обычной строкой URL
-        links = [documentFileLinks];
       }
+      links = [...new Set(links.filter(Boolean))];
+      setLocalLinks(links);
+    } catch (error) {
+      console.error('Ошибка при парсинге documentFileLinks:', error);
+      setLocalLinks([]);
     }
+  }, [documentFileLinks]);
 
-    // Фильтруем пустые значения и дубликаты
-    links = [...new Set(links.filter(Boolean))];
-
-    if (!links.length) return null;
-  } catch (error) {
-    console.error('Ошибка при парсинге documentFileLinks:', error);
-    return null;
-  }
+  if (!localLinks.length) return null;
 
   const handleDeleteClick = (e: React.MouseEvent, link: string) => {
     e.stopPropagation();
@@ -109,6 +97,8 @@ export function DocumentPreview({
       });
 
       if (response.ok) {
+        setLocalLinks((prevLinks) => prevLinks.filter((link) => link !== deleteTarget));
+
         toast.success('Документ удален', {
           position: 'top-right',
           autoClose: 3000,
@@ -146,7 +136,7 @@ export function DocumentPreview({
     <>
       <div className="mt-4">
         <div className="mt-2 flex flex-wrap gap-4">
-          {links.map((link: string, index: number) => {
+          {localLinks.map((link: string, index: number) => {
             const isImage =
               link.toLowerCase().endsWith('.jpg') ||
               link.toLowerCase().endsWith('.jpeg') ||
@@ -159,27 +149,29 @@ export function DocumentPreview({
                 className="group relative flex cursor-pointer flex-col items-center rounded-md border p-2"
                 onClick={() => setSelectedImage(link)}
               >
-                <div
-                  className="absolute top-1 right-1 z-10 opacity-0 transition-opacity group-hover:opacity-100"
-                  onClick={(e) => handleDeleteClick(e, link)}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="rounded-full bg-white p-1 text-red-500 hover:text-red-700"
+                {!isSubmitted && (
+                  <div
+                    className="absolute top-1 right-1 z-10 opacity-0 transition-opacity group-hover:opacity-100"
+                    onClick={(e) => handleDeleteClick(e, link)}
                   >
-                    <path d="M3 6h18" />
-                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                  </svg>
-                </div>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="rounded-full bg-white p-1 text-red-500 hover:text-red-700"
+                    >
+                      <path d="M3 6h18" />
+                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                    </svg>
+                  </div>
+                )}
                 {isImage ? (
                   <div className="relative mb-2 h-24 w-24">
                     <Image
@@ -224,12 +216,12 @@ export function DocumentPreview({
           <div className="flex h-full w-full items-center justify-center">
             {selectedImage &&
               (selectedImage.toLowerCase().endsWith('.pdf') ? (
-                <iframe src={selectedImage} className="h-[70vh] w-full" title={translations.view} />
+                <iframe src={selectedImage} className="h-[70vh] w-full" title={c('view')} />
               ) : (
                 <div className="relative h-[70vh] w-full">
                   <Image
                     src={selectedImage}
-                    alt={translations.view}
+                    alt={c('view')}
                     fill
                     unoptimized={true}
                     className="object-contain"
@@ -244,17 +236,19 @@ export function DocumentPreview({
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle>Подтверждение удаления</DialogTitle>
-            <DialogDescription>
-              Вы уверены, что хотите удалить этот документ? Это действие нельзя отменить.
-            </DialogDescription>
+            <DialogTitle>{c('deleteConfirmTitle')}</DialogTitle>
+            <DialogDescription>{c('deleteConfirmDescription')}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteTarget(null)}>
-              Отмена
+              {c('cancel')}
             </Button>
-            <Button variant="destructive" onClick={handleConfirmDelete} disabled={isDeleting}>
-              {isDeleting ? 'Удаление...' : 'Удалить'}
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDelete}
+              disabled={isDeleting || isSubmitted}
+            >
+              {isDeleting ? c('deleting') : c('delete')}
             </Button>
           </DialogFooter>
         </DialogContent>

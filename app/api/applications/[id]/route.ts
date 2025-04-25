@@ -105,6 +105,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         where: { id },
         data: {
           contractLanguage: data.contractLanguage ?? application.contractLanguage,
+          submittedAt: data.submittedAt !== undefined ? data.submittedAt : application.submittedAt,
           updatedAt: new Date(),
         },
         include: {
@@ -168,7 +169,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         } = data.applicant;
         /* eslint-enable @typescript-eslint/no-unused-vars */
 
-        // Обрабатываем даты
+        // Обработка даты рождения
         let birthDate = undefined;
         let documentIssueDate = undefined;
         let documentExpiryDate = undefined;

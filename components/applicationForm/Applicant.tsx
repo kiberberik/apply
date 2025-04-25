@@ -13,6 +13,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { Role } from '@prisma/client';
 import React from 'react';
 import { DocumentPreview } from '../ui/document-preview';
+import { useLogStore } from '@/store/useLogStore';
 
 // Константы для ограничения дат
 const MIN_DATE = '1960-01-01';
@@ -30,11 +31,13 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
   const tDocument = useTranslations('Document');
   const form = useFormContext();
   const { user } = useAuthStore();
+  const { latestLogs } = useLogStore();
 
+  console.log('latestLogs', latestLogs);
   // Проверяем, является ли пользователь с ролью USER и статус заявки DRAFT
   const isDraftForUser =
     user?.role === Role.USER &&
-    (application?.Log?.[0]?.statusId === 'DRAFT' || !application?.submittedAt);
+    (latestLogs?.[0]?.statusId === 'DRAFT' || !application?.submittedAt);
 
   // Если условие выполняется, устанавливаем email пользователя в форму
   React.useEffect(() => {
@@ -342,19 +345,27 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
               )}
             />
 
-            {application?.applicant?.documentFileLinks && (
-              <div className="mt-4 flex flex-col">
-                <FormLabel>{c('uploadedDocuments')}</FormLabel>
+            {application?.applicant?.documentFileLinks &&
+              (() => {
+                try {
+                  return JSON.parse(application.applicant.documentFileLinks).length > 0;
+                } catch {
+                  return false;
+                }
+              })() && (
+                <div className="mt-4 flex flex-col">
+                  <FormLabel>{c('uploadedDocuments')}</FormLabel>
 
-                <DocumentPreview
-                  documentFileLinks={application?.applicant?.documentFileLinks || null}
-                  translations={{
-                    uploadedDocuments: c('uploadedDocuments'),
-                    view: c('view'),
-                  }}
-                />
-              </div>
-            )}
+                  <DocumentPreview
+                    documentFileLinks={application?.applicant?.documentFileLinks || null}
+                    applicantId={application?.applicant?.id}
+                    onDocumentRemoved={() => {
+                      form.setValue('applicant.documentFileLinks', null);
+                    }}
+                    isSubmitted={isSubmitted}
+                  />
+                </div>
+              )}
           </div>
 
           {(!isCitizenshipKz || (isCitizenshipKz && documentType)) && (
@@ -566,6 +577,7 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
                       <FormControl>
                         <Input
                           {...field}
+                          type="tel"
                           value={field.value || ''}
                           disabled={isSubmitted}
                           className={cn(

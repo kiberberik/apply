@@ -50,8 +50,11 @@
     "invalidDate": "Некорректная дата",
     "submitApplication": "Подать заявку",
     "applicant": "Идентификационный документ Абитуриента",
-    "representative": "Идентификационный документ Представителя",
-    "update": "Обновить"
+    "representative": "Идентификационный документ Представителя абитуриента",
+    "update": "Обновить",
+    "deleting": "Удаление...",
+    "deleteConfirmTitle": "Подтверждение удаления",
+    "deleteConfirmDescription": "Вы уверены, что хотите удалить этот документ?"
   },
   "Roles": {
     "USER": "Пользователь",
@@ -273,8 +276,8 @@
     "columnsAcademicLevel": "Степень",
     "columnsType": "Тип",
     "columnsSubmittedAt": "Дата",
-    "contractSignType": "Заключение договора",
-    "infoTitle": "Информация о заявке",
+    "contractSignType": "Договор",
+    "infoTitle": "Данные заявки",
     "searchPlaceholder": "Поиск абитуриента"
   },
   "Applicant": {
@@ -334,9 +337,9 @@
     "type": "Тип обучения",
     "selectType": "Выберите тип обучения",
     "paid": "Платное",
-    "grant": "Бюджет",
-    "noneDegree": "Без степени",
-    "conditional": "Условный",
+    "grant": "Грант",
+    "noneDegree": "Non-degree",
+    "conditional": "Conditional",
     "other": "Другое",
     "academicLevel": "Степень",
     "selectAcademicLevel": "Выберите академическую степень",
@@ -372,7 +375,7 @@
     "identificationNumber": "ИИН"
   },
   "RequiredDocuments": {
-    "title": "Обязательные документы",
+    "title": "Загрузка документов",
     "loading": "Загрузка...",
     "addDocument": "Добавить документ",
     "editDocument": "Редактировать документ",
@@ -440,8 +443,8 @@
   },
   "LogHistory": {
     "title": "Статус заявки",
-    "statusHistory": "История изменений статуса",
-    "noLogs": "История изменений статуса заявки отсутствует",
+    "statusHistory": "История",
+    "noLogs": "История",
     "loading": "Загрузка истории изменений статуса заявки...",
     "currentStatus": "Текущий статус",
     "status": "Статус",
@@ -450,8 +453,8 @@
     "user": "Пользователь"
   },
   "ContractSignType": {
-    "TRUSTME": "Trust Me",
-    "OFFLINE": "Оффлайн",
-    "NOT_SIGNED": "Не подписан"
+    "TRUSTME": "Подписано через Trust Me",
+    "OFFLINE": "Подписано офлайн",
+    "NOT_SIGNED": "Не подписано"
   }
 }

@@ -26,7 +26,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from 'next-intl';
-import { ExtendedApplication, useApplicationsStore } from '@/store/useApplicationsStore';
+import { ExtendedApplication, useApplicationStore } from '@/store/useApplicationStore';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Trash2 } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
@@ -39,6 +39,7 @@ import {
   DialogTitle,
 } from './ui/dialog';
 import { toast } from 'react-toastify';
+import { useAuthStore } from '@/store/useAuthStore';
 
 interface DataTableProps {
   columns: ColumnDef<ExtendedApplication, unknown>[];
@@ -148,7 +149,7 @@ export function DataTable({ columns, data }: DataTableProps) {
     pageIndex: 0,
     pageSize: 10,
   });
-  const { applications, isLoading, error } = useApplicationsStore();
+  const { applications, isLoading, error } = useApplicationStore();
   const c = useTranslations('Common');
   const tApplications = useTranslations('Applications');
 
@@ -269,9 +270,9 @@ export function DataTable({ columns, data }: DataTableProps) {
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
-        {/* <div className="text-muted-foreground flex-1 text-sm">
-          {`${table.getFilteredRowModel().rows.length} / ${data.length}`}
-        </div> */}
+        <div className="text-muted-foreground flex-1 text-sm">
+          {`${table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-${Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)} / ${table.getFilteredRowModel().rows.length}`}
+        </div>
         <div className="flex items-center space-x-2">
           <PaginationButtons table={table} />
         </div>
@@ -285,8 +286,8 @@ export const RemoveCell = ({ row }: { row: Row<ExtendedApplication> }) => {
   const application = row.original;
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const { deleteApplication } = useApplicationsStore();
-
+  const { deleteApplication } = useApplicationStore();
+  const { user } = useAuthStore();
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
@@ -306,8 +307,11 @@ export const RemoveCell = ({ row }: { row: Row<ExtendedApplication> }) => {
       <TableCell className="flex items-center justify-center">
         <Button
           variant="ghost"
-          className="z-50 bg-none hover:cursor-pointer"
+          className="bg-none hover:cursor-pointer"
           onClick={() => setIsDeleteDialogOpen(true)}
+          disabled={
+            application.Log?.[0]?.statusId !== 'DRAFT' || application.createdById !== user?.id
+          }
         >
           <Trash2 className="h-4 w-4 text-red-600 hover:text-red-700" />
         </Button>

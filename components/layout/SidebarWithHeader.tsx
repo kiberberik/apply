@@ -30,6 +30,7 @@ import { Link } from '@/i18n/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Role } from '@prisma/client';
 import { hasAccess } from '@/lib/hasAccess';
+import { Button } from '../ui/button';
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
@@ -176,12 +177,16 @@ export default function NavigationHeader({ children }: { children: React.ReactNo
               <div className="flex items-center">
                 <button
                   type="button"
-                  className={`text-gray-300 md:hidden ${user?.role == 'USER' ? 'hidden' : ''}`}
+                  className={`text-gray-300 sm:hidden ${
+                    user?.role == 'USER' || user?.role == 'CONSULTANT' ? 'hidden' : ''
+                  }`}
                   onClick={() => setMobileMenuOpen(true)}
                 >
                   <Bars3BottomLeftIcon className="h-6 w-6" />
                 </button>
-                <div className={`${user?.role == 'USER' ? 'block' : 'hidden'} md:block`}>
+                <div
+                  className={`${user?.role == 'USER' || user?.role == 'CONSULTANT' ? 'block' : 'hidden'} sm:block`}
+                >
                   <Logo />
                 </div>
               </div>
@@ -213,7 +218,15 @@ export default function NavigationHeader({ children }: { children: React.ReactNo
                 <Menu as="div" className="relative mx-auto w-fit">
                   <MenuButton className="flex items-center justify-center gap-2 p-2 text-sm transition-colors duration-200">
                     <span className="sr-only">Open user menu</span>
-                    <h3 className="hidden text-base md:block">{user?.name}</h3>
+                    <h3 className="hidden truncate text-base sm:block">
+                      {user?.name && user.name.split(' ').length > 1
+                        ? `${user.name.split(' ')[0]} ${user.name
+                            .split(' ')
+                            .slice(1)
+                            .map((word) => `${word[0]}.`)
+                            .join(' ')}`
+                        : user?.name}
+                    </h3>
                     <UserCircleIcon
                       className="h-6 w-6 text-white hover:text-rose-600"
                       aria-hidden="true"
@@ -263,9 +276,9 @@ export default function NavigationHeader({ children }: { children: React.ReactNo
                       {/* <div className="mx-auto my-2 h-px w-[80%] bg-zinc-200"></div> */}
                       <MenuItem>
                         {({}) => (
-                          <button
+                          <Button
                             className={classNames(
-                              'flex w-full items-center justify-start gap-2 px-4 py-2 text-sm text-gray-200 hover:bg-red-600',
+                              'flex w-full items-center justify-start gap-2 rounded-none px-4 py-2 text-sm text-gray-200 hover:bg-red-600',
                             )}
                             onClick={handleLogout}
                           >
@@ -274,7 +287,7 @@ export default function NavigationHeader({ children }: { children: React.ReactNo
                               aria-hidden="true"
                             />
                             {t('signOut')}
-                          </button>
+                          </Button>
                         )}
                       </MenuItem>
                     </MenuItems>

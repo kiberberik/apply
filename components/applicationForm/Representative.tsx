@@ -9,7 +9,7 @@ import { ExtendedApplication } from '@/types/application';
 import { cn } from '@/lib/utils';
 import dateUtils from '@/lib/dateUtils';
 import { DocumentPreview } from '../ui/document-preview';
-import React from 'react';
+import React, { useState } from 'react';
 
 interface RepresentativeProps {
   application: ExtendedApplication | null;
@@ -22,6 +22,8 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
   const tCitizenship = useTranslations('Citizenship');
   const tDocument = useTranslations('Document');
   const form = useFormContext();
+  const [localRepresentativeDocumentFileLinks, setLocalRepresentativeDocumentFileLinks] =
+    useState<string>('');
 
   const isFieldChanged = (fieldName: string): boolean => {
     const value = form.watch(`representative.${fieldName}`);
@@ -256,24 +258,27 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
               )}
             />
 
-            {application?.representative?.documentFileLinks && (
-              <div className="mt-4 flex flex-col">
-                <FormLabel>{c('uploadedDocuments')}</FormLabel>
+            {application?.representative?.documentFileLinks &&
+              (() => {
+                try {
+                  return JSON.parse(application.representative.documentFileLinks).length > 0;
+                } catch {
+                  return false;
+                }
+              })() && (
+                <div className="mt-4 flex flex-col">
+                  <FormLabel>{c('uploadedDocuments')}</FormLabel>
 
-                <DocumentPreview
-                  documentFileLinks={application?.representative?.documentFileLinks || null}
-                  translations={{
-                    uploadedDocuments: c('uploadedDocuments'),
-                    view: c('view'),
-                  }}
-                  representativeId={application?.representative?.id}
-                  onDocumentRemoved={() => {
-                    // Обновляем данные формы после удаления документа
-                    form.setValue('representative.documentFileLinks', null);
-                  }}
-                />
-              </div>
-            )}
+                  <DocumentPreview
+                    documentFileLinks={application?.representative?.documentFileLinks || null}
+                    representativeId={application?.representative?.id}
+                    onDocumentRemoved={() => {
+                      form.setValue('representative.documentFileLinks', null);
+                    }}
+                    isSubmitted={isSubmitted}
+                  />
+                </div>
+              )}
           </div>
 
           {(!isCitizenshipKz || (isCitizenshipKz && documentType)) && (
@@ -500,8 +505,8 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
                           <Input
                             type="file"
                             multiple={false}
-                            size={124 * 5}
-                            accept="image/*"
+                            size={2000 * 5} // 2000 * 5 = 10000kb = 10mb
+                            accept=".pdf,.jpg,.jpeg,.png,.PDF,.JPG,.JPEG,.PNG"
                             className={cn(
                               '',
                               isFieldChanged('representativeDocumentFileLinks')
@@ -520,7 +525,7 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
                                     application.representative.id,
                                   );
                                 }
-                                formData.append('activeTab', 'representative');
+                                formData.append('activeTab', 'representative-document');
 
                                 try {
                                   const response = await fetch('/api/upload-document', {
@@ -575,17 +580,20 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
 
                                   // Добавляем новую ссылку и сохраняем как JSON строку
                                   currentLinks.push(data.url);
+
                                   field.onChange(JSON.stringify(currentLinks));
+                                  setLocalRepresentativeDocumentFileLinks(
+                                    JSON.stringify(currentLinks),
+                                  );
 
                                   if (
                                     !form.getValues(
                                       'representative.representativeDocumentIssueDate',
                                     )
                                   ) {
-                                    const today = new Date();
                                     form.setValue(
                                       'representative.representativeDocumentIssueDate',
-                                      today.toISOString().split('T')[0],
+                                      null,
                                       { shouldValidate: true },
                                     );
                                   }
@@ -595,7 +603,7 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
                                   ) {
                                     form.setValue(
                                       'representative.representativeDocumentNumber',
-                                      'Документ №' + Date.now().toString().slice(-6),
+                                      null,
                                       { shouldValidate: true },
                                     );
                                   }
@@ -607,22 +615,18 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
                                   ) {
                                     form.setValue(
                                       'representative.representativeDocumentIssuingAuthority',
-                                      'МВД РК',
+                                      null,
                                       { shouldValidate: true },
                                     );
                                   }
-
-                                  // Если срок действия не заполнен, устанавливаем на 5 лет от текущей даты
                                   if (
                                     !form.getValues(
                                       'representative.representativeDocumentExpiryDate',
                                     )
                                   ) {
-                                    const expiryDate = new Date();
-                                    expiryDate.setFullYear(expiryDate.getFullYear() + 5);
                                     form.setValue(
                                       'representative.representativeDocumentExpiryDate',
-                                      expiryDate.toISOString().split('T')[0],
+                                      null,
                                       { shouldValidate: true },
                                     );
                                   }
@@ -641,17 +645,15 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
 
                   <DocumentPreview
                     documentFileLinks={
-                      application?.representative?.representativeDocumentFileLinks || null
+                      localRepresentativeDocumentFileLinks ||
+                      application?.representative?.representativeDocumentFileLinks ||
+                      null
                     }
-                    translations={{
-                      uploadedDocuments: c('uploadedDocuments'),
-                      view: c('view'),
-                    }}
                     representativeId={application?.representative?.id}
                     onDocumentRemoved={() => {
-                      // Обновляем данные формы после удаления документа
                       form.setValue('representative.representativeDocumentFileLinks', null);
                     }}
+                    isSubmitted={isSubmitted}
                   />
 
                   <div className="my-auto grid grid-cols-1 gap-4 md:grid-cols-2">

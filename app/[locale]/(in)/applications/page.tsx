@@ -1,6 +1,6 @@
 'use client';
 
-import { useApplicationsStore } from '@/store/useApplicationsStore';
+import { useApplicationStore } from '@/store/useApplicationStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useEffect, useState } from 'react';
 import { Suspense } from 'react';
@@ -12,11 +12,12 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useRouter } from '@/i18n/navigation';
 import { toast } from 'react-toastify';
+import { ApplicationStatus, Role } from '@prisma/client';
 
 export default function ApplicationsPage() {
   const { applications, isLoading, error, fetchApplications, createNewApplication } =
-    useApplicationsStore();
-  const { fetchUser } = useAuthStore();
+    useApplicationStore();
+  const { fetchUser, user } = useAuthStore();
   const t = useTranslations('Applications');
   const c = useTranslations('Common');
   const router = useRouter();
@@ -64,6 +65,7 @@ export default function ApplicationsPage() {
     return <div className="text-red-500">{error}</div>;
   }
 
+  console.log('applications ', applications);
   return (
     <div className="container mx-auto py-10">
       <div className="flex items-center justify-between space-y-2">
@@ -75,7 +77,18 @@ export default function ApplicationsPage() {
       </div>
       <div className="mt-8">
         <Suspense fallback={<ApplicationsTableSkeleton />}>
-          <DataTable columns={columns} data={applications || []} />
+          <DataTable
+            columns={columns}
+            data={(applications || []).filter((app) => {
+              const isCurrentUserApplication = app.createdById === user?.id;
+              const isDraft = app.Log?.[0]?.statusId === ApplicationStatus.DRAFT;
+              const isPrivilegedUser =
+                user?.role === Role.CONSULTANT ||
+                user?.role === Role.MANAGER ||
+                user?.role === Role.ADMIN;
+              return isCurrentUserApplication || (!isDraft && isPrivilegedUser);
+            })}
+          />
         </Suspense>
       </div>
     </div>

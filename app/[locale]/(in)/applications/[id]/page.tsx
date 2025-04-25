@@ -53,8 +53,8 @@ export default function ApplicationPage({ params }: ApplicationPageProps) {
   }
 
   const hasAccessForm =
-    user?.role === 'ADMIN' ||
-    user?.role === 'MANAGER' ||
+    ((user?.role === 'ADMIN' || user?.role === 'MANAGER') &&
+      (application?.Log?.[0]?.statusId !== 'DRAFT' || application?.createdById === user?.id)) ||
     (user?.createdApplications && user.createdApplications.some((app) => app.id === id)) ||
     (user?.consultedApplications && user.consultedApplications.some((app) => app.id === id)) ||
     (application?.createdById && application.createdById === user?.id);

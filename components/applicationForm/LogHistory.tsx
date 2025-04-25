@@ -72,7 +72,7 @@ const LogHistory = () => {
 
   return (
     <div className="mt-6 w-full rounded-lg border bg-white p-4">
-      <h2 className="mb-4 flex items-center justify-between text-xl font-bold">
+      <h2 className="mb-4 flex flex-wrap items-center justify-between text-xl font-bold">
         <div>{tLogHistory('title')}</div>
         <Button
           variant="outline"
@@ -109,9 +109,6 @@ const LogHistory = () => {
                   >
                     {tApplicationStatus(latestLog.statusId as ApplicationStatus)}
                   </span>
-                  {latestLog.description && (
-                    <p className="mt-2 text-gray-600">{latestLog.description}</p>
-                  )}
                 </div>
                 <div className="text-right">
                   <div className="text-sm text-gray-500">
@@ -123,6 +120,9 @@ const LogHistory = () => {
                     </div>
                   )}
                 </div>
+                {latestLog.description && (
+                  <p className="mt-2 text-gray-600">{latestLog.description}</p>
+                )}
               </div>
             </div>
           </div>
@@ -160,7 +160,6 @@ const LogHistory = () => {
                       >
                         {tApplicationStatus(log.statusId as ApplicationStatus)}
                       </span>
-                      {log.description && <p className="mt-2 text-gray-600">{log.description}</p>}
                     </div>
                     <div className="text-right">
                       <div className="text-sm text-gray-500">
@@ -172,6 +171,7 @@ const LogHistory = () => {
                         </div>
                       )}
                     </div>
+                    {log.description && <p className="mt-2 text-gray-600">{log.description}</p>}
                   </div>
                 </div>
 

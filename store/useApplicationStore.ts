@@ -40,7 +40,7 @@ interface ApplicationsState {
   setSortDirection: (direction: 'asc' | 'desc') => void;
 }
 
-export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
+export const useApplicationStore = create<ApplicationsState>((set, get) => ({
   applications: [],
   userApplications: [], // Инициализация пустым массивом
   currentApplication: null,
@@ -77,9 +77,9 @@ export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
           sequenceNumber: index + 1,
         }));
 
-      console.log(
-        `Received ${data.length} applications, filtered to ${filteredData.length} non-deleted applications`,
-      );
+      // console.log(
+      //   `Received ${data.length} applications, filtered to ${filteredData.length} non-deleted applications`,
+      // );
       set({ applications: filteredData, error: null });
     } catch (error) {
       console.error('Error in fetchApplications:', error);
@@ -208,6 +208,7 @@ export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
         },
         body: JSON.stringify({
           createdById: userId,
+          consultantId: authStore.user?.role === 'CONSULTANT' ? userId : null,
         }),
         credentials: 'include', // Важно для передачи cookie сессии
       });

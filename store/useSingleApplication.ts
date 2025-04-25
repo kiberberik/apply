@@ -12,7 +12,7 @@ import {
   IdentificationDocumentType,
   RelationshipDegree,
 } from '@prisma/client';
-import { useApplicationsStore } from './useApplicationsStore';
+import { useApplicationStore } from './useApplicationStore';
 
 // Тип для запроса обновления заявки
 export interface UpdateApplicationRequest {
@@ -78,6 +78,7 @@ export interface UpdateApplicationRequest {
   contractLanguage?: string | null;
   // Документы загружаются через отдельный API-маршрут
   statusId?: string;
+  submittedAt?: string | null;
 }
 
 interface ExtendedLog extends Log {
@@ -138,7 +139,7 @@ export const useSingleApplication = create<SingleApplicationState>((set) => ({
       set({ application: data });
 
       // Обновляем общий стейт заявок
-      const applicationsStore = useApplicationsStore.getState();
+      const applicationsStore = useApplicationStore.getState();
       applicationsStore.updateApplication(id, data);
     } catch (error) {
       console.error('Ошибка при загрузке заявки:', error);
@@ -170,7 +171,7 @@ export const useSingleApplication = create<SingleApplicationState>((set) => ({
       set({ application: updatedData });
 
       // Обновляем общий стейт заявок
-      const applicationsStore = useApplicationsStore.getState();
+      const applicationsStore = useApplicationStore.getState();
       applicationsStore.updateApplication(id, updatedData);
 
       return {};

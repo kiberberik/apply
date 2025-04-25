@@ -50,7 +50,7 @@
     "invalidDate": "Invalid date",
     "submitApplication": "Submit Application",
     "applicant": "Applicant Identity Document",
-    "representative": "Representative Identity Document",
+    "representative": "Identification document of the applicant's Representative",
     "update": "Update"
   },
   "Roles": {
@@ -273,8 +273,8 @@
     "columnsAcademicLevel": "Academic Level",
     "columnsType": "Type",
     "columnsSubmittedAt": "Date",
-    "contractSignType": "Contract Sign",
-    "infoTitle": "Application Information",
+    "contractSignType": "Contract",
+    "infoTitle": "Application Details",
     "searchPlaceholder": "Search for applicant"
   },
   "Applicant": {
@@ -372,7 +372,7 @@
     "identificationNumber": "IIN"
   },
   "RequiredDocuments": {
-    "title": "Required Documents",
+    "title": "Upload Documents",
     "loading": "Loading...",
     "addDocument": "Add Document",
     "editDocument": "Edit Document",
@@ -440,7 +440,7 @@
   },
   "LogHistory": {
     "title": "Application Status",
-    "statusHistory": "Status History",
+    "statusHistory": "History",
     "noLogs": "No Status History",
     "loading": "Loading Status History...",
     "currentStatus": "Current Status",
@@ -450,8 +450,8 @@
     "user": "User"
   },
   "ContractSignType": {
-    "TRUSTME": "Trust Me",
-    "OFFLINE": "Offline",
+    "TRUSTME": "signed through Trust Me",
+    "OFFLINE": "signed offline",
     "NOT_SIGNED": "Not Signed"
   }
 }

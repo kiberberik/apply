@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { Button } from './ui/button';
 import { useRouter } from '@/i18n/navigation';
-import { useApplicationsStore } from '@/store/useApplicationsStore';
+import { useApplicationStore } from '@/store/useApplicationStore';
 import { toast } from 'react-toastify';
 import {
   Table,
@@ -49,7 +49,7 @@ const ProfileUser = () => {
     userAppsError,
     fetchDetailedUserApplications,
     createNewApplication,
-  } = useApplicationsStore();
+  } = useApplicationStore();
 
   // Загружаем заявки пользователя при монтировании компонента
   useEffect(() => {

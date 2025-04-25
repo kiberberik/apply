@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { Role } from '@prisma/client';
 
 // Получение всех пользователей
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const role = searchParams.get('role') as Role | null;
+
     const users = await prisma.user.findMany({
+      where: role ? { role } : undefined,
       select: {
         id: true,
         name: true,

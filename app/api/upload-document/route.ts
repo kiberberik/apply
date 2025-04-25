@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       const fileUrl = `/upload-docs/${uniqueFilename}`;
 
       // Обновляем ссылки на документы в соответствующей модели
-      if ((activeTab === 'applicant' || activeTab === 'personal') && applicantId) {
+      if (activeTab === 'applicant' && applicantId) {
         // Получаем текущие ссылки на документы
         const applicant = await prisma.applicant.findUnique({
           where: { id: applicantId },
@@ -91,6 +91,30 @@ export async function POST(request: NextRequest) {
         await prisma.representative.update({
           where: { id: representativeId },
           data: { documentFileLinks: JSON.stringify(links) },
+        });
+      } else if (activeTab === 'representative-document' && representativeId) {
+        // Получаем текущие ссылки на документы
+        const representative = await prisma.representative.findUnique({
+          where: { id: representativeId },
+          select: { representativeDocumentFileLinks: true },
+        });
+
+        // Добавляем новую ссылку к существующим или создаем новый массив
+        let links = [];
+        if (representative?.representativeDocumentFileLinks) {
+          try {
+            links = JSON.parse(representative.representativeDocumentFileLinks);
+            if (!Array.isArray(links)) links = [];
+          } catch {
+            links = [];
+          }
+        }
+        links.push(fileUrl);
+
+        // Обновляем запись в базе данных
+        await prisma.representative.update({
+          where: { id: representativeId },
+          data: { representativeDocumentFileLinks: JSON.stringify(links) },
         });
       }
 
