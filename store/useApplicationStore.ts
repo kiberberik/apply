@@ -1,11 +1,108 @@
 import { create } from 'zustand';
-import { Application, Applicant, Details, Log, User } from '@prisma/client';
+import {
+  Application,
+  Applicant,
+  Representative,
+  Details,
+  ApplicationStatus,
+  Log,
+  Document,
+  EducationalProgram,
+  User,
+  IdentificationDocumentType,
+  RelationshipDegree,
+} from '@prisma/client';
 import { useAuthStore } from './useAuthStore';
+
+// Тип для запроса обновления заявки
+export interface UpdateApplicationRequest {
+  applicant?: {
+    id?: string;
+    email?: string | null;
+    givennames?: string | null;
+    patronymic?: string | null;
+    surname?: string | null;
+    birthDate?: string | null;
+    birthPlace?: string | null;
+    isCitizenshipKz?: boolean | null;
+    citizenship?: string | null;
+    documentType?: IdentificationDocumentType | null;
+    identificationNumber?: string | null;
+    // Поля документа
+    documentNumber?: string | null;
+    documentIssueDate?: string | null;
+    documentExpiryDate?: string | null;
+    documentIssuingAuthority?: string | null;
+    documentFileLinks?: string | null; // JSON строка массива ссылок
+    gender?: string | null;
+    maritalStatus?: string | null;
+    phone?: string | null;
+    addressResidential?: string | null;
+    addressRegistration?: string | null;
+  } | null;
+  representative?: {
+    id?: string;
+    email?: string | null;
+    givennames?: string | null;
+    patronymic?: string | null;
+    surname?: string | null;
+    phone?: string | null;
+    addressResidential?: string | null;
+    addressRegistration?: string | null;
+    isCitizenshipKz?: boolean | null;
+    citizenship?: string | null;
+    documentType?: IdentificationDocumentType | null;
+    identificationNumber?: string | null;
+    // Поля документа удостоверения личности
+    documentNumber?: string | null;
+    documentIssueDate?: string | null;
+    documentExpiryDate?: string | null;
+    documentIssuingAuthority?: string | null;
+    documentFileLinks?: string | null; // JSON строка массива ссылок
+    // Поля документа представителя
+    representativeDocumentNumber?: string | null;
+    representativeDocumentIssueDate?: string | null;
+    representativeDocumentExpiryDate?: string | null;
+    representativeDocumentIssuingAuthority?: string | null;
+    representativeDocumentFileLinks?: string | null; // JSON строка массива ссылок
+    relationshipDegree?: RelationshipDegree | null;
+    applicantId?: string | null;
+  } | null;
+  details?: {
+    id?: string;
+    type?: string | null;
+    academicLevel?: string | null;
+    studyingLanguage?: string | null;
+    educationalProgramId?: string | null;
+  } | null;
+  contractLanguage?: string | null;
+  // Документы загружаются через отдельный API-маршрут
+  statusId?: string;
+  submittedAt?: string | null;
+  consultantId?: string | null;
+}
+
+interface ExtendedLog extends Log {
+  createdBy: {
+    id: string;
+    name: string | null;
+    email: string | null;
+  } | null;
+  status: ApplicationStatus | null;
+}
 
 export interface ExtendedApplication extends Application {
   applicant: Applicant | null;
-  details: Details | null;
-  Log?: Log[];
+  representative: Representative | null;
+  details:
+    | (Details & {
+        educationalProgram: EducationalProgram | null;
+      })
+    | null;
+  status: ApplicationStatus | null;
+  Log?: ExtendedLog[];
+  documents?: Document[];
+  createdBy: User | null;
   consultant?: User | null;
   sequenceNumber?: number;
 }
@@ -14,10 +111,13 @@ interface ApplicationsState {
   applications: ExtendedApplication[];
   userApplications: ExtendedApplication[]; // Заявки текущего пользователя
   currentApplication: ExtendedApplication | null;
+  singleApplication: ExtendedApplication | null; // Для отдельной заявки
   isLoading: boolean;
   isLoadingUserApps: boolean; // Состояние загрузки заявок пользователя
+  isLoadingSingleApp: boolean; // Состояние загрузки отдельной заявки
   error: string | null;
   userAppsError: string | null; // Ошибки при работе с заявками пользователя
+  singleAppError: string | null; // Ошибки при работе с отдельной заявкой
 
   // Actions для всех заявок
   fetchApplications: () => Promise<void>;
@@ -30,6 +130,14 @@ interface ApplicationsState {
   // Actions для заявок пользователя
   fetchUserApplications: () => Promise<void>; // Загрузка заявок пользователя
   fetchDetailedUserApplications: () => Promise<void>; // Загрузка деталей заявок пользователя
+
+  // Actions для отдельной заявки
+  fetchSingleApplication: (id: string) => Promise<void>;
+  updateSingleApplication: (
+    id: string,
+    application: UpdateApplicationRequest,
+  ) => Promise<{ error?: string }>;
+  clearSingleApplication: () => void;
 
   // Filters
   searchQuery: string;
@@ -44,10 +152,13 @@ export const useApplicationStore = create<ApplicationsState>((set, get) => ({
   applications: [],
   userApplications: [], // Инициализация пустым массивом
   currentApplication: null,
+  singleApplication: null, // Инициализация для отдельной заявки
   isLoading: false,
   isLoadingUserApps: false, // Начальное состояние загрузки
+  isLoadingSingleApp: false, // Начальное состояние загрузки отдельной заявки
   error: null,
   userAppsError: null, // Начальное состояние ошибок
+  singleAppError: null, // Начальное состояние ошибок отдельной заявки
   searchQuery: '',
   sortBy: 'createdAt',
   sortDirection: 'desc',
@@ -268,6 +379,10 @@ export const useApplicationStore = create<ApplicationsState>((set, get) => ({
         state.currentApplication?.id === id
           ? { ...state.currentApplication, ...application }
           : state.currentApplication,
+      singleApplication:
+        state.singleApplication?.id === id
+          ? { ...state.singleApplication, ...application }
+          : state.singleApplication,
     })),
 
   deleteApplication: async (id) => {
@@ -309,5 +424,67 @@ export const useApplicationStore = create<ApplicationsState>((set, get) => ({
     } finally {
       set({ isLoading: false });
     }
+  },
+
+  // Методы для работы с отдельной заявкой
+  fetchSingleApplication: async (id: string) => {
+    set({ isLoadingSingleApp: true, singleAppError: null });
+    try {
+      // Добавляю параметр noCache для обхода кэша браузера
+      const response = await fetch(`/api/applications/${id}?noCache=${Date.now()}`);
+      if (!response.ok) {
+        throw new Error('Заявка не найдена');
+      }
+      const data = await response.json();
+
+      // Обновляем локальный стейт для singleApplication
+      set({ singleApplication: data });
+
+      // Обновляем общий стейт заявок
+      get().updateApplication(id, data);
+    } catch (error) {
+      console.error('Ошибка при загрузке заявки:', error);
+      set({ singleAppError: 'Failed to fetch application' });
+    } finally {
+      set({ isLoadingSingleApp: false });
+    }
+  },
+
+  updateSingleApplication: async (id: string, application: UpdateApplicationRequest) => {
+    set({ isLoadingSingleApp: true, singleAppError: null });
+    try {
+      const response = await fetch(`/api/applications/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(application),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Ошибка при обновлении заявки');
+      }
+
+      const updatedData = await response.json();
+
+      // Обновляем локальный стейт для singleApplication
+      set({ singleApplication: updatedData });
+
+      // Обновляем общий стейт заявок
+      get().updateApplication(id, updatedData);
+
+      return {};
+    } catch (error) {
+      console.error('Ошибка при обновлении заявки:', error);
+      set({ singleAppError: 'Failed to update application' });
+      return { error: error instanceof Error ? error.message : 'Ошибка при обновлении заявки' };
+    } finally {
+      set({ isLoadingSingleApp: false });
+    }
+  },
+
+  clearSingleApplication: () => {
+    set({ singleApplication: null, singleAppError: null });
   },
 }));

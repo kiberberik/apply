@@ -6,26 +6,29 @@ import { useUsersStore } from '@/store/useUsersStore';
 import { Role, User } from '@prisma/client';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Link } from '@/i18n/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { EyeIcon, PencilIcon, BackwardIcon, ForwardIcon } from '@heroicons/react/24/outline';
 import EditUserModal from '@/components/(users)/EditUserModal';
 import Loading from '@/app/[locale]/(in)/loading';
+import NoAccess from '../layout/NoAccess';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 
-const USERS_PER_PAGE = 4;
+const USERS_PER_PAGE = 10;
 
 export default function AllUsersList() {
   const { user } = useAuthStore();
   const { users, setUsers } = useUsersStore();
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState<'consultantsFilter' | 'applicantsFilter' | null>(null);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
-
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [filter, setFilter] = useState<'consultantsFilter' | 'applicantsFilter' | null>(null);
   const t = useTranslations('Users');
   const c = useTranslations('Common');
-  const rT = useTranslations('Roles');
+  const tRole = useTranslations('Roles');
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -75,7 +78,7 @@ export default function AllUsersList() {
   }, []);
 
   if (!hasAccess(user?.role ?? Role.USER, Role.CONSULTANT)) {
-    return <div className="p-6 text-center text-red-600">{c('noAccess')}</div>;
+    return <NoAccess />;
   }
 
   if (isLoading) {
@@ -87,40 +90,39 @@ export default function AllUsersList() {
       <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
-          {/* <p className="mt-1 text-gray-600">{t('description')}</p> */}
         </div>
         <div className="w-full space-y-4">
           <div className="mb-4 flex gap-2">
             {(user?.consultants?.length || 0) > 0 && (
-              <button
+              <Button
                 onClick={() =>
                   setFilter(filter === 'consultantsFilter' ? null : 'consultantsFilter')
                 }
                 className={`rounded-full px-4 py-2 text-sm ${
                   filter === 'consultantsFilter'
-                    ? 'bg-rose-500 text-white'
+                    ? 'bg-[#D62E20] text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                Мои консультанты
-              </button>
+                {t('consultants')}
+              </Button>
             )}
 
             {(user?.consultedApplications?.length || 0) > 0 && (
-              <button
+              <Button
                 onClick={() => setFilter(filter === 'applicantsFilter' ? null : 'applicantsFilter')}
                 className={`rounded-full px-4 py-2 text-sm ${
                   filter === 'applicantsFilter'
-                    ? 'bg-rose-500 text-white'
+                    ? 'bg-[#D62E20] text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                Мои аппликанты
-              </button>
+                {t('applicants')}
+              </Button>
             )}
           </div>
 
-          <input
+          <Input
             type="text"
             placeholder={c('search')}
             value={searchQuery}
@@ -140,11 +142,9 @@ export default function AllUsersList() {
               <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
                 {t('email')}
               </th>
-              {/* {(user?.role === 'ADMIN' || user?.role === 'MANAGER') && ( */}
               <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
                 {t('role')}
               </th>
-              {/*  )} */}
               <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
                 {c('actions')}
               </th>
@@ -155,22 +155,20 @@ export default function AllUsersList() {
               <tr key={userItem.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900">
                   {userItem.name || t('noName')}
-                  {/* <pre className="mt-4 rounded bg-gray-100 p-4">
-                    {JSON.stringify(userItem.manager, null, 2)}
-                  </pre> */}
                 </td>
                 <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900">
                   {userItem.email}
                 </td>
-                {/* {(user?.role === 'ADMIN' || user?.role === 'MANAGER') && ( */}
+
                 <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900">
-                  {rT(userItem.role)}
+                  {tRole(userItem.role as Role)}
                 </td>
-                {/* )} */}
-                <td className="flex gap-4 px-6 py-4 text-sm whitespace-nowrap">
+
+                <td className="flex w-full items-center justify-start gap-1 text-sm">
                   {user && hasAccess(user.role, userItem.role) && (
                     <>
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={() =>
                           setSelectedUser({
                             ...userItem,
@@ -180,18 +178,17 @@ export default function AllUsersList() {
                             managerId: userItem.managerId || null,
                           })
                         }
-                        className="hover:text-rose-600 hover:underline"
+                        className="p-0 hover:text-[#D62E20] hover:underline"
                       >
-                        <PencilIcon className="h-6 w-6 flex-shrink-0" />
-                        {/* {c('edit')} */}
-                      </button>
-                      <Link
-                        href={`/users/${userItem.id}`}
-                        className="hover:text-rose-600 hover:underline"
+                        <PencilIcon className="m-0 h-10 w-10 flex-shrink-0 p-0" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => router.push(`/users/${userItem.id}`)}
+                        className="p-0 hover:text-[#D62E20] hover:underline"
                       >
-                        <EyeIcon className="h-6 w-6 flex-shrink-0" />
-                        {/* {c('view')} */}
-                      </Link>
+                        <EyeIcon className="m-0 h-10 w-10 flex-shrink-0 p-0" />
+                      </Button>
                     </>
                   )}
                 </td>
@@ -203,25 +200,23 @@ export default function AllUsersList() {
 
       {filteredUsers.length > USERS_PER_PAGE && (
         <div className="mt-6 flex items-center justify-between">
-          <button
+          <Button
             disabled={currentPage === 1}
             onClick={() => handlePageChange(currentPage - 1)}
             className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {/* {c('prev')} */}
             <BackwardIcon className="h-6 w-6 flex-shrink-0" />
-          </button>
+          </Button>
           <span className="text-sm text-gray-700">
             {currentPage} / {totalPages}
           </span>
-          <button
+          <Button
             disabled={currentPage === totalPages}
             onClick={() => handlePageChange(currentPage + 1)}
             className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {/* {c('next')} */}
             <ForwardIcon className="h-6 w-6 flex-shrink-0" />
-          </button>
+          </Button>
         </div>
       )}
 

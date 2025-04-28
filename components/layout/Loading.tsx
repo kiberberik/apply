@@ -1,14 +1,10 @@
 'use client';
-import { useTranslations } from 'next-intl';
+import { Loader2 } from 'lucide-react';
 
 const Loading = () => {
-  const c = useTranslations('Common');
   return (
-    <div className="flex h-[50vh] items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-rose-500" />
-        <p className="text-gray-500">{c('loading')}</p>
-      </div>
+    <div className="fixed inset-0 flex h-screen w-screen items-center justify-center bg-zinc-800/50">
+      <Loader2 className="h-10 w-10 animate-spin" />
     </div>
   );
 };

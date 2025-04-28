@@ -51,7 +51,15 @@
     "submitApplication": "Submit Application",
     "applicant": "Applicant Identity Document",
     "representative": "Identification document of the applicant's Representative",
-    "update": "Update"
+    "update": "Update",
+    "deleting": "Deleting...",
+    "deleteConfirmTitle": "Delete Confirmation",
+    "deleteConfirmDescription": "Are you sure you want to delete this document? This action cannot be undone.",
+    "confirm": "Confirm",
+    "confirmSubmitTitle": "Confirm Submission",
+    "confirmSubmitDescription": "Are you sure you want to submit the application? After submission, you will not be able to change the data.",
+    "success": "Successfully completed",
+    "error": "Error occurred"
   },
   "Roles": {
     "USER": "User",
@@ -187,7 +195,9 @@
     "name": "Name",
     "email": "Email",
     "role": "Role",
-    "noName": "No name"
+    "noName": "No name",
+    "consultants": "My Consultants",
+    "applicants": "My Applicants"
   },
   "EducationalPrograms": {
     "program": "Educational Program",
@@ -270,12 +280,14 @@
     "columnsUpdatedAt": "Updated At",
     "columnsIdentificationNumber": "IIN",
     "columnsConsultant": "Consultant",
-    "columnsAcademicLevel": "Academic Level",
+    "columnsAcademicLevel": "Level",
     "columnsType": "Type",
     "columnsSubmittedAt": "Date",
     "contractSignType": "Contract",
     "infoTitle": "Application Details",
-    "searchPlaceholder": "Search for applicant"
+    "searchPlaceholder": "Search for applicant",
+    "notSubmitted": "Not Submitted",
+    "noConsultant": "Consultant will be assigned after application submission"
   },
   "Applicant": {
     "title": "Applicant",
@@ -292,8 +304,9 @@
     "phone": "Phone",
     "addressResidential": "Residential Address",
     "addressRegistration": "Registration Address",
-    "applicationSubmitted": "Application Submitted",
-    "applicationSubmittedDescription": "Application already submitted and cannot be changed."
+    "applicationSubmitted": "Submitted at",
+    "applicationSubmittedDescription": "Application already submitted and cannot be changed.",
+    "applicationCreatedAt": "Created at"
   },
   "Representative": {
     "title": "Representative",

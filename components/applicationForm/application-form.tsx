@@ -11,12 +11,12 @@ import { RequiredDocs } from './RequiredDocs';
 import { Button } from '@/components/ui/button';
 import { useForm, Path, PathValue } from 'react-hook-form';
 import RepresentativeForm from './Representative';
-import React, { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ExtendedApplication } from '@/types/application';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useSingleApplication, UpdateApplicationRequest } from '@/store/useSingleApplication';
+import { UpdateApplicationRequest, useApplicationStore } from '@/store/useApplicationStore';
 import { useLogStore } from '@/store/useLogStore';
 import {
   RelationshipDegree,
@@ -34,6 +34,14 @@ import LogHistory from './LogHistory';
 import Info from './Info';
 import { useRequiredDocuments } from '@/store/useRequiredDocuments';
 import { useDocumentStore } from '@/store/useDocumentStore';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface ApplicationFormProps {
   id?: string;
@@ -325,15 +333,21 @@ const validateForSubmission = (
 
 export default function ApplicationForm({ id }: ApplicationFormProps) {
   const c = useTranslations('Common');
-  const { application, updateApplication, fetchApplication, isLoading } = useSingleApplication();
+  const { fetchSingleApplication, updateSingleApplication, singleApplication, isLoadingSingleApp } =
+    useApplicationStore();
   const { createLog } = useLogStore();
 
   const tApplicant = useTranslations('Applicant');
   const tRepresentative = useTranslations('Representative');
   const tDetails = useTranslations('Details');
   const tDocuments = useTranslations('Documents');
+  const { getLatestLogByApplicationId } = useLogStore();
 
-  const [activeTab, setActiveTab] = React.useState(() => {
+  const latestLog = singleApplication?.id
+    ? getLatestLogByApplicationId(singleApplication.id)
+    : null;
+
+  const [activeTab, setActiveTab] = useState(() => {
     // Попытка восстановить сохраненный таб из localStorage при инициализации
     if (typeof window !== 'undefined') {
       const savedTab = localStorage.getItem(`application-tab-${id}`);
@@ -341,39 +355,42 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     }
     return 'applicant';
   });
-  const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const { user } = useAuthStore();
+
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [formValuesForSubmit, setFormValuesForSubmit] = useState<FormValues | null>(null);
 
   const form = useForm<any>({
     resolver: zodResolver(formSchema),
-    defaultValues: React.useMemo(
+    defaultValues: useMemo(
       () => ({
-        applicant: application?.applicant
+        applicant: singleApplication?.applicant
           ? {
-              givennames: application.applicant.givennames || '',
-              surname: application.applicant.surname || '',
-              patronymic: application.applicant.patronymic || null,
-              birthDate: application.applicant.birthDate
-                ? dateUtils.formatToInputDate(application.applicant.birthDate)
+              givennames: singleApplication.applicant.givennames || '',
+              surname: singleApplication.applicant.surname || '',
+              patronymic: singleApplication.applicant.patronymic || null,
+              birthDate: singleApplication.applicant.birthDate
+                ? dateUtils.formatToInputDate(singleApplication.applicant.birthDate)
                 : '',
-              birthPlace: application.applicant.birthPlace || '',
-              isCitizenshipKz: application.applicant.isCitizenshipKz || false,
-              citizenship: application.applicant.citizenship || '',
-              identificationNumber: application.applicant.identificationNumber || null,
-              documentType: application.applicant.documentType || 'ID_CARD',
-              documentNumber: application.applicant.documentNumber || '',
-              documentIssueDate: application.applicant.documentIssueDate
-                ? dateUtils.formatToInputDate(application.applicant.documentIssueDate)
+              birthPlace: singleApplication.applicant.birthPlace || '',
+              isCitizenshipKz: singleApplication.applicant.isCitizenshipKz || false,
+              citizenship: singleApplication.applicant.citizenship || '',
+              identificationNumber: singleApplication.applicant.identificationNumber || null,
+              documentType: singleApplication.applicant.documentType || 'ID_CARD',
+              documentNumber: singleApplication.applicant.documentNumber || '',
+              documentIssueDate: singleApplication.applicant.documentIssueDate
+                ? dateUtils.formatToInputDate(singleApplication.applicant.documentIssueDate)
                 : '',
-              documentExpiryDate: application.applicant.documentExpiryDate
-                ? dateUtils.formatToInputDate(application.applicant.documentExpiryDate)
+              documentExpiryDate: singleApplication.applicant.documentExpiryDate
+                ? dateUtils.formatToInputDate(singleApplication.applicant.documentExpiryDate)
                 : '',
-              documentIssuingAuthority: application.applicant.documentIssuingAuthority || '',
-              documentFileLinks: application.applicant.documentFileLinks || '',
-              email: application.applicant.email || '',
-              phone: application.applicant.phone || '',
-              addressResidential: application.applicant.addressResidential || '',
-              addressRegistration: application.applicant.addressRegistration || '',
+              documentIssuingAuthority: singleApplication.applicant.documentIssuingAuthority || '',
+              documentFileLinks: singleApplication.applicant.documentFileLinks || '',
+              email: singleApplication.applicant.email || '',
+              phone: singleApplication.applicant.phone || '',
+              addressResidential: singleApplication.applicant.addressResidential || '',
+              addressRegistration: singleApplication.applicant.addressRegistration || '',
             }
           : {
               givennames: '',
@@ -395,58 +412,59 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               addressResidential: '',
               addressRegistration: '',
             },
-        representative: application?.representative
+        representative: singleApplication?.representative
           ? {
-              givennames: application.representative.givennames || '',
-              surname: application.representative.surname || '',
-              patronymic: application.representative.patronymic || null,
-              isCitizenshipKz: application.representative.isCitizenshipKz || false,
-              citizenship: application.representative.citizenship || '',
-              identificationNumber: application.representative.identificationNumber || null,
-              documentType: application.representative.documentType || 'ID_CARD',
-              documentNumber: application.representative.documentNumber || '',
-              documentIssueDate: application.representative.documentIssueDate
-                ? dateUtils.formatToInputDate(application.representative.documentIssueDate)
+              givennames: singleApplication.representative.givennames || '',
+              surname: singleApplication.representative.surname || '',
+              patronymic: singleApplication.representative.patronymic || null,
+              isCitizenshipKz: singleApplication.representative.isCitizenshipKz || false,
+              citizenship: singleApplication.representative.citizenship || '',
+              identificationNumber: singleApplication.representative.identificationNumber || null,
+              documentType: singleApplication.representative.documentType || 'ID_CARD',
+              documentNumber: singleApplication.representative.documentNumber || '',
+              documentIssueDate: singleApplication.representative.documentIssueDate
+                ? dateUtils.formatToInputDate(singleApplication.representative.documentIssueDate)
                 : '',
-              documentExpiryDate: application.representative.documentExpiryDate
-                ? dateUtils.formatToInputDate(application.representative.documentExpiryDate)
+              documentExpiryDate: singleApplication.representative.documentExpiryDate
+                ? dateUtils.formatToInputDate(singleApplication.representative.documentExpiryDate)
                 : '',
-              documentIssuingAuthority: application.representative.documentIssuingAuthority || '',
-              documentFileLinks: application.representative.documentFileLinks || '',
+              documentIssuingAuthority:
+                singleApplication.representative.documentIssuingAuthority || '',
+              documentFileLinks: singleApplication.representative.documentFileLinks || '',
               representativeDocumentNumber:
-                application.representative.representativeDocumentNumber || '',
-              representativeDocumentIssueDate: application.representative
+                singleApplication.representative.representativeDocumentNumber || '',
+              representativeDocumentIssueDate: singleApplication.representative
                 .representativeDocumentIssueDate
                 ? dateUtils.formatToInputDate(
-                    application.representative.representativeDocumentIssueDate,
+                    singleApplication.representative.representativeDocumentIssueDate,
                   )
                 : '',
-              representativeDocumentExpiryDate: application.representative
+              representativeDocumentExpiryDate: singleApplication.representative
                 .representativeDocumentExpiryDate
                 ? dateUtils.formatToInputDate(
-                    application.representative.representativeDocumentExpiryDate,
+                    singleApplication.representative.representativeDocumentExpiryDate,
                   )
                 : '',
               representativeDocumentIssuingAuthority:
-                application.representative.representativeDocumentIssuingAuthority || '',
+                singleApplication.representative.representativeDocumentIssuingAuthority || '',
               representativeDocumentFileLinks:
-                application.representative.representativeDocumentFileLinks || '',
-              relationshipDegree: application.representative.relationshipDegree || 'PARENT',
-              email: application.representative.email || '',
-              phone: application.representative.phone || '',
-              addressResidential: application.representative.addressResidential || '',
-              addressRegistration: application.representative.addressRegistration || '',
-              applicantId: application.representative.applicantId || '',
-              id: application.representative.id || '',
+                singleApplication.representative.representativeDocumentFileLinks || '',
+              relationshipDegree: singleApplication.representative.relationshipDegree || 'PARENT',
+              email: singleApplication.representative.email || '',
+              phone: singleApplication.representative.phone || '',
+              addressResidential: singleApplication.representative.addressResidential || '',
+              addressRegistration: singleApplication.representative.addressRegistration || '',
+              applicantId: singleApplication.representative.applicantId || '',
+              id: singleApplication.representative.id || '',
             }
           : null,
-        details: application?.details
+        details: singleApplication?.details
           ? {
-              type: application.details.type || 'PAID',
-              academicLevel: application.details.academicLevel || 'BACHELORS',
-              isDormNeeds: application.details.isDormNeeds || false,
-              studyingLanguage: application.details.studyingLanguage || 'RUS',
-              educationalProgramId: application.details.educationalProgramId || '',
+              type: singleApplication.details.type || 'PAID',
+              academicLevel: singleApplication.details.academicLevel || 'BACHELORS',
+              isDormNeeds: singleApplication.details.isDormNeeds || false,
+              studyingLanguage: singleApplication.details.studyingLanguage || 'RUS',
+              educationalProgramId: singleApplication.details.educationalProgramId || '',
             }
           : {
               type: 'PAID',
@@ -455,18 +473,18 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               studyingLanguage: 'RUS',
               educationalProgramId: '',
             },
-        contractLanguage: application?.contractLanguage || 'RUS',
-        documents: application?.documents ? {} : null,
+        contractLanguage: singleApplication?.contractLanguage || 'RUS',
+        documents: singleApplication?.documents ? {} : null,
       }),
-      [application],
+      [singleApplication],
     ),
   });
 
-  const isSubmitted = Boolean(application?.submittedAt);
+  const isSubmitted = Boolean(singleApplication?.submittedAt);
   const isReadOnly = isSubmitted && user?.role === Role.USER;
 
   // Мемоизация isApplicantAdult для предотвращения лишних рендеров
-  const isApplicantAdult = React.useCallback(() => {
+  const isApplicantAdult = useCallback(() => {
     const birthDateStr = form.getValues('applicant.birthDate');
     if (!birthDateStr) return false;
 
@@ -518,12 +536,12 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   }, [activeTab, form, isApplicantAdult]);
 
   // Обновление формы при изменении данных в хранилище
-  const previousAppRef = React.useRef<string | null>(null);
+  const previousAppRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!application) return;
+    if (!singleApplication) return;
 
-    const applicationJson = JSON.stringify(application);
+    const applicationJson = JSON.stringify(singleApplication);
     if (previousAppRef.current === applicationJson) {
       return;
     }
@@ -531,17 +549,17 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     previousAppRef.current = applicationJson;
 
     if (!hasUnsavedChanges) {
-      if (application.applicant) {
+      if (singleApplication.applicant) {
         const applicantData = {
-          ...application.applicant,
-          birthDate: application.applicant.birthDate
-            ? dateUtils.formatToInputDate(application.applicant.birthDate)
+          ...singleApplication.applicant,
+          birthDate: singleApplication.applicant.birthDate
+            ? dateUtils.formatToInputDate(singleApplication.applicant.birthDate)
             : '',
-          documentIssueDate: application.applicant.documentIssueDate
-            ? dateUtils.formatToInputDate(application.applicant.documentIssueDate)
+          documentIssueDate: singleApplication.applicant.documentIssueDate
+            ? dateUtils.formatToInputDate(singleApplication.applicant.documentIssueDate)
             : '',
-          documentExpiryDate: application.applicant.documentExpiryDate
-            ? dateUtils.formatToInputDate(application.applicant.documentExpiryDate)
+          documentExpiryDate: singleApplication.applicant.documentExpiryDate
+            ? dateUtils.formatToInputDate(singleApplication.applicant.documentExpiryDate)
             : '',
         };
 
@@ -552,25 +570,25 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         });
       }
 
-      if (application.representative) {
+      if (singleApplication.representative) {
         const representativeData = {
-          ...application.representative,
-          documentIssueDate: application.representative.documentIssueDate
-            ? dateUtils.formatToInputDate(application.representative.documentIssueDate)
+          ...singleApplication.representative,
+          documentIssueDate: singleApplication.representative.documentIssueDate
+            ? dateUtils.formatToInputDate(singleApplication.representative.documentIssueDate)
             : '',
-          documentExpiryDate: application.representative.documentExpiryDate
-            ? dateUtils.formatToInputDate(application.representative.documentExpiryDate)
+          documentExpiryDate: singleApplication.representative.documentExpiryDate
+            ? dateUtils.formatToInputDate(singleApplication.representative.documentExpiryDate)
             : '',
-          representativeDocumentIssueDate: application.representative
+          representativeDocumentIssueDate: singleApplication.representative
             .representativeDocumentIssueDate
             ? dateUtils.formatToInputDate(
-                application.representative.representativeDocumentIssueDate,
+                singleApplication.representative.representativeDocumentIssueDate,
               )
             : '',
-          representativeDocumentExpiryDate: application.representative
+          representativeDocumentExpiryDate: singleApplication.representative
             .representativeDocumentExpiryDate
             ? dateUtils.formatToInputDate(
-                application.representative.representativeDocumentExpiryDate,
+                singleApplication.representative.representativeDocumentExpiryDate,
               )
             : '',
         };
@@ -582,11 +600,11 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         });
       }
 
-      if (application.details) {
+      if (singleApplication.details) {
         form.setValue(
           'details',
           {
-            ...application.details,
+            ...singleApplication.details,
           } as any,
           {
             shouldDirty: false,
@@ -595,19 +613,18 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           },
         );
 
-        // Устанавливаем contractLanguage отдельно
-        form.setValue('contractLanguage', application.contractLanguage || 'RUS', {
+        form.setValue('contractLanguage', singleApplication.contractLanguage || 'RUS', {
           shouldDirty: false,
           shouldTouch: false,
           shouldValidate: false,
         });
       }
 
-      if (application.applicant?.birthDate) {
+      if (singleApplication.applicant?.birthDate) {
         setTimeout(() => setIsAdult(isApplicantAdult()), 0);
       }
     }
-  }, [application, form, hasUnsavedChanges, isApplicantAdult]);
+  }, [singleApplication, form, hasUnsavedChanges, isApplicantAdult]);
 
   const handleTabChange = (value: string) => {
     if (value === 'representative' && isAdult) {
@@ -632,13 +649,15 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         }
       } else {
         console.warn('No applicant data found in form values');
-        if (application?.applicant) {
+        if (singleApplication?.applicant) {
           values.applicant = {
-            ...application.applicant,
-            birthDate: dateUtils.formatToInputDate(application.applicant.birthDate),
-            documentIssueDate: dateUtils.formatToInputDate(application.applicant.documentIssueDate),
+            ...singleApplication.applicant,
+            birthDate: dateUtils.formatToInputDate(singleApplication.applicant.birthDate),
+            documentIssueDate: dateUtils.formatToInputDate(
+              singleApplication.applicant.documentIssueDate,
+            ),
             documentExpiryDate: dateUtils.formatToInputDate(
-              application.applicant.documentExpiryDate,
+              singleApplication.applicant.documentExpiryDate,
             ),
           };
         } else {
@@ -648,7 +667,59 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       const result = await saveApplicantFormData(values, false);
       if (result) {
         console.log('result', result);
-        await fetchApplication(id as string);
+        await fetchSingleApplication(id as string);
+
+        // Обновляем данные формы сразу после сохранения
+        const updatedApp = useApplicationStore.getState().singleApplication;
+        if (updatedApp) {
+          // Обновляем данные формы
+          if (updatedApp.applicant) {
+            form.setValue('applicant', {
+              ...updatedApp.applicant,
+              birthDate: updatedApp.applicant.birthDate
+                ? dateUtils.formatToInputDate(updatedApp.applicant.birthDate)
+                : '',
+              documentIssueDate: updatedApp.applicant.documentIssueDate
+                ? dateUtils.formatToInputDate(updatedApp.applicant.documentIssueDate)
+                : '',
+              documentExpiryDate: updatedApp.applicant.documentExpiryDate
+                ? dateUtils.formatToInputDate(updatedApp.applicant.documentExpiryDate)
+                : '',
+            });
+          }
+
+          if (updatedApp.representative) {
+            form.setValue('representative', {
+              ...updatedApp.representative,
+              documentIssueDate: updatedApp.representative.documentIssueDate
+                ? dateUtils.formatToInputDate(updatedApp.representative.documentIssueDate)
+                : '',
+              documentExpiryDate: updatedApp.representative.documentExpiryDate
+                ? dateUtils.formatToInputDate(updatedApp.representative.documentExpiryDate)
+                : '',
+              representativeDocumentIssueDate: updatedApp.representative
+                .representativeDocumentIssueDate
+                ? dateUtils.formatToInputDate(
+                    updatedApp.representative.representativeDocumentIssueDate,
+                  )
+                : '',
+              representativeDocumentExpiryDate: updatedApp.representative
+                .representativeDocumentExpiryDate
+                ? dateUtils.formatToInputDate(
+                    updatedApp.representative.representativeDocumentExpiryDate,
+                  )
+                : '',
+            });
+          }
+
+          if (updatedApp.details) {
+            form.setValue('details', {
+              ...updatedApp.details,
+            });
+            form.setValue('contractLanguage', updatedApp.contractLanguage || 'RUS');
+          }
+        }
+
         toast.success('Черновик сохранен успешно');
       } else {
         toast.error('Не удалось сохранить черновик');
@@ -675,18 +746,18 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         return false;
       }
 
-      if (!data.applicant && application?.applicant) {
+      if (!data.applicant && singleApplication?.applicant) {
         console.log('No applicant data in form, using application data');
         data.applicant = {
-          ...application.applicant,
-          birthDate: application.applicant.birthDate
-            ? dateUtils.formatToInputDate(application.applicant.birthDate)
+          ...singleApplication.applicant,
+          birthDate: singleApplication.applicant.birthDate
+            ? dateUtils.formatToInputDate(singleApplication.applicant.birthDate)
             : '',
-          documentIssueDate: application.applicant.documentIssueDate
-            ? dateUtils.formatToInputDate(application.applicant.documentIssueDate)
+          documentIssueDate: singleApplication.applicant.documentIssueDate
+            ? dateUtils.formatToInputDate(singleApplication.applicant.documentIssueDate)
             : '',
-          documentExpiryDate: application.applicant.documentExpiryDate
-            ? dateUtils.formatToInputDate(application.applicant.documentExpiryDate)
+          documentExpiryDate: singleApplication.applicant.documentExpiryDate
+            ? dateUtils.formatToInputDate(singleApplication.applicant.documentExpiryDate)
             : '',
         };
       }
@@ -697,12 +768,28 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       }
 
       if (!isSubmit) {
+        // Для черновиков пропускаем валидацию
         form.clearErrors();
+      } else {
+        // Для отправки проверяем документы
+        const validationResult = validateForSubmission(
+          data,
+          useRequiredDocuments.getState().documents,
+          useDocumentStore.getState().documents,
+        );
+        console.log('Validation result in saveApplicantFormData:', validationResult);
+
+        if (!validationResult.success) {
+          toast.error(validationResult.error);
+          console.log('Document validation failed, submission canceled');
+          return false;
+        }
       }
 
       setHasUnsavedChanges(false);
 
       console.log('Preparing request data');
+
       const requestData: UpdateApplicationRequest = {
         applicant: data.applicant
           ? {
@@ -759,10 +846,104 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         submittedAt: isSubmit ? new Date().toISOString() : null,
       };
 
+      if (isSubmit) {
+        // Проверяем наличие других заявок от этого же заявителя за последние 6 месяцев
+        try {
+          const identificationNumber = data.applicant?.identificationNumber;
+
+          if (identificationNumber) {
+            const response = await fetch('/api/applications/check-duplicate', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ identificationNumber }),
+            });
+
+            if (!response.ok) {
+              console.error('Ошибка при проверке дубликатов заявок');
+            } else {
+              const result = await response.json();
+
+              if (result.hasDuplicate) {
+                toast.error(
+                  'У вас уже есть активная заявка за последние 6 месяцев. Дублирование заявок не допускается.',
+                );
+                return false;
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Ошибка при проверке дубликатов заявок:', error);
+        }
+      }
+
+      // Получаем консультанта с наименьшей нагрузкой при отправке заявления
+      if (isSubmit && !singleApplication?.consultantId) {
+        try {
+          // Получаем список консультантов из API
+          const consultantsResponse = await fetch('/api/users?role=CONSULTANT');
+
+          if (!consultantsResponse.ok) {
+            console.error('Не удалось получить список консультантов');
+          } else {
+            const consultants = await consultantsResponse.json();
+
+            // Если есть консультанты
+            if (consultants && consultants.length > 0) {
+              // Получаем заявки в статусе PROCESSING для каждого консультанта
+              const consultantsWithProcessingCount = await Promise.all(
+                consultants.map(async (consultant: any) => {
+                  // Логика подсчета заявок в обработке для каждого консультанта
+                  const processingApplications =
+                    consultant.consultedApplications?.filter((app: any) => {
+                      // Проверяем, что у заявки последний лог имеет статус PROCESSING
+                      const latestLog = app.Log?.[0];
+                      return latestLog && latestLog.statusId === 'PROCESSING';
+                    }) || [];
+
+                  return {
+                    id: consultant.id,
+                    name: consultant.name,
+                    email: consultant.email,
+                    processingCount: processingApplications.length,
+                  };
+                }),
+              );
+
+              // Найдем консультанта с минимальным количеством заявок в обработке
+              if (consultantsWithProcessingCount.length > 0) {
+                const minProcessingCount = Math.min(
+                  ...consultantsWithProcessingCount.map((c) => c.processingCount),
+                );
+
+                // Фильтруем консультантов с минимальным количеством заявок
+                const consultantsWithMinProcessing = consultantsWithProcessingCount.filter(
+                  (c) => c.processingCount === minProcessingCount,
+                );
+
+                // Выбираем случайного консультанта из списка с минимальной нагрузкой
+                const selectedConsultant =
+                  consultantsWithMinProcessing[
+                    Math.floor(Math.random() * consultantsWithMinProcessing.length)
+                  ];
+
+                console.log('Выбран консультант:', selectedConsultant);
+
+                // Добавляем ID консультанта к данным заявки
+                requestData.consultantId = selectedConsultant.id;
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Ошибка при выборе консультанта:', error);
+        }
+      }
+
       console.log('Request data prepared:', requestData);
 
-      if (application) {
-        previousAppRef.current = JSON.stringify(application);
+      if (singleApplication) {
+        previousAppRef.current = JSON.stringify(singleApplication);
       }
 
       console.log('Sending update request...');
@@ -771,7 +952,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       let submissionInProgress = true;
 
       try {
-        const result = await updateApplication(id, requestData);
+        const result = await updateSingleApplication(id, requestData);
         if (result.error) {
           console.error('API error:', result.error);
           throw new Error(`Failed to save ${isSubmit ? 'submission' : 'draft'}`);
@@ -796,10 +977,10 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         // Обновляем данные после сохранения, но только если процесс отправки еще активен
         if (submissionInProgress) {
           try {
-            await fetchApplication(id);
+            await fetchSingleApplication(id);
 
             // Восстанавливаем код обновления формы, но добавляем защиту от циклов
-            const updatedApplication = useSingleApplication.getState().application;
+            const updatedApplication = singleApplication;
             if (
               updatedApplication &&
               JSON.stringify(updatedApplication) !== previousAppRef.current
@@ -927,6 +1108,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         }
 
         submissionInProgress = false;
+
         return true;
       } catch (error) {
         console.error(
@@ -951,7 +1133,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     }
 
     // Создаем переменную для отслеживания статуса отправки
-    let isSubmitting = false;
+    let isSubmitting: boolean = false;
 
     try {
       // Проверяем, не отправляется ли уже форма
@@ -965,21 +1147,6 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
 
       if (!id) {
         console.log('No form ID found, submission canceled');
-        isSubmitting = false;
-        return;
-      }
-
-      // Дополнительная валидация перед отправкой
-      const validationResult = validateForSubmission(
-        data,
-        useRequiredDocuments.getState().documents,
-        useDocumentStore.getState().documents,
-      );
-      console.log('Validation result:', validationResult);
-
-      if (!validationResult.success) {
-        toast.error(validationResult.error);
-        console.log('Validation failed, submission canceled');
         isSubmitting = false;
         return;
       }
@@ -1010,11 +1177,51 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   const formKey = `application-form-${id || 'new'}`;
 
   // Выводим в консоль статус загрузки
-  React.useEffect(() => {
-    console.log('Application loading status:', isLoading);
-  }, [isLoading]);
+  useEffect(() => {
+    console.log('Application loading status:', isLoadingSingleApp);
+  }, [isLoadingSingleApp]);
 
-  if (!application && id) {
+  // Функция для открытия диалога подтверждения
+  const openConfirmDialog = (values: FormValues) => {
+    setFormValuesForSubmit(values);
+    setConfirmDialogOpen(true);
+  };
+
+  // Функция для закрытия диалога подтверждения
+  const closeConfirmDialog = () => {
+    setFormValuesForSubmit(null);
+    setConfirmDialogOpen(false);
+  };
+
+  // Функция для подтверждения отправки
+  const confirmSubmit = () => {
+    if (formValuesForSubmit) {
+      // Актуализируем документы из хранилища перед отправкой
+      if (id) {
+        const docs = useDocumentStore.getState().documents;
+        if (docs.length > 0) {
+          const documentValues = docs.reduce(
+            (acc, doc) => {
+              if (doc.code) {
+                acc[doc.code] = doc.id;
+              }
+              return acc;
+            },
+            {} as Record<string, string>,
+          );
+
+          // Обновляем документы в значениях формы для отправки
+          formValuesForSubmit.documents = documentValues;
+          console.log('Актуализированы документы для отправки:', documentValues);
+        }
+      }
+
+      handleSubmit(formValuesForSubmit);
+      closeConfirmDialog();
+    }
+  };
+
+  if (!singleApplication && id) {
     return (
       <div className="fixed inset-0 flex h-screen w-screen items-center justify-center bg-zinc-800/50">
         <Loader2 className="h-10 w-10 animate-spin" />
@@ -1024,7 +1231,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
 
   return (
     <div>
-      {(!application?.submittedAt || user?.role !== Role.USER) && (
+      {(!singleApplication?.submittedAt || user?.role !== Role.USER) && (
         <DocAnalizer
           id={id as string}
           activeTab={activeTab}
@@ -1046,107 +1253,37 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
             e.preventDefault(); // Предотвращаем стандартное поведение формы
             console.log('Form onSubmit event triggered', e);
 
-            // Проверка на идущий запрос - если форма в процессе отправки, не обрабатываем повторные нажатия
-            if (form.formState.isSubmitting) {
-              console.log('Форма уже отправляется, игнорируем повторный запрос');
-              return;
-            }
-
-            try {
-              // Получаем значения формы напрямую
+            // Всегда показываем диалог подтверждения вместо прямой отправки
+            if (activeTab === 'documents') {
               const values = form.getValues();
-              console.log('Form values on submit:', values);
+              form.trigger().then((isValid) => {
+                if (isValid) {
+                  console.log('Form validation passed, opening confirmation dialog');
+                  openConfirmDialog(values);
+                } else {
+                  console.log('Form validation failed on submit, showing errors');
+                  const errorFields = Object.keys(form.formState.errors);
+                  let errorMessages = errorFields
+                    .map((field) => {
+                      const error = form.formState.errors[field as any];
+                      return `Поле "${field}": ${error?.message || 'ошибка валидации'}`;
+                    })
+                    .join(', ');
 
-              // Детальный вывод состояния формы для диагностики
-              console.log('Состояние формы:', {
-                isDirty: form.formState.isDirty,
-                isValid: form.formState.isValid,
-                errors: form.formState.errors,
-                isSubmitted: form.formState.isSubmitted,
-                isSubmitting: form.formState.isSubmitting,
-                isSubmitSuccessful: form.formState.isSubmitSuccessful,
-                touchedFields: form.formState.touchedFields,
-                dirtyFields: form.formState.dirtyFields,
-              });
-
-              // Обновим документы из хранилища в значения формы для надежности (однократно)
-              if (id) {
-                const docs = useDocumentStore.getState().documents;
-                if (docs.length > 0) {
-                  const documentValues = docs.reduce(
-                    (acc, doc) => {
-                      if (doc.code) {
-                        acc[doc.code] = doc.id;
-                      }
-                      return acc;
-                    },
-                    {} as Record<string, string>,
+                  toast.error(
+                    errorMessages || 'Форма содержит ошибки. Пожалуйста, проверьте все поля.',
                   );
-
-                  // Устанавливаем документы в форму
-                  form.setValue('documents', documentValues, {
-                    shouldValidate: true,
-                  });
-                  console.log('Обновленные значения документов:', documentValues);
                 }
-              }
-
-              // Используем одну валидацию вместо двух
-              // Проверка валидности формы без цикличных вызовов
-              form
-                .trigger()
-                .then((isValid) => {
-                  console.log('Form validation result:', isValid);
-
-                  // Если форма не валидна, показываем ошибки
-                  if (!isValid) {
-                    console.log('Form validation failed, errors:', form.formState.errors);
-                    const errorFields = Object.keys(form.formState.errors);
-                    console.log('Invalid fields:', errorFields);
-
-                    // Анализируем ошибки валидации более подробно
-                    let errorMessages = errorFields
-                      .map((field) => {
-                        const error = form.formState.errors[field as any];
-                        return `Поле "${field}": ${error?.message || 'ошибка валидации'}`;
-                      })
-                      .join(', ');
-
-                    toast.error(
-                      errorMessages || 'Форма содержит ошибки. Пожалуйста, проверьте все поля.',
-                    );
-                    return;
-                  }
-
-                  // Если форма валидна, проверяем документы
-                  try {
-                    const validationResult = validateForSubmission(
-                      values,
-                      useRequiredDocuments.getState().documents,
-                      useDocumentStore.getState().documents,
-                    );
-                    console.log('Manual document validation result:', validationResult);
-
-                    if (!validationResult.success) {
-                      toast.error(validationResult.error);
-                      return;
-                    }
-
-                    // Если все проверки пройдены, отправляем форму
-                    console.log('Form is valid, proceeding with submission');
-                    handleSubmit(values);
-                  } catch (validationError) {
-                    console.error('Error validating documents:', validationError);
-                    toast.error('Ошибка при проверке документов');
-                  }
-                })
-                .catch((error) => {
-                  console.error('Error during form validation:', error);
-                  toast.error('Ошибка валидации формы');
-                });
-            } catch (error) {
-              console.error('Error during form submission:', error);
-              toast.error(`Ошибка при отправке формы: ${error}`);
+              });
+            } else {
+              console.log('Отправка формы заблокирована, т.к. активная вкладка не documents');
+            }
+          }}
+          onKeyDown={(e) => {
+            // Предотвращаем отправку формы при нажатии Enter в полях формы
+            if (e.key === 'Enter' && activeTab === 'details') {
+              e.preventDefault();
+              console.log('Предотвращена отправка формы по нажатию Enter на вкладке details');
             }
           }}
           className="mt-8"
@@ -1182,7 +1319,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
             <fieldset disabled={false} className="mt-4 space-y-4">
               <TabsContent value="applicant">
                 <ApplicantForm
-                  application={application as ExtendedApplication}
+                  application={singleApplication as ExtendedApplication}
                   isSubmitted={isReadOnly}
                 />
               </TabsContent>
@@ -1190,7 +1327,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               {!isAdult && (
                 <TabsContent value="representative">
                   <RepresentativeForm
-                    application={application as ExtendedApplication}
+                    application={singleApplication as ExtendedApplication}
                     isSubmitted={isReadOnly}
                   />
                 </TabsContent>
@@ -1198,14 +1335,14 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
 
               <TabsContent value="details">
                 <Details
-                  application={application as ExtendedApplication}
+                  application={singleApplication as ExtendedApplication}
                   isSubmitted={isReadOnly}
                 />
               </TabsContent>
 
               <TabsContent value="documents">
                 <RequiredDocs
-                  application={application as unknown as ExtendedApplication}
+                  application={singleApplication as unknown as ExtendedApplication}
                   isSubmitted={isReadOnly}
                 />
               </TabsContent>
@@ -1213,7 +1350,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           </Tabs>
 
           {/* Кнопка Next для перемещения по табам */}
-          {(!application?.submittedAt || user?.role !== Role.USER) && (
+          {(!singleApplication?.submittedAt || user?.role !== Role.USER) && (
             <div className="mt-6 flex justify-end gap-4">
               <Button
                 type="button"
@@ -1223,90 +1360,84 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               >
                 {c('saveDraft')}
               </Button>
-              {activeTab !== 'documents' ? (
-                <Button
-                  type="button"
-                  onClick={() => {
-                    // Логика переключения на следующий таб
-                    if (activeTab === 'applicant') {
-                      // Если взрослый, переходим на details, иначе на representative
-                      handleTabChange(isAdult ? 'details' : 'representative');
-                    } else if (activeTab === 'representative') {
-                      handleTabChange('details');
-                    } else if (activeTab === 'details') {
-                      handleTabChange('documents');
-                    }
-                  }}
-                  disabled={isReadOnly}
-                >
-                  {c('next')}
-                </Button>
-              ) : (
-                <Button
-                  type="submit"
-                  disabled={isReadOnly}
-                  onClick={() => console.log('Submit button clicked')}
-                >
-                  {c('submitApplication')}
-                </Button>
-              )}
+              {latestLog?.statusId === 'DRAFT' &&
+                (activeTab !== 'documents' ? (
+                  <Button
+                    type="button"
+                    onClick={(e) => {
+                      // Предотвращаем отправку формы
+                      e.preventDefault();
+
+                      // Логика переключения на следующий таб
+                      if (activeTab === 'applicant') {
+                        // Если взрослый, переходим на details, иначе на representative
+                        handleTabChange(isAdult ? 'details' : 'representative');
+                      } else if (activeTab === 'representative') {
+                        handleTabChange('details');
+                      } else if (activeTab === 'details') {
+                        handleTabChange('documents');
+                        console.log('Переход с вкладки details на documents');
+                      }
+                    }}
+                    disabled={isReadOnly}
+                  >
+                    {c('next')}
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    disabled={isReadOnly}
+                    onClick={() => {
+                      console.log('Submit button clicked, opening confirmation dialog');
+                      const values = form.getValues();
+                      form.trigger().then((isValid) => {
+                        if (!isValid) {
+                          console.log('Form validation failed, errors:', form.formState.errors);
+                          const errorFields = Object.keys(form.formState.errors);
+                          console.log('Invalid fields:', errorFields);
+
+                          // Анализируем ошибки валидации
+                          let errorMessages = errorFields
+                            .map((field) => {
+                              const error = form.formState.errors[field as any];
+                              return `Поле "${field}": ${error?.message || 'ошибка валидации'}`;
+                            })
+                            .join(', ');
+
+                          toast.error(
+                            errorMessages ||
+                              'Форма содержит ошибки. Пожалуйста, проверьте все поля.',
+                          );
+                          return;
+                        }
+
+                        openConfirmDialog(values);
+                      });
+                    }}
+                  >
+                    {c('submitApplication')}
+                  </Button>
+                ))}
             </div>
           )}
         </form>
       </Form>
 
-      {/* Тестовая форма для проверки работы submit */}
-      {/* <div className="mt-5 rounded border border-red-200 p-4">
-        <h3 className="font-bold">Тестовая форма</h3>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            console.log('Test form submitted');
-            alert('Test form submitted!');
-          }}
-        >
-          <Button type="submit">Тестовый Submit</Button>
-        </form>
-        <div className="mt-2">
-          <Button
-            onClick={async () => {
-              console.log('Testing API request...');
-              console.log('Current form values:', form.getValues());
-              try {
-                if (!id) {
-                  console.error('No ID available');
-                  return;
-                }
-
-                const testRequest = {
-                  applicant: {
-                    givennames: 'Test Name',
-                    surname: 'Test Surname',
-                  },
-                };
-
-                console.log('Sending test request to API...');
-                const result = await updateApplication(id, testRequest);
-                console.log('Test request result:', result);
-
-                if (result.error) {
-                  alert(`Ошибка: ${result.error}`);
-                } else {
-                  alert('Тестовый запрос выполнен успешно!');
-                }
-              } catch (error) {
-                console.error('Error during test request:', error);
-                alert(`Ошибка запроса: ${error}`);
-              }
-            }}
-            type="button"
-            variant="destructive"
-          >
-            Проверить API
-          </Button>
-          <span className="ml-2">Статус загрузки: {isLoading ? 'Загрузка...' : 'Готово'}</span>
-        </div>
-      </div> */}
+      {/* диалог подтверждения */}
+      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{c('confirmSubmitTitle')}</DialogTitle>
+            <DialogDescription>{c('confirmSubmitDescription')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeConfirmDialog}>
+              {c('cancel')}
+            </Button>
+            <Button onClick={confirmSubmit}>{c('confirm')}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {hasAccess(user?.role as Role, Role.CONSULTANT) && (
         <div className="flex w-full flex-col justify-between gap-4 md:flex-row">

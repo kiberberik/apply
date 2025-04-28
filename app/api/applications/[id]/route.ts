@@ -106,6 +106,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         data: {
           contractLanguage: data.contractLanguage ?? application.contractLanguage,
           submittedAt: data.submittedAt !== undefined ? data.submittedAt : application.submittedAt,
+          consultantId:
+            data.consultantId !== undefined ? data.consultantId : application.consultantId,
           updatedAt: new Date(),
         },
         include: {

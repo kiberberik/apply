@@ -1,10 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useAuthStore } from '@/store/useAuthStore';
+import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { useTranslations } from 'next-intl';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { useAuthStore } from '@/store/useAuthStore';
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 export default function SettingsPage() {
   const { user, updateUser } = useAuthStore();
@@ -14,7 +17,6 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const t = useTranslations('UserSettings');
 
   const handleUpdateUser = async (data: Partial<{ name: string; password: string }>) => {
@@ -25,15 +27,15 @@ export default function SettingsPage() {
         name: data.name?.trim(),
         password: data.password?.trim(),
       };
-      await updateUser(trimmedData);
+      updateUser(trimmedData);
       toast.success(data.name ? t('nameSuccess') : t('passSuccess'));
       if (data.password) {
         setPassword('');
         setConfirmPassword('');
       }
     } catch (error) {
-      console.error('Ошибка обновления:', error);
       toast.error(t('error'));
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -54,10 +56,10 @@ export default function SettingsPage() {
           }}
         >
           <div className="mb-4">
-            <label htmlFor="fullname" className="block text-sm font-medium text-gray-700">
+            <Label htmlFor="fullname" className="block text-sm font-medium text-gray-700">
               {t('name')}
-            </label>
-            <input
+            </Label>
+            <Input
               value={name}
               placeholder={user?.name ?? ''}
               onChange={(e) => setName(e.target.value)}
@@ -69,17 +71,16 @@ export default function SettingsPage() {
               className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-rose-600 focus:ring-rose-600 sm:text-sm"
             />
           </div>
-          <button
+          <Button
             type="submit"
             disabled={loading || name.trim() === user?.name || name.trim().length === 0}
             className="w-full rounded-md bg-zinc-800 px-4 py-2 text-white transition-colors hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-gray-400"
           >
             {loading ? t('updating') : t('updateName')}
-          </button>
+          </Button>
         </form>
       </div>
 
-      {/* Password Update Form */}
       <div className="rounded-lg bg-white p-6 shadow-md">
         <h3 className="mb-4 text-lg font-semibold text-gray-800">{t('passChange')}</h3>
 
@@ -89,7 +90,7 @@ export default function SettingsPage() {
             handleUpdateUser({ password });
           }}
         >
-          <input
+          <Input
             type="text"
             name="username"
             autoComplete="username"
@@ -97,11 +98,11 @@ export default function SettingsPage() {
           />
 
           <div className="mb-4">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <Label htmlFor="password" className="block text-sm font-medium text-gray-700">
               {t('newPass')}
-            </label>
+            </Label>
             <div className="relative">
-              <input
+              <Input
                 type={showPassword ? 'text' : 'password'}
                 id="password"
                 maxLength={100}
@@ -110,7 +111,8 @@ export default function SettingsPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-rose-600 focus:ring-rose-600 sm:text-sm"
               />
-              <button
+              <Button
+                variant="ghost"
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute inset-y-0 right-0 flex items-center pr-3"
@@ -120,16 +122,16 @@ export default function SettingsPage() {
                 ) : (
                   <EyeIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
                 )}
-              </button>
+              </Button>
             </div>
           </div>
 
           <div className="mb-4">
-            <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700">
+            <Label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700">
               {t('newPassConfirm')}
-            </label>
+            </Label>
             <div className="relative">
-              <input
+              <Input
                 type={showConfirmPassword ? 'text' : 'password'}
                 id="confirm-password"
                 maxLength={100}
@@ -138,7 +140,8 @@ export default function SettingsPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-rose-600 focus:ring-rose-600 sm:text-sm"
               />
-              <button
+              <Button
+                variant="ghost"
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute inset-y-0 right-0 flex items-center pr-3"
@@ -148,20 +151,20 @@ export default function SettingsPage() {
                 ) : (
                   <EyeIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
                 )}
-              </button>
+              </Button>
             </div>
             {password && confirmPassword && password !== confirmPassword && (
               <p className="mt-1 text-xs text-red-600">{t('passNotMatch')}</p>
             )}
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={loading || !isPasswordValid}
             className="w-full rounded-md bg-zinc-800 px-4 py-2 text-white transition-colors hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-gray-400"
           >
             {loading ? t('updating') : t('updatePass')}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

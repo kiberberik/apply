@@ -5,7 +5,7 @@ import { ExtendedApplication } from '@/types/application';
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { differenceInYears } from 'date-fns';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useLocale, useTranslations } from 'next-intl';
 import { Document } from '@prisma/client';
@@ -51,27 +51,61 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
     }
   }, [form, uploadedDocuments]);
 
-  const filteredDocuments = requiredDocuments.filter((doc) => {
-    const isKzCitizen = application.applicant?.isCitizenshipKz;
-    const matchesCountry = doc.countries.some(
-      (country) => country === (isKzCitizen ? 'KAZAKHSTAN' : 'OTHER'),
-    );
+  // Отслеживаем изменения в форме
+  const watchIsCitizenshipKz = form.watch('applicant.isCitizenshipKz');
+  const watchBirthDate = form.watch('applicant.birthDate');
+  const watchAcademicLevel = form.watch('details.academicLevel');
+  const watchStudyType = form.watch('details.type');
 
-    const birthDate = application.applicant?.birthDate;
-    const age = birthDate ? differenceInYears(new Date(), new Date(birthDate)) : 0;
-    const isAdult = age >= 18;
-    const matchesAgeCategory = doc.ageCategories.some(
-      (category) => category === (isAdult ? 'ADULT' : 'MINOR'),
-    );
+  // Используем useMemo для оптимизации вычислений при изменении зависимостей
+  const filteredDocuments = useMemo(() => {
+    if (!requiredDocuments || requiredDocuments.length === 0) {
+      return [];
+    }
 
-    const matchesAcademicLevel = doc.academicLevels.some(
-      (level) => level === application.details?.academicLevel,
-    );
+    return requiredDocuments.filter((doc) => {
+      // Гражданство из формы
+      const isKzCitizen = watchIsCitizenshipKz;
+      const matchesCountry = doc.countries.some(
+        (country) => country === (isKzCitizen ? 'KAZAKHSTAN' : 'OTHER'),
+      );
 
-    const matchesStudyType = doc.studyTypes.some((type) => type === application.details?.type);
+      // Возраст из формы
+      const birthDate = watchBirthDate;
+      const age = birthDate ? differenceInYears(new Date(), new Date(birthDate)) : 0;
+      const isAdult = age >= 18;
+      const matchesAgeCategory = doc.ageCategories.some(
+        (category) => category === (isAdult ? 'ADULT' : 'MINOR'),
+      );
 
-    return matchesCountry && matchesAgeCategory && matchesAcademicLevel && matchesStudyType;
-  });
+      // Академический уровень из формы
+      const matchesAcademicLevel = doc.academicLevels.some((level) => level === watchAcademicLevel);
+
+      // Тип обучения из формы
+      const matchesStudyType = doc.studyTypes.some((type) => type === watchStudyType);
+
+      return matchesCountry && matchesAgeCategory && matchesAcademicLevel && matchesStudyType;
+    });
+  }, [requiredDocuments, watchIsCitizenshipKz, watchBirthDate, watchAcademicLevel, watchStudyType]);
+
+  // При изменении данных в форме выводим отладочную информацию
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[DEBUG] Form values changed:', {
+        isCitizenshipKz: watchIsCitizenshipKz,
+        birthDate: watchBirthDate,
+        academicLevel: watchAcademicLevel,
+        studyType: watchStudyType,
+        filteredDocumentsCount: filteredDocuments.length,
+      });
+    }
+  }, [
+    watchIsCitizenshipKz,
+    watchBirthDate,
+    watchAcademicLevel,
+    watchStudyType,
+    filteredDocuments.length,
+  ]);
 
   const getDocumentByCode = (code: string): Document | undefined => {
     return uploadedDocuments.find((doc) => doc.code === code);

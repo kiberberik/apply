@@ -124,6 +124,7 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
                 <FormItem>
                   <FormLabel>{t('citizenship')}</FormLabel>
                   <Select
+                    name="applicant.isCitizenshipKz"
                     onValueChange={(value) => field.onChange(value === 'true')}
                     value={field.value ? 'true' : 'false'}
                     disabled={isSubmitted}
@@ -195,6 +196,7 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
                     <FormItem>
                       <FormLabel>{t('documentType')}</FormLabel>
                       <Select
+                        name="applicant.documentType"
                         disabled={isSubmitted}
                         onValueChange={field.onChange}
                         value={field.value || ''}
@@ -354,7 +356,7 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
                 }
               })() && (
                 <div className="mt-4 flex flex-col">
-                  <FormLabel>{c('uploadedDocuments')}</FormLabel>
+                  <p>{c('uploadedDocuments')}</p>
 
                   <DocumentPreview
                     documentFileLinks={application?.applicant?.documentFileLinks || null}

@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSingleApplication } from '@/store/useSingleApplication';
 import { useLogStore } from '@/store/useLogStore';
 import { ApplicationStatus } from '@prisma/client';
 import { format } from 'date-fns';
@@ -10,32 +9,34 @@ import { useTranslations } from 'next-intl';
 import { CheckCircle2, ChevronDown, ChevronUp, History } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useApplicationStore } from '@/store/useApplicationStore';
+import Loading from '../layout/Loading';
 
 const LogHistory = () => {
-  const { application } = useSingleApplication();
+  const { singleApplication } = useApplicationStore();
   const { logs, isLoading, fetchLogsByApplicationId, getLatestLogByApplicationId } = useLogStore();
   const tApplicationStatus = useTranslations('ApplicationStatus');
   const tLogHistory = useTranslations('LogHistory');
   const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
-    if (application?.id) {
-      fetchLogsByApplicationId(application.id);
+    if (singleApplication?.id) {
+      fetchLogsByApplicationId(singleApplication.id);
     }
-  }, [application?.id, fetchLogsByApplicationId]);
+  }, [singleApplication?.id, fetchLogsByApplicationId]);
 
   // Получаем и сортируем логи (сначала самые новые)
-  const applicationLogs = application?.id
-    ? [...(logs[application.id] || [])].sort(
+  const applicationLogs = singleApplication?.id
+    ? [...(logs[singleApplication.id] || [])].sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       )
     : [];
 
-  const latestLog = application?.id ? getLatestLogByApplicationId(application.id) : null;
+  const latestLog = singleApplication?.id
+    ? getLatestLogByApplicationId(singleApplication.id)
+    : null;
 
-  if (isLoading) {
-    return <div className="p-4">{tLogHistory('loading')}</div>;
-  }
+  if (isLoading) return <Loading />;
 
   if (!applicationLogs || applicationLogs.length === 0) {
     return <div className="p-4">{tLogHistory('noLogs')}</div>;

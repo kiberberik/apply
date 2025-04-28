@@ -40,6 +40,7 @@ import {
 } from './ui/dialog';
 import { toast } from 'react-toastify';
 import { useAuthStore } from '@/store/useAuthStore';
+import Loading from './layout/Loading';
 
 interface DataTableProps {
   columns: ColumnDef<ExtendedApplication, unknown>[];
@@ -150,7 +151,6 @@ export function DataTable({ columns, data }: DataTableProps) {
     pageSize: 10,
   });
   const { applications, isLoading, error } = useApplicationStore();
-  const c = useTranslations('Common');
   const tApplications = useTranslations('Applications');
 
   const table = useReactTable<ExtendedApplication>({
@@ -178,16 +178,7 @@ export function DataTable({ columns, data }: DataTableProps) {
     table.getColumn('applicant')?.setFilterValue(value);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
-          <p className="mt-2 text-sm text-gray-600">{c('loading')}</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <Loading />;
 
   if (error) {
     return (
@@ -210,6 +201,7 @@ export function DataTable({ columns, data }: DataTableProps) {
     <div>
       <div className="flex items-center py-4">
         <Input
+          name="search"
           placeholder={tApplications('searchPlaceholder')}
           value={searchValue}
           onChange={(event) => handleSearch(event.target.value)}

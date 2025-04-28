@@ -1,5 +1,5 @@
 import { useAuthStore } from '@/store/useAuthStore';
-import { useSingleApplication } from '@/store/useSingleApplication';
+import { useApplicationStore } from '@/store/useApplicationStore';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 import { useState, useEffect } from 'react';
@@ -23,7 +23,7 @@ export const OpenAIResponse = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuthStore();
-  const { application } = useSingleApplication();
+  const { singleApplication } = useApplicationStore();
   const t = useTranslations('Common');
 
   useEffect(() => {
@@ -204,8 +204,8 @@ error: "criteriaError" json.
 
               // Добавляем метаданные для обновления документов
               formData.append('activeTab', activeTab || 'applicant');
-              formData.append('applicantId', application?.applicantId || '');
-              formData.append('representativeId', application?.representativeId || '');
+              formData.append('applicantId', singleApplication?.applicantId || '');
+              formData.append('representativeId', singleApplication?.representativeId || '');
 
               // Дополнительные данные для записи в документ, если в будущем понадобится
               formData.append('uploadedById', user?.id || '');

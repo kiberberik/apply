@@ -51,11 +51,19 @@
     "submitApplication": "Өтінімді жолдау",
     "applicant": "Абитуриенттің сәйкестендіру құжаты",
     "representative": "Абитуриент Өкілінің сәйкестендіру құжаты",
-    "update": "Жаңарту"
+    "update": "Жаңарту",
+    "deleting": "Жою...",
+    "deleteConfirmTitle": "Жоюды растау",
+    "deleteConfirmDescription": "Бұл құжатты жоюға сенімдісіз бе?",
+    "confirm": "Растау",
+    "confirmSubmitTitle": "Жолдауды растау",
+    "confirmSubmitDescription": "Өтінімді жолдауға сенімдісіз бе? Жолдағаннан кейін өтінімді өзгертуге болмайды.",
+    "success": "Сәтті орындалды",
+    "error": "Қате орын алды"
   },
   "Roles": {
     "USER": "Пайдаланушы",
-    "CONSULTANT": "Консультант",
+    "CONSULTANT": "Кеңесші",
     "MANAGER": "Менеджер",
     "LAWYER": "Заңгер",
     "ADMIN": "Администратор"
@@ -187,7 +195,9 @@
     "name": "Есімі",
     "email": "Email",
     "role": "Рөлі",
-    "noName": "Есімі жоқ"
+    "noName": "Есімі жоқ",
+    "consultants": "Менің кеңесшілерім",
+    "applicants": "Менің абитуриенттерім"
   },
   "EducationalPrograms": {
     "program": "Білім беру бағдарламасы",
@@ -269,13 +279,15 @@
     "columnsCreatedAt": "Құрылған күні",
     "columnsUpdatedAt": "Жаңартылған күні",
     "columnsIdentificationNumber": "ЖСН",
-    "columnsConsultant": "Консультант",
+    "columnsConsultant": "Кеңесші",
     "columnsAcademicLevel": "Дәрежесі",
     "columnsType": "Оқу түрі",
     "columnsSubmittedAt": "Күні",
     "contractSignType": "Келісім-шарт",
     "infoTitle": "Өтінім деректері",
-    "searchPlaceholder": "Абитуриентті іздеу"
+    "searchPlaceholder": "Абитуриентті іздеу",
+    "notSubmitted": "Жолданбаған",
+    "noConsultant": "Кеңесші өтінім жолданғаннан кейін тағайындалады"
   },
   "Applicant": {
     "title": "Абитуриент",
@@ -292,8 +304,9 @@
     "phone": "Телефон",
     "addressResidential": "Тұрғылықты мекен-жайы",
     "addressRegistration": "Тіркеу мекен-жайы",
-    "applicationSubmitted": "Өтінім жіберілді",
-    "applicationSubmittedDescription": "Өтінім жіберілді және өзгертілмейді."
+    "applicationSubmitted": "Жолданды",
+    "applicationSubmittedDescription": "Өтінім жіберілді және өзгертілмейді.",
+    "applicationCreatedAt": "Басталды"
   },
   "Representative": {
     "title": "Өкіл",

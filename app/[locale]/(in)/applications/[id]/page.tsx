@@ -1,13 +1,14 @@
 'use client';
 import { Suspense, useEffect, use } from 'react';
-import { useSingleApplication } from '@/store/useSingleApplication';
+import { Role } from '@prisma/client';
 import { useLogStore } from '@/store/useLogStore';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useApplicationStore } from '@/store/useApplicationStore';
 import ApplicationForm from '@/components/applicationForm/application-form';
 import Warning from '@/components/applicationForm/Warning';
-import { useAuthStore } from '@/store/useAuthStore';
-import { useTranslations } from 'next-intl';
-import { Role } from '@prisma/client';
-import { Loader2 } from 'lucide-react';
+import NoAccess from '@/components/layout/NoAccess';
+import Loading from '@/components/layout/Loading';
+import Error from '@/components/layout/Error';
 
 interface ApplicationPageProps {
   params: Promise<{
@@ -19,57 +20,49 @@ interface ApplicationPageProps {
 export default function ApplicationPage({ params }: ApplicationPageProps) {
   const { id } = use(params);
   const { user } = useAuthStore();
-  const c = useTranslations('Common');
 
-  const { fetchApplication, application, isLoading, error, clearApplication } =
-    useSingleApplication();
+  const {
+    fetchSingleApplication,
+    singleApplication,
+    isLoadingSingleApp,
+    error,
+    clearSingleApplication,
+  } = useApplicationStore();
   const { fetchLatestLogByApplicationId, clearLogs } = useLogStore();
   const { fetchUser } = useAuthStore();
 
   useEffect(() => {
     fetchUser();
-    fetchApplication(id);
+    fetchSingleApplication(id);
     fetchLatestLogByApplicationId(id);
     return () => {
-      clearApplication();
+      clearSingleApplication();
       clearLogs(id);
     };
-  }, [id, fetchApplication, clearApplication, fetchLatestLogByApplicationId, clearLogs, fetchUser]);
-
-  if (error) {
-    return (
-      <div className="container mx-auto py-10 text-red-500">
-        {c('error')}: {error}
-      </div>
-    );
-  }
-
-  if (!application) {
-    return (
-      <div className="fixed inset-0 flex h-screen w-screen items-center justify-center bg-zinc-800/50">
-        <Loader2 className="h-10 w-10 animate-spin" />
-      </div>
-    );
-  }
+  }, [
+    id,
+    fetchSingleApplication,
+    clearSingleApplication,
+    fetchLatestLogByApplicationId,
+    clearLogs,
+    fetchUser,
+  ]);
 
   const hasAccessForm =
     ((user?.role === 'ADMIN' || user?.role === 'MANAGER') &&
-      (application?.Log?.[0]?.statusId !== 'DRAFT' || application?.createdById === user?.id)) ||
+      (singleApplication?.Log?.[0]?.statusId !== 'DRAFT' ||
+        singleApplication?.createdById === user?.id)) ||
     (user?.createdApplications && user.createdApplications.some((app) => app.id === id)) ||
     (user?.consultedApplications && user.consultedApplications.some((app) => app.id === id)) ||
-    (application?.createdById && application.createdById === user?.id);
+    (singleApplication?.createdById && singleApplication.createdById === user?.id);
 
-  if (!hasAccessForm) {
-    return <div className="container mx-auto py-10 text-red-500">{c('noAccess')}</div>;
-  }
+  if (!hasAccessForm) return <NoAccess />;
+  if (error) return <Error />;
+  if (!singleApplication) return <Loading />;
 
   return (
     <div className="container mx-auto py-10">
-      {isLoading && (
-        <div className="fixed inset-0 flex h-screen w-screen items-center justify-center bg-zinc-800/50">
-          <Loader2 className="h-10 w-10 animate-spin" />
-        </div>
-      )}
+      {isLoadingSingleApp && <Loading />}
       {user?.role === Role.USER && <Warning />}
       <div className="mt-8">
         <Suspense fallback={'...'}>

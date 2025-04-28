@@ -78,6 +78,7 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
                 <FormItem>
                   <FormLabel>{t('citizenship')}</FormLabel>
                   <Select
+                    name="representative.isCitizenshipKz"
                     onValueChange={(value) => field.onChange(value === 'true')}
                     value={field.value ? 'true' : 'false'}
                     disabled={isSubmitted}
@@ -464,6 +465,7 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
                     <FormItem>
                       <FormLabel>{t('relationshipDegree')}</FormLabel>
                       <Select
+                        name="representative.relationshipDegree"
                         disabled={isSubmitted}
                         onValueChange={field.onChange}
                         value={field.value || ''}

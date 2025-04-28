@@ -15,6 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ApplicationStatus } from '@prisma/client';
+import Loading from './layout/Loading';
 
 // Функция для форматирования даты
 const formatDateDisplay = (date: Date | null | undefined) => {
@@ -33,7 +34,6 @@ const ProfileUser = () => {
     fetchUser,
   } = useAuthStore();
   const t = useTranslations('Profile');
-  const c = useTranslations('Common');
   const tAcademicLevel = useTranslations('AcademicLevel');
   const tApplicationStatus = useTranslations('ApplicationStatus');
   const [isResendDisabled, setIsResendDisabled] = useState(false);
@@ -154,9 +154,7 @@ const ProfileUser = () => {
     router.push(`/applications/${id}`);
   };
 
-  if (isLoadingUserApps) {
-    return <div>{c('loading')}</div>;
-  }
+  if (isLoadingUserApps) return <Loading />;
 
   if (userAppsError) {
     return <div className="text-red-500">{userAppsError}</div>;

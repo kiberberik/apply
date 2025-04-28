@@ -1,15 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRequiredDocuments } from '@/store/useRequiredDocuments';
-import {
-  RequiredDocument,
-  DocumentType,
-  Country,
-  AcademicLevel,
-  StudyType,
-  AgeCategory,
-} from '@prisma/client';
 import {
   Table,
   TableBody,
@@ -18,9 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -28,7 +16,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { useTranslations, useLocale } from 'next-intl';
 import {
   Select,
   SelectContent,
@@ -36,15 +23,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import Error from '@/components/layout/Error';
+import { Button } from '@/components/ui/button';
+import Loading from '@/components/layout/Loading';
 import { Checkbox } from '@/components/ui/checkbox';
-
-interface ExtendedRequiredDocument
-  extends Omit<RequiredDocument, 'countries' | 'academicLevels' | 'studyTypes' | 'ageCategories'> {
-  countries: Country[];
-  academicLevels: AcademicLevel[];
-  studyTypes: StudyType[];
-  ageCategories: AgeCategory[];
-}
+import { useTranslations, useLocale } from 'next-intl';
+import { DocumentType, Country, AcademicLevel, StudyType, AgeCategory } from '@prisma/client';
+import { ExtendedRequiredDocument, useRequiredDocuments } from '@/store/useRequiredDocuments';
 
 export default function RequiredDocumentsPage() {
   const t = useTranslations('RequiredDocuments');
@@ -55,12 +42,12 @@ export default function RequiredDocumentsPage() {
   const tStudyType = useTranslations('StudyType');
   const tAcademicLevel = useTranslations('AcademicLevel');
   const locale = useLocale();
-  const { documents, loading, error, fetchDocuments, addDocument, updateDocument, deleteDocument } =
-    useRequiredDocuments();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
   const [editingDocument, setEditingDocument] = useState<ExtendedRequiredDocument | null>(null);
+  const { documents, loading, error, fetchDocuments, addDocument, updateDocument, deleteDocument } =
+    useRequiredDocuments();
   const [formData, setFormData] = useState<Partial<ExtendedRequiredDocument>>({
     name_rus: '',
     name_kaz: '',
@@ -134,19 +121,6 @@ export default function RequiredDocumentsPage() {
     });
   };
 
-  const getDocumentName = (document: ExtendedRequiredDocument) => {
-    switch (locale) {
-      case 'ru':
-        return document.name_rus;
-      case 'kz':
-        return document.name_kaz;
-      case 'en':
-        return document.name_eng;
-      default:
-        return document.name_rus;
-    }
-  };
-
   const handleDeleteClick = (documentId: string) => {
     setDocumentToDelete(documentId);
     setIsDeleteDialogOpen(true);
@@ -160,8 +134,8 @@ export default function RequiredDocumentsPage() {
     }
   };
 
-  if (loading) return <div>{c('loading')}</div>;
-  if (error) return <div>{error}</div>;
+  if (loading) return <Loading />;
+  if (error) return <Error />;
 
   return (
     <div className="container mx-auto py-10">
@@ -234,7 +208,7 @@ export default function RequiredDocumentsPage() {
                       setFormData({ ...formData, type: value as DocumentType })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder={t('selectType')} />
                     </SelectTrigger>
                     <SelectContent>
@@ -280,7 +254,7 @@ export default function RequiredDocumentsPage() {
               </div>
               <div className="flex flex-col gap-2">
                 <Label>{t('countries')}</Label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {[
                     { value: 'KAZAKHSTAN', label: tCitizenship('KAZAKHSTAN') },
                     { value: 'OTHER', label: tCitizenship('OTHER') },
@@ -304,7 +278,7 @@ export default function RequiredDocumentsPage() {
               </div>
               <div className="flex flex-col gap-2">
                 <Label>{t('academicLevels')}</Label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                   {Object.values(AcademicLevel).map((level) => (
                     <div key={level} className="flex items-center space-x-2">
                       <Checkbox
@@ -325,7 +299,7 @@ export default function RequiredDocumentsPage() {
               </div>
               <div className="flex flex-col gap-2">
                 <Label>{t('studyTypes')}</Label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {Object.values(StudyType).map((type) => (
                     <div key={type} className="flex items-center space-x-2">
                       <Checkbox
@@ -346,7 +320,7 @@ export default function RequiredDocumentsPage() {
               </div>
               <div className="flex flex-col gap-2">
                 <Label>{t('ageCategories')}</Label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {[
                     { value: 'ADULT', label: tAgeCategory('ADULT') },
                     { value: 'MINOR', label: tAgeCategory('MINOR') },
@@ -368,7 +342,7 @@ export default function RequiredDocumentsPage() {
                   ))}
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="isNeedOriginal"
@@ -403,55 +377,21 @@ export default function RequiredDocumentsPage() {
             <TableHead>{t('name')}</TableHead>
             <TableHead>{t('code')}</TableHead>
             <TableHead>{t('type')}</TableHead>
-            {/* <TableHead>{t('countries')}</TableHead>
-            <TableHead>{t('academicLevels')}</TableHead>
-            <TableHead>{t('studyTypes')}</TableHead>
-            <TableHead>{t('ageCategories')}</TableHead> */}
             <TableHead>{t('actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {documents.map((document) => (
             <TableRow key={document.id}>
-              <TableCell>{getDocumentName(document)}</TableCell>
+              <TableCell>
+                {locale === 'kz'
+                  ? document.name_kaz
+                  : locale === 'en'
+                    ? document.name_eng
+                    : document.name_rus}
+              </TableCell>
               <TableCell>{document.code}</TableCell>
               <TableCell>{tDocumentType(document.type ?? '')}</TableCell>
-              {/* <TableCell>
-                <div className="flex flex-wrap gap-1">
-                  {document.countries.map((country) => (
-                    <Badge key={country} variant="secondary">
-                      {tCitizenship(country)}
-                    </Badge>
-                  ))}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex flex-wrap gap-1">
-                  {document.academicLevels.map((level) => (
-                    <Badge key={level} variant="secondary">
-                      {tAcademicLevel(level)}
-                    </Badge>
-                  ))}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex flex-wrap gap-1">
-                  {document.studyTypes.map((type) => (
-                    <Badge key={type} variant="secondary">
-                      {tStudyType(type)}
-                    </Badge>
-                  ))}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex flex-wrap gap-1">
-                  {document.ageCategories.map((category) => (
-                    <Badge key={category} variant="secondary">
-                      {tAgeCategory(category)}
-                    </Badge>
-                  ))}
-                </div>
-              </TableCell> */}
               <TableCell>
                 <div className="flex space-x-2">
                   <Button variant="outline" onClick={() => handleEdit(document)}>

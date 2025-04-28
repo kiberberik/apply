@@ -1,7 +1,6 @@
 'use client';
-import React, { useEffect, useState } from 'react';
-import { useEducationalStore } from '@/store/useEducationalStore';
-import { Button } from '@/components/ui/button';
+
+import { useEffect, useState } from 'react';
 import {
   Table,
   TableHeader,
@@ -10,10 +9,12 @@ import {
   TableCell,
   TableHead,
 } from '@/components/ui/table';
-import { EducationalProgramGroup } from '@prisma/client';
-import GroupForm from '@/components/educationalPrograms/GroupForm';
-import { useLocale, useTranslations } from 'next-intl';
 import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { useLocale, useTranslations } from 'next-intl';
+import { EducationalProgramGroup } from '@prisma/client';
+import { useEducationalStore } from '@/store/useEducationalStore';
+import GroupForm from '@/components/educationalPrograms/GroupForm';
 
 export default function Page() {
   const { groups, fetchGroups, deleteGroup } = useEducationalStore();
@@ -22,7 +23,8 @@ export default function Page() {
   const local = useLocale();
   const t = useTranslations('EducationalPrograms');
   const c = useTranslations('Common');
-  const a = useTranslations('AcademicLevel');
+  const tAcademicLevel = useTranslations('AcademicLevel');
+
   useEffect(() => {
     fetchGroups();
   }, [fetchGroups]);
@@ -70,7 +72,7 @@ export default function Page() {
               <TableCell>
                 {local === 'ru' ? g.name_rus : local === 'kz' ? g.name_kaz : g.name_eng || '-'}
               </TableCell>
-              <TableCell>{a(g.academic_level ?? '')}</TableCell>
+              <TableCell>{tAcademicLevel(g.academic_level ?? '')}</TableCell>
               <TableCell>
                 <Switch checked={g.visibility ?? false} />
               </TableCell>

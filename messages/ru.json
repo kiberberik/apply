@@ -54,7 +54,12 @@
     "update": "Обновить",
     "deleting": "Удаление...",
     "deleteConfirmTitle": "Подтверждение удаления",
-    "deleteConfirmDescription": "Вы уверены, что хотите удалить этот документ?"
+    "deleteConfirmDescription": "Вы уверены, что хотите удалить этот документ?",
+    "confirm": "Подтвердить",
+    "confirmSubmitTitle": "Подтверждение отправки",
+    "confirmSubmitDescription": "Вы уверены, что хотите отправить заявление? После отправки вы не сможете изменить данные.",
+    "success": "Успешно выполнено",
+    "error": "Произошла ошибка"
   },
   "Roles": {
     "USER": "Пользователь",
@@ -190,7 +195,9 @@
     "name": "Имя",
     "email": "Email",
     "role": "Роль",
-    "noName": "Без имени"
+    "noName": "Без имени",
+    "consultants": "Мои консультанты",
+    "applicants": "Мои абитуриенты"
   },
   "EducationalPrograms": {
     "program": "Образовательная программа",
@@ -278,7 +285,9 @@
     "columnsSubmittedAt": "Дата",
     "contractSignType": "Договор",
     "infoTitle": "Данные заявки",
-    "searchPlaceholder": "Поиск абитуриента"
+    "searchPlaceholder": "Поиск абитуриента",
+    "notSubmitted": "Не подана",
+    "noConsultant": "Консультант будет назначен после отправки заявки"
   },
   "Applicant": {
     "title": "Абитуриент",
@@ -295,8 +304,9 @@
     "phone": "Телефон",
     "addressResidential": "Адрес проживания",
     "addressRegistration": "Адрес регистрации",
-    "applicationSubmitted": "Заявка подана",
-    "applicationSubmittedDescription": "Заявка уже отправлена и не может быть изменена."
+    "applicationSubmitted": "Подано",
+    "applicationSubmittedDescription": "Заявка уже отправлена и не может быть изменена.",
+    "applicationCreatedAt": "Создано"
   },
   "Representative": {
     "title": "Представитель",

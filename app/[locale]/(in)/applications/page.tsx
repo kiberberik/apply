@@ -1,71 +1,66 @@
 'use client';
 
-import { useApplicationStore } from '@/store/useApplicationStore';
-import { useAuthStore } from '@/store/useAuthStore';
-import { useEffect, useState } from 'react';
-import { Suspense } from 'react';
-import { useTranslations } from 'next-intl';
-import { DataTable } from '../../../../components/data-table';
-import { columns } from '../../../../components/columns';
-import { ApplicationsTableSkeleton } from '../../../../components/loading';
-import { Button } from '@/components/ui/button';
+import { Suspense, useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
-import { useRouter } from '@/i18n/navigation';
 import { toast } from 'react-toastify';
+import { columns } from '@/components/columns';
+import { Button } from '@/components/ui/button';
+import Loading from '@/components/layout/Loading';
+import NoAccess from '@/components/layout/NoAccess';
+import { DataTable } from '@/components/data-table';
+import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/navigation';
 import { ApplicationStatus, Role } from '@prisma/client';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useApplicationStore } from '@/store/useApplicationStore';
 
 export default function ApplicationsPage() {
+  const [creating, setCreating] = useState(false);
+  const router = useRouter();
+  const c = useTranslations('Common');
+  const t = useTranslations('Applications');
+  const { fetchUser, user } = useAuthStore();
   const { applications, isLoading, error, fetchApplications, createNewApplication } =
     useApplicationStore();
-  const { fetchUser, user } = useAuthStore();
-  const t = useTranslations('Applications');
-  const c = useTranslations('Common');
-  const router = useRouter();
-  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     fetchApplications();
   }, [fetchApplications]);
 
-  // Функция для создания пустой заявки
   const handleCreateApplication = async () => {
-    if (creating) return; // Предотвращаем повторные клики
-
+    if (creating) return;
     try {
       setCreating(true);
-
-      // Создаем заявку через стор
       const newApplication = await createNewApplication();
-
       if (!newApplication) {
-        throw new Error('Не удалось создать заявку');
+        throw new Error(c('error'));
       }
-
-      // Обновляем данные пользователя, чтобы получить информацию о новой заявке
       await fetchUser();
-
-      // Показываем уведомление об успешном создании
-      toast.success('Заявка успешно создана');
-
-      // Перенаправляем на страницу созданной заявки с учетом локали
+      toast.success(c('success'));
       router.push(`/applications/${newApplication.id}`);
     } catch (error) {
-      console.error('Ошибка при создании заявки:', error);
-      toast.error(error instanceof Error ? error.message : 'Ошибка при создании заявки');
+      toast.error(c('error'));
+      throw error;
     } finally {
       setCreating(false);
     }
   };
 
   if (isLoading) {
-    return <div>{c('loading')}</div>;
+    return <Loading />;
   }
 
   if (error) {
     return <div className="text-red-500">{error}</div>;
   }
 
-  console.log('applications ', applications);
+  const hasAccessForm =
+    user?.role === 'ADMIN' || user?.role === 'MANAGER' || user?.role === 'CONSULTANT';
+
+  if (!hasAccessForm) {
+    return <NoAccess />;
+  }
+
   return (
     <div className="container mx-auto py-10">
       <div className="flex items-center justify-between space-y-2">
@@ -76,7 +71,7 @@ export default function ApplicationsPage() {
         </Button>
       </div>
       <div className="mt-8">
-        <Suspense fallback={<ApplicationsTableSkeleton />}>
+        <Suspense fallback={<Loading />}>
           <DataTable
             columns={columns}
             data={(applications || []).filter((app) => {

@@ -129,6 +129,7 @@ function Details({ application, isSubmitted = false }: DetailsProps) {
                 <FormItem>
                   <FormLabel>{t('type')}</FormLabel>
                   <Select
+                    name="details.type"
                     onValueChange={field.onChange}
                     defaultValue={field.value || ''}
                     disabled={isSubmitted}
@@ -160,6 +161,7 @@ function Details({ application, isSubmitted = false }: DetailsProps) {
                 <FormItem>
                   <FormLabel>{t('academicLevel')}</FormLabel>
                   <Select
+                    name="details.academicLevel"
                     onValueChange={field.onChange}
                     defaultValue={field.value || ''}
                     disabled={isSubmitted}
@@ -194,6 +196,7 @@ function Details({ application, isSubmitted = false }: DetailsProps) {
                 <FormItem>
                   <FormLabel>{t('studyingLanguage')}</FormLabel>
                   <Select
+                    name="details.studyingLanguage"
                     onValueChange={field.onChange}
                     defaultValue={field.value || ''}
                     disabled={isSubmitted}
@@ -226,6 +229,7 @@ function Details({ application, isSubmitted = false }: DetailsProps) {
                 <FormItem>
                   <FormLabel>{t('contractLanguage')}</FormLabel>
                   <Select
+                    name="contractLanguage"
                     onValueChange={field.onChange}
                     defaultValue={field.value || ''}
                     disabled={isSubmitted}
@@ -255,6 +259,7 @@ function Details({ application, isSubmitted = false }: DetailsProps) {
                 <FormItem>
                   <FormLabel>{t('educationalProgram')}</FormLabel>
                   <Select
+                    name="details.educationalProgramId"
                     onValueChange={field.onChange}
                     defaultValue={field.value || ''}
                     disabled={isSubmitted}
@@ -349,6 +354,7 @@ function Details({ application, isSubmitted = false }: DetailsProps) {
                 </div>
                 <FormControl>
                   <Switch
+                    name="details.isDormNeeds"
                     checked={field.value || false}
                     onCheckedChange={field.onChange}
                     disabled={isSubmitted}

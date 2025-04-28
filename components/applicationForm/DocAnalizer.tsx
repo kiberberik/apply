@@ -4,7 +4,7 @@ import { CameraCapture } from '../docReader/CameraCapture';
 import { OpenAIResponse } from '../docReader/OpenAIResponse';
 import { useTranslations } from 'next-intl';
 import { IdentificationDocumentType } from '@prisma/client';
-import { useSingleApplication } from '@/store/useSingleApplication';
+import { useApplicationStore } from '@/store/useApplicationStore';
 import { useFormContext, Path, PathValue } from 'react-hook-form';
 import { formatToDatabaseDate } from '@/lib/dateUtils';
 import { toast } from 'react-toastify';
@@ -47,7 +47,7 @@ const DocAnalizer = ({ id, activeTab, setActiveTab, isAdult, setFormValue }: Doc
   const [images, setImages] = useState<string[]>([]);
   const c = useTranslations('Common');
   const [openAIResponse, setOpenAIResponse] = useState<DocumentData | string>();
-  const { updateApplication, fetchApplication } = useSingleApplication();
+  const { fetchSingleApplication, updateSingleApplication } = useApplicationStore();
   const form = useFormContext();
   const [processingData, setProcessingData] = useState(false);
   const { getLatestLogByApplicationId } = useLogStore();
@@ -167,8 +167,8 @@ const DocAnalizer = ({ id, activeTab, setActiveTab, isAdult, setFormValue }: Doc
 
       if (id) {
         try {
-          await updateApplication(id, updateData);
-          await fetchApplication(id);
+          await updateSingleApplication(id, updateData);
+          await fetchSingleApplication(id);
         } catch (error) {
           console.error('Ошибка при обновлении заявки:', error);
           return false;
@@ -239,8 +239,8 @@ const DocAnalizer = ({ id, activeTab, setActiveTab, isAdult, setFormValue }: Doc
 
       if (id) {
         try {
-          await updateApplication(id, updateData);
-          await fetchApplication(id);
+          await updateSingleApplication(id, updateData);
+          await fetchSingleApplication(id);
         } catch (error) {
           console.error('Ошибка при обновлении заявки:', error);
           return false;
