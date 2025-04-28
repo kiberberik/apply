@@ -14,8 +14,8 @@ export const CameraCapture = ({ onImagesAdd }: CameraCaptureProps) => {
   const t = useTranslations('Common');
 
   const videoConstraints = {
-    width: 1280,
-    height: 720,
+    width: 1920,
+    height: 1080,
     facingMode: facingMode,
     aspectRatio: 16 / 9,
   };

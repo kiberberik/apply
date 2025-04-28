@@ -132,7 +132,7 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
                     <FormControl>
                       <SelectTrigger
                         className={cn(
-                          '',
+                          'w-full',
                           isFieldChanged(
                             'isCitizenshipKz',
                             application?.applicant?.isCitizenshipKz,
@@ -204,7 +204,7 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
                         <FormControl>
                           <SelectTrigger
                             className={cn(
-                              '',
+                              'w-full',
                               isFieldChanged(
                                 'documentType',
                                 application?.applicant?.documentType,

@@ -61,7 +61,7 @@ export const DocumentUpload = ({ onImagesAdd, images, onDelete }: DocumentUpload
         type="file"
         ref={fileInputRef}
         onChange={handleFileChange}
-        accept=".pdf,.jpg,.jpeg,.png"
+        accept=".jpg,.jpeg,.png"
         multiple
         className="block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100"
       />

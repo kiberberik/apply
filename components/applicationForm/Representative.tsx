@@ -86,7 +86,7 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
                     <FormControl>
                       <SelectTrigger
                         className={cn(
-                          '',
+                          'w-full',
                           isFieldChanged('isCitizenshipKz') ? 'border-yellow-500' : '',
                         )}
                       >
@@ -145,7 +145,7 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
                         <FormControl>
                           <SelectTrigger
                             className={cn(
-                              '',
+                              'w-full',
                               isFieldChanged('documentType') ? 'border-yellow-500' : '',
                             )}
                           >
@@ -473,7 +473,7 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
                         <FormControl>
                           <SelectTrigger
                             className={cn(
-                              '',
+                              'w-full',
                               isFieldChanged('relationshipDegree') ? 'border-yellow-500' : '',
                             )}
                           >
@@ -508,7 +508,7 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
                             type="file"
                             multiple={false}
                             size={2000 * 5} // 2000 * 5 = 10000kb = 10mb
-                            accept=".pdf,.jpg,.jpeg,.png,.PDF,.JPG,.JPEG,.PNG"
+                            accept=".pdf" //,.jpg,.jpeg,.png,.PDF,.JPG,.JPEG,.PNG
                             className={cn(
                               '',
                               isFieldChanged('representativeDocumentFileLinks')

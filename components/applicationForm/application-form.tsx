@@ -341,6 +341,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   const tRepresentative = useTranslations('Representative');
   const tDetails = useTranslations('Details');
   const tDocuments = useTranslations('Documents');
+  const tApplications = useTranslations('Applications');
   const { getLatestLogByApplicationId } = useLogStore();
 
   const latestLog = singleApplication?.id
@@ -1266,13 +1267,11 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
                   let errorMessages = errorFields
                     .map((field) => {
                       const error = form.formState.errors[field as any];
-                      return `Поле "${field}": ${error?.message || 'ошибка валидации'}`;
+                      return `"${field === 'applicant' ? tApplications('columnsApplicant') : field === 'representative' ? tApplications('columnsRepresentative') : field === 'details' ? tApplications('columnsDetails') : field === 'documents' ? tApplications('columnsDocuments') : field}": ${error?.message || c('validationError')}`;
                     })
                     .join(', ');
 
-                  toast.error(
-                    errorMessages || 'Форма содержит ошибки. Пожалуйста, проверьте все поля.',
-                  );
+                  toast.error(errorMessages || c('validationError'));
                 }
               });
             } else {
@@ -1349,77 +1348,78 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
             </fieldset>
           </Tabs>
 
-          {/* Кнопка Next для перемещения по табам */}
-          {(!singleApplication?.submittedAt || user?.role !== Role.USER) && (
-            <div className="mt-6 flex justify-end gap-4">
-              <Button
-                type="button"
-                onClick={handleSaveDraftClick}
-                variant="outline"
-                disabled={isReadOnly}
-              >
-                {c('saveDraft')}
-              </Button>
-              {latestLog?.statusId === 'DRAFT' &&
-                (activeTab !== 'documents' ? (
-                  <Button
-                    type="button"
-                    onClick={(e) => {
-                      // Предотвращаем отправку формы
-                      e.preventDefault();
+          <div className="my-4 flex w-full items-center justify-end gap-4 rounded-lg border bg-white p-4">
+            {/* Кнопка Next для перемещения по табам */}
+            {(!singleApplication?.submittedAt || user?.role !== Role.USER) && (
+              <div className="flex justify-end gap-4">
+                <Button
+                  type="button"
+                  onClick={handleSaveDraftClick}
+                  variant="outline"
+                  disabled={isReadOnly}
+                >
+                  {c('saveDraft')}
+                </Button>
+                {latestLog?.statusId === 'DRAFT' &&
+                  (activeTab !== 'documents' ? (
+                    <Button
+                      type="button"
+                      onClick={(e) => {
+                        // Предотвращаем отправку формы
+                        e.preventDefault();
 
-                      // Логика переключения на следующий таб
-                      if (activeTab === 'applicant') {
-                        // Если взрослый, переходим на details, иначе на representative
-                        handleTabChange(isAdult ? 'details' : 'representative');
-                      } else if (activeTab === 'representative') {
-                        handleTabChange('details');
-                      } else if (activeTab === 'details') {
-                        handleTabChange('documents');
-                        console.log('Переход с вкладки details на documents');
-                      }
-                    }}
-                    disabled={isReadOnly}
-                  >
-                    {c('next')}
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    disabled={isReadOnly}
-                    onClick={() => {
-                      console.log('Submit button clicked, opening confirmation dialog');
-                      const values = form.getValues();
-                      form.trigger().then((isValid) => {
-                        if (!isValid) {
-                          console.log('Form validation failed, errors:', form.formState.errors);
-                          const errorFields = Object.keys(form.formState.errors);
-                          console.log('Invalid fields:', errorFields);
-
-                          // Анализируем ошибки валидации
-                          let errorMessages = errorFields
-                            .map((field) => {
-                              const error = form.formState.errors[field as any];
-                              return `Поле "${field}": ${error?.message || 'ошибка валидации'}`;
-                            })
-                            .join(', ');
-
-                          toast.error(
-                            errorMessages ||
-                              'Форма содержит ошибки. Пожалуйста, проверьте все поля.',
-                          );
-                          return;
+                        // Логика переключения на следующий таб
+                        if (activeTab === 'applicant') {
+                          // Если взрослый, переходим на details, иначе на representative
+                          handleTabChange(isAdult ? 'details' : 'representative');
+                        } else if (activeTab === 'representative') {
+                          handleTabChange('details');
+                        } else if (activeTab === 'details') {
+                          handleTabChange('documents');
+                          console.log('Переход с вкладки details на documents');
                         }
+                      }}
+                      disabled={isReadOnly}
+                    >
+                      {c('next')}
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      disabled={isReadOnly}
+                      onClick={() => {
+                        console.log('Submit button clicked, opening confirmation dialog');
+                        const values = form.getValues();
+                        form.trigger().then((isValid) => {
+                          if (!isValid) {
+                            console.log('Form validation failed, errors:', form.formState.errors);
+                            const errorFields = Object.keys(form.formState.errors);
+                            console.log('Invalid fields:', errorFields);
 
-                        openConfirmDialog(values);
-                      });
-                    }}
-                  >
-                    {c('submitApplication')}
-                  </Button>
-                ))}
-            </div>
-          )}
+                            // Анализируем ошибки валидации
+                            let errorMessages = errorFields
+                              .map((field) => {
+                                const error = form.formState.errors[field as any];
+                                return `"${field === 'applicant' ? tApplications('columnsApplicant') : field === 'representative' ? tApplications('columnsRepresentative') : field === 'details' ? tApplications('columnsDetails') : field === 'documents' ? tApplications('columnsDocuments') : field}": ${error?.message || c('validationError')}`;
+                              })
+                              .join(', ');
+
+                            toast.error(
+                              errorMessages || c('validationError'), // 'Форма содержит ошибки. Пожалуйста, проверьте все поля.',
+                            );
+                            return;
+                          }
+
+                          openConfirmDialog(values);
+                        });
+                      }}
+                    >
+                      {c('submitApplication')}
+                    </Button>
+                  ))}
+              </div>
+            )}
+          </div>
         </form>
       </Form>
 

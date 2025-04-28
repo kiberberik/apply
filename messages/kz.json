@@ -59,7 +59,8 @@
     "confirmSubmitTitle": "Жолдауды растау",
     "confirmSubmitDescription": "Өтінімді жолдауға сенімдісіз бе? Жолдағаннан кейін өтінімді өзгертуге болмайды.",
     "success": "Сәтті орындалды",
-    "error": "Қате орын алды"
+    "error": "Қате орын алды",
+    "validationError": "Пішінде қате бар. Барлық жолдарды тексеруіңізді сұраймыз."
   },
   "Roles": {
     "USER": "Пайдаланушы",
@@ -287,7 +288,7 @@
     "infoTitle": "Өтінім деректері",
     "searchPlaceholder": "Абитуриентті іздеу",
     "notSubmitted": "Жолданбаған",
-    "noConsultant": "Кеңесші өтінім жолданғаннан кейін тағайындалады"
+    "noConsultant": "Өтінім жолданғаннан кейін тағайындалады"
   },
   "Applicant": {
     "title": "Абитуриент",
@@ -360,7 +361,8 @@
     "selectContractLanguage": "Келісімшарт тілін таңдаңыз",
     "educationalProgram": "Білім беру бағдарламасы",
     "selectEducationalProgram": "Білім беру бағдарламасын таңдаңыз",
-    "years": "жыл"
+    "years": "жыл",
+    "noneProgram": "Білім беру бағдарламасы жоқ"
   },
   "Citizenship": {
     "selectCitizenship": "Азаматтықты таңдаңыз",
@@ -466,5 +468,10 @@
     "TRUSTME": "Trust Me арқылы қол қойылды",
     "OFFLINE": "Оффлайн қол қойылды",
     "NOT_SIGNED": "Қол қойылмаған"
+  },
+  "SystemSettings": {
+    "title": "Жүйе қондырғылары",
+    "educationalPrograms": "Білім беру бағдарламалары",
+    "requiredDocuments": "Құжаттар"
   }
 }

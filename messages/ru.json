@@ -59,7 +59,8 @@
     "confirmSubmitTitle": "Подтверждение отправки",
     "confirmSubmitDescription": "Вы уверены, что хотите отправить заявление? После отправки вы не сможете изменить данные.",
     "success": "Успешно выполнено",
-    "error": "Произошла ошибка"
+    "error": "Произошла ошибка",
+    "validationError": "Форма содержит ошибки. Пожалуйста, проверьте все поля."
   },
   "Roles": {
     "USER": "Пользователь",
@@ -287,7 +288,7 @@
     "infoTitle": "Данные заявки",
     "searchPlaceholder": "Поиск абитуриента",
     "notSubmitted": "Не подана",
-    "noConsultant": "Консультант будет назначен после отправки заявки"
+    "noConsultant": "Будет назначен после подачи заявки"
   },
   "Applicant": {
     "title": "Абитуриент",
@@ -360,7 +361,8 @@
     "selectContractLanguage": "Выберите язык договора",
     "educationalProgram": "Образовательная программа",
     "selectEducationalProgram": "Выберите образовательную программу",
-    "years": "года"
+    "years": "года",
+    "noneProgram": "Нет образовательной программы"
   },
   "Citizenship": {
     "selectCitizenship": "Выберите гражданство",
@@ -466,5 +468,10 @@
     "TRUSTME": "Подписано через Trust Me",
     "OFFLINE": "Подписано офлайн",
     "NOT_SIGNED": "Не подписано"
+  },
+  "SystemSettings": {
+    "title": "Настройки системы",
+    "educationalPrograms": "Образовательные программы",
+    "requiredDocuments": "Документы"
   }
 }

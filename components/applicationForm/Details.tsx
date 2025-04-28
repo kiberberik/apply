@@ -136,7 +136,7 @@ function Details({ application, isSubmitted = false }: DetailsProps) {
                   >
                     <FormControl>
                       <SelectTrigger
-                        className={cn('', isFieldChanged('type') ? 'border-yellow-500' : '')}
+                        className={cn('w-full', isFieldChanged('type') ? 'border-yellow-500' : '')}
                       >
                         <SelectValue placeholder={t('selectType')} />
                       </SelectTrigger>
@@ -169,7 +169,7 @@ function Details({ application, isSubmitted = false }: DetailsProps) {
                     <FormControl>
                       <SelectTrigger
                         className={cn(
-                          '',
+                          'w-full',
                           isFieldChanged('academicLevel') ? 'border-yellow-500' : '',
                         )}
                       >
@@ -204,7 +204,7 @@ function Details({ application, isSubmitted = false }: DetailsProps) {
                     <FormControl>
                       <SelectTrigger
                         className={cn(
-                          '',
+                          'w-full',
                           isFieldChanged('studyingLanguage') ? 'border-yellow-500' : '',
                         )}
                       >
@@ -235,7 +235,7 @@ function Details({ application, isSubmitted = false }: DetailsProps) {
                     disabled={isSubmitted}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder={t('selectContractLanguage')} />
                       </SelectTrigger>
                     </FormControl>
@@ -251,7 +251,8 @@ function Details({ application, isSubmitted = false }: DetailsProps) {
             />
           </div>
 
-          {filteredPrograms && filteredPrograms.length > 0 && (
+          {/* {filteredPrograms && filteredPrograms.length > 0 && ( */}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
               name="details.educationalProgramId"
@@ -267,7 +268,7 @@ function Details({ application, isSubmitted = false }: DetailsProps) {
                     <FormControl>
                       <SelectTrigger
                         className={cn(
-                          '',
+                          'w-full',
                           isFieldChanged('educationalProgramId') ? 'border-yellow-500' : '',
                         )}
                       >
@@ -275,36 +276,62 @@ function Details({ application, isSubmitted = false }: DetailsProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {filteredPrograms.map((group) => (
-                        <div key={group.id}>
-                          <div className="px-2 py-1.5 text-sm font-semibold">
-                            {group.code}{' '}
-                            {local === 'ru'
-                              ? group.name_rus
-                              : local === 'kz'
-                                ? group.name_kaz
-                                : group.name_eng}
-                          </div>
-                          {group.programs.map((program) => (
-                            <SelectItem key={program.id} value={program.id}>
-                              {program.code}{' '}
+                      {filteredPrograms.length > 0 ? (
+                        filteredPrograms.map((group) => (
+                          <div key={group.id}>
+                            <div className="px-2 py-1.5 text-sm font-semibold">
+                              {group.code}{' '}
                               {local === 'ru'
-                                ? program.name_rus
+                                ? group.name_rus
                                 : local === 'kz'
-                                  ? program.name_kaz
-                                  : program.name_eng}{' '}
-                              ({program.duration} {t('years')})
-                            </SelectItem>
-                          ))}
-                        </div>
-                      ))}
+                                  ? group.name_kaz
+                                  : group.name_eng}
+                            </div>
+                            {group.programs.map((program) => (
+                              <SelectItem key={program.id} value={program.id}>
+                                {program.code}{' '}
+                                {local === 'ru'
+                                  ? program.name_rus
+                                  : local === 'kz'
+                                    ? program.name_kaz
+                                    : program.name_eng}{' '}
+                                ({program.duration} {t('years')})
+                              </SelectItem>
+                            ))}
+                          </div>
+                        ))
+                      ) : (
+                        <SelectItem value="null" disabled>
+                          {t('noneProgram')}
+                        </SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          )}
+            <FormField
+              control={form.control}
+              name="details.isDormNeeds"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  {/* <div className="space-y-0.5"> */}
+                  <FormLabel>{t('isDormNeeds')}</FormLabel>
+                  {/* </div> */}
+                  <FormControl>
+                    <Switch
+                      name="details.isDormNeeds"
+                      checked={field.value || false}
+                      onCheckedChange={field.onChange}
+                      disabled={isSubmitted}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+          {/* )} */}
 
           {selectedProgram && (
             <div className="mt-4 rounded-lg border p-4">
@@ -343,26 +370,6 @@ function Details({ application, isSubmitted = false }: DetailsProps) {
               </div>
             </div>
           )}
-
-          <FormField
-            control={form.control}
-            name="details.isDormNeeds"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <FormLabel className="text-base">{t('isDormNeeds')}</FormLabel>
-                </div>
-                <FormControl>
-                  <Switch
-                    name="details.isDormNeeds"
-                    checked={field.value || false}
-                    onCheckedChange={field.onChange}
-                    disabled={isSubmitted}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
         </div>
       </CardContent>
     </Card>

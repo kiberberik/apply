@@ -147,7 +147,7 @@ const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
             {/* Основная информация о группе */}
             <Card className="p-6">
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div>
+                <div className="w-full">
                   <Label className="text-sm font-medium">{t('code')}</Label>
                   <Input
                     placeholder={t('code')}
@@ -157,7 +157,7 @@ const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
                   />
                 </div>
 
-                <div>
+                <div className="w-full">
                   <Label className="text-sm font-medium">{t('academicLevel')}</Label>
                   <Select
                     value={group.academic_level ?? AcademicLevel.BACHELORS}
@@ -165,7 +165,7 @@ const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
                       setGroup({ ...group, academic_level: value as AcademicLevel })
                     }
                   >
-                    <SelectTrigger className="mt-2">
+                    <SelectTrigger className="mt-2 w-full">
                       <SelectValue placeholder={t('academicLevel')} />
                     </SelectTrigger>
                     <SelectContent>

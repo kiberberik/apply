@@ -59,7 +59,8 @@
     "confirmSubmitTitle": "Confirm Submission",
     "confirmSubmitDescription": "Are you sure you want to submit the application? After submission, you will not be able to change the data.",
     "success": "Successfully completed",
-    "error": "Error occurred"
+    "error": "Error occurred",
+    "validationError": "Form contains errors. Please check all fields."
   },
   "Roles": {
     "USER": "User",
@@ -287,7 +288,7 @@
     "infoTitle": "Application Details",
     "searchPlaceholder": "Search for applicant",
     "notSubmitted": "Not Submitted",
-    "noConsultant": "Consultant will be assigned after application submission"
+    "noConsultant": "Will be assigned after application submission"
   },
   "Applicant": {
     "title": "Applicant",
@@ -360,7 +361,8 @@
     "selectContractLanguage": "Select Contract Language",
     "educationalProgram": "Educational Program",
     "selectEducationalProgram": "Select Educational Program",
-    "years": "years"
+    "years": "years",
+    "noneProgram": "No Educational Program"
   },
   "Citizenship": {
     "selectCitizenship": "Select Citizenship",
@@ -466,5 +468,10 @@
     "TRUSTME": "signed through Trust Me",
     "OFFLINE": "signed offline",
     "NOT_SIGNED": "Not Signed"
+  },
+  "SystemSettings": {
+    "title": "System Settings",
+    "educationalPrograms": "Educational Programs",
+    "requiredDocuments": "Documents"
   }
 }

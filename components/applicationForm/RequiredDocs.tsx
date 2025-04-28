@@ -184,8 +184,8 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
           <CardTitle>{t('title')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 gap-4 py-4 md:grid-cols-2">
-            {filteredDocuments.map((doc) => {
+          <div className="grid grid-cols-1 gap-10 py-4 md:grid-cols-2">
+            {filteredDocuments.map((doc, index) => {
               const uploadedDocument = getDocumentByCode(doc.code || '');
               return (
                 <FormField
@@ -199,7 +199,9 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                     <FormItem
                       className={fieldState.error ? 'rounded border border-red-500 p-2' : ''}
                     >
-                      <FormLabel>
+                      <FormLabel htmlFor={`document-${doc.id}`}>
+                        {index + 1}
+                        {'. '}
                         {locale === 'ru'
                           ? doc.name_rus
                           : locale === 'en'
@@ -210,7 +212,10 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                       <FormControl>
                         <div>
                           {uploadedDocument ? (
-                            <div className="flex flex-wrap items-center gap-2">
+                            <div
+                              className="flex flex-wrap items-center gap-4"
+                              id={`document-${doc.id}`}
+                            >
                               <span className="max-w-[200px] truncate text-sm">
                                 {uploadedDocument.name}
                               </span>
@@ -241,7 +246,7 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                               type="file"
                               multiple={false}
                               size={2000 * 5}
-                              accept=".pdf,.jpg,.jpeg,.png,.PDF,.JPG,.JPEG,.PNG"
+                              accept=".pdf" // ,.jpg,.jpeg,.png,.PDF,.JPG,.JPEG,.PNG
                               onChange={async (e) => {
                                 const file = e.target.files?.[0];
                                 if (file) {
@@ -318,7 +323,7 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
       </Card>
 
       <Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle>{c('deleteConfirmTitle')}</DialogTitle>
             <DialogDescription>{c('deleteConfirmDescription')}</DialogDescription>
