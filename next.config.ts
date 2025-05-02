@@ -20,6 +20,17 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    serverComponentsExternalPackages: ['@react-pdf/renderer'],
+    turbo: {
+      resolveAlias: {
+        canvas: './empty-module.ts',
+        encoding: './empty-module.ts',
+      },
+    },
+  },
+  // swcMinify: false,
+  // transpilePackages: ['@react-pdf/renderer'],
 };
 
 const withNextIntl = createNextIntlPlugin();

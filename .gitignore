@@ -45,3 +45,5 @@ next-env.d.ts
 public/uploads/*
 
 public/upload-docs/*
+
+public/generated-docs/*

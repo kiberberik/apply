@@ -76,6 +76,7 @@ export interface UpdateApplicationRequest {
     educationalProgramId?: string | null;
   } | null;
   contractLanguage?: string | null;
+  contractNumber?: string | null;
   // Документы загружаются через отдельный API-маршрут
   statusId?: string;
   submittedAt?: string | null;

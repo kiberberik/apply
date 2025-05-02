@@ -42,6 +42,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useEducationalStore } from '@/store/useEducationalStore';
 
 interface ApplicationFormProps {
   id?: string;
@@ -361,6 +362,8 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [formValuesForSubmit, setFormValuesForSubmit] = useState<FormValues | null>(null);
+
+  const { getEducationalProgramDetails } = useEducationalStore();
 
   const form = useForm<any>({
     resolver: zodResolver(formSchema),
@@ -731,6 +734,58 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     }
   };
 
+  const generateContractNumber = (
+    academicLevel: AcademicLevel,
+    type: StudyType,
+    duration: number,
+    identificationNumber: string,
+  ) => {
+    let contractCode;
+    if (academicLevel === AcademicLevel.BACHELORS) {
+      if (type === StudyType.PAID) {
+        contractCode = 'Б';
+      } else if (type === StudyType.CONDITIONAL) {
+        contractCode = 'УЗ';
+      } else if (type === StudyType.NONE_DEGREE) {
+        contractCode = 'ND';
+      }
+    } else if (academicLevel === AcademicLevel.MASTERS) {
+      if (type === StudyType.PAID) {
+        contractCode = 'М';
+      } else if (type === StudyType.CONDITIONAL) {
+        contractCode = 'М-УЗ';
+      } else if (type === StudyType.NONE_DEGREE) {
+        contractCode = 'M-ND';
+      }
+    } else if (academicLevel === AcademicLevel.DOCTORAL) {
+      contractCode = 'Д';
+    }
+
+    let durationCode;
+    if (duration === 2) {
+      durationCode = '020';
+    } else if (duration === 1) {
+      durationCode = '010';
+    } else if (duration === 3) {
+      durationCode = '030';
+    } else if (duration === 4) {
+      durationCode = '040';
+    }
+    //     Б - нормальный дигри
+    // УЗ - условно-зачисленные
+    // ND - non degree
+
+    //     дигри	М-020/2024 - для 2 года
+    // 	М-010/2024 - для 1 года
+    // non degree	M-ND/2024
+
+    // дигри	Д-030/2024 докторантура
+
+    const year = new Date().getFullYear().toString().slice(-2);
+    console.log('contractCode', `${contractCode}-${durationCode}/${year}-${identificationNumber}`);
+    return `${contractCode}-${durationCode}/${year}-${identificationNumber}`;
+  };
+
   const saveApplicantFormData = async (data: FormValues, isSubmit: boolean) => {
     console.log(`Saving form data, isSubmit=${isSubmit}`, data);
     try {
@@ -791,6 +846,15 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
 
       console.log('Preparing request data');
 
+      const contractNumber = isSubmit
+        ? generateContractNumber(
+            data.details?.academicLevel,
+            data.details?.type,
+            data.details?.educationalProgram?.duration,
+            data.applicant?.identificationNumber,
+          )
+        : null;
+
       const requestData: UpdateApplicationRequest = {
         applicant: data.applicant
           ? {
@@ -844,6 +908,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
             }
           : null,
         contractLanguage: data.contractLanguage || null,
+        contractNumber: contractNumber,
         submittedAt: isSubmit ? new Date().toISOString() : null,
       };
 
@@ -1222,6 +1287,73 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     }
   };
 
+  const handleGenerateContract = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    try {
+      const educationalProgramId = singleApplication?.details?.educationalProgramId;
+      if (!educationalProgramId) {
+        throw new Error('Не выбран образовательный курс');
+      }
+
+      const program = await getEducationalProgramDetails(educationalProgramId);
+      console.log('Полученные данные программы:', program);
+
+      if (!program) {
+        throw new Error('Не удалось получить данные образовательного курса');
+      }
+
+      const contractNumber = generateContractNumber(
+        singleApplication?.details?.academicLevel || AcademicLevel.BACHELORS,
+        singleApplication?.details?.type || StudyType.PAID,
+        program.duration || 0,
+        singleApplication?.applicant?.identificationNumber || '',
+      );
+
+      const response = await fetch('/api/fill', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          data: {
+            ...singleApplication,
+            contractNumber,
+            details: {
+              ...singleApplication?.details,
+              educationalProgram: {
+                group: program.group?.name_rus || '',
+                name: program.name_rus || '',
+                code: program.code || '',
+                duration: String(program.duration) || '',
+                costPerCredit: program.costPerCredit || '',
+                studyingLanguage: singleApplication?.details?.studyingLanguage || '',
+              },
+            },
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Ошибка при генерации контракта');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${contractNumber}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Ошибка:', error);
+      alert('Произошла ошибка при генерации контракта');
+    }
+  };
+
+  console.log('singleApplication', singleApplication);
+
   if (!singleApplication && id) {
     return (
       <div className="fixed inset-0 flex h-screen w-screen items-center justify-center bg-zinc-800/50">
@@ -1349,6 +1481,9 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           </Tabs>
 
           <div className="my-4 flex w-full items-center justify-end gap-4 rounded-lg border bg-white p-4">
+            {singleApplication?.submittedAt && user?.role !== Role.USER && (
+              <Button onClick={handleGenerateContract}>Сгенерировать контракт</Button>
+            )}
             {/* Кнопка Next для перемещения по табам */}
             {(!singleApplication?.submittedAt || user?.role !== Role.USER) && (
               <div className="flex justify-end gap-4">

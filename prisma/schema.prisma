@@ -176,6 +176,8 @@ model Application {
     contractTerminationStatus ContractTerminationStatus?
     contractTerminationDate   DateTime?
     contractLanguage          SupportLanguages?          @default(RUS)
+    contractFileLinks         String?                    @db.Text
+    contractNumber            String?
 }
 
 model Details {

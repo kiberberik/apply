@@ -6,6 +6,7 @@ type ProgramWithLanguages = EducationalProgram & {
   languages: {
     language: Language;
   }[];
+  group?: EducationalProgramGroup;
 };
 
 interface EducationalStore {
@@ -69,7 +70,7 @@ export const useEducationalStore = create<EducationalStore>((set) => ({
 
   getEducationalProgramDetails: async (id: string) => {
     try {
-      const res = await fetch(`/api/educational-programs/${id}`);
+      const res = await fetch(`/api/educational-programs/${id}?includeGroup=true`);
       if (!res.ok) {
         const error = await res.json();
         toast.error(error.error || 'Ошибка при получении деталей программы');
