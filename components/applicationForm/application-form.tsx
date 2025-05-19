@@ -745,7 +745,9 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     duration: number,
     identificationNumber: string,
   ) => {
-    let contractCode;
+    let contractCode = '';
+
+    // Определяем код контракта
     if (academicLevel === AcademicLevel.BACHELORS) {
       if (type === StudyType.PAID) {
         contractCode = 'Б';
@@ -766,29 +768,26 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       contractCode = 'Д';
     }
 
-    let durationCode;
+    // Если код контракта не определен, используем значение по умолчанию
+    if (!contractCode) {
+      contractCode = 'Б'; // По умолчанию бакалавриат
+    }
+
+    // Определяем код длительности
+    let durationCode = '040'; // По умолчанию 4 года
     if (duration === 2) {
       durationCode = '020';
     } else if (duration === 1) {
       durationCode = '010';
     } else if (duration === 3) {
       durationCode = '030';
-    } else if (duration === 4) {
-      durationCode = '040';
     }
-    //     Б - нормальный дигри
-    // УЗ - условно-зачисленные
-    // ND - non degree
-
-    //     дигри	М-020/2024 - для 2 года
-    // 	М-010/2024 - для 1 года
-    // non degree	M-ND/2024
-
-    // дигри	Д-030/2024 докторантура
 
     const year = new Date().getFullYear().toString().slice(-2);
-    console.log('contractCode', `${contractCode}-${durationCode}/${year}-${identificationNumber}`);
-    return `${contractCode}-${durationCode}/${year}-${identificationNumber}`;
+    const contractNumber = `${contractCode}-${durationCode}/${year}-${identificationNumber}`;
+
+    console.log('Generated contract number:', contractNumber);
+    return contractNumber;
   };
 
   const saveApplicantFormData = async (data: FormValues, isSubmit: boolean) => {
@@ -853,10 +852,10 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
 
       const contractNumber = isSubmit
         ? generateContractNumber(
-            data.details?.academicLevel,
-            data.details?.type,
-            data.details?.educationalProgram?.duration,
-            data.applicant?.identificationNumber,
+            data.details?.academicLevel || AcademicLevel.BACHELORS,
+            data.details?.type || StudyType.PAID,
+            data.details?.educationalProgram?.duration || 0,
+            data.applicant?.identificationNumber || data.applicant?.documentNumber || '',
           )
         : null;
 
@@ -913,7 +912,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
             }
           : null,
         contractLanguage: data.contractLanguage || null,
-        contractNumber: contractNumber,
+        contractNumber: isSubmit ? contractNumber : !isSubmit ? data.contractNumber : null,
         submittedAt: isSubmit ? new Date().toISOString() : !isSubmit ? data.submittedAt : null,
       };
 
