@@ -43,8 +43,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useEducationalStore } from '@/store/useEducationalStore';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
 
 interface ApplicationFormProps {
   id?: string;
@@ -338,7 +336,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   const c = useTranslations('Common');
   const { fetchSingleApplication, updateSingleApplication, singleApplication, isLoadingSingleApp } =
     useApplicationStore();
-  const { createLog, fetchLogsByApplicationId } = useLogStore();
+  const { createLog } = useLogStore();
 
   const tApplicant = useTranslations('Applicant');
   const tRepresentative = useTranslations('Representative');
@@ -366,9 +364,6 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   const [formValuesForSubmit, setFormValuesForSubmit] = useState<FormValues | null>(null);
 
   const { getEducationalProgramDetails } = useEducationalStore();
-
-  const [signatureMethod, setSignatureMethod] = useState<'online' | 'offline'>('online');
-  const [signedContractFile, setSignedContractFile] = useState<File | null>(null);
 
   const form = useForm<any>({
     resolver: zodResolver(formSchema),
@@ -914,7 +909,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           : null,
         contractLanguage: data.contractLanguage || null,
         contractNumber: contractNumber,
-        submittedAt: isSubmit ? new Date().toISOString() : !isSubmit ? data.submittedAt : null,
+        submittedAt: isSubmit ? new Date().toISOString() : null,
       };
 
       if (isSubmit) {
@@ -1292,8 +1287,6 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     }
   };
 
-  const handleGenerateContractAndSendTrustMe = async () => {};
-
   const handleGenerateContract = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     try {
@@ -1313,9 +1306,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         singleApplication?.details?.academicLevel || AcademicLevel.BACHELORS,
         singleApplication?.details?.type || StudyType.PAID,
         program.duration || 0,
-        singleApplication?.applicant?.identificationNumber ||
-          singleApplication?.applicant?.documentNumber ||
-          '',
+        singleApplication?.applicant?.identificationNumber || '',
       );
 
       const response = await fetch('/api/fill', {
@@ -1361,79 +1352,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setSignedContractFile(e.target.files[0]);
-    }
-  };
-
-  const handleUploadSignedContract = async () => {
-    if (signedContractFile && user?.id) {
-      try {
-        const formData = new FormData();
-        formData.append('file', signedContractFile);
-        formData.append('applicationId', id as string);
-        formData.append('userId', user.id);
-        formData.append('uploadedById', user.id);
-
-        const response = await fetch('/api/upload-signed-contract', {
-          method: 'POST',
-          body: formData,
-        });
-        if (!response.ok) {
-          throw new Error('Ошибка при загрузке контракта');
-        }
-        const data = await response.json();
-        toast.success('Подписанный контракт успешно загружен');
-
-        // Создаем лог через useLogStore
-        await createLog({
-          applicationId: id as string,
-          createdById: user.id,
-          statusId: 'CHECK_DOCS',
-          description: `Contract file uploaded: ${data.filename}`,
-        });
-      } catch (error) {
-        toast.error('Ошибка при загрузке контракта');
-      } finally {
-        setSignedContractFile(null);
-        await fetchSingleApplication(id as string);
-        await fetchLogsByApplicationId(id as string);
-      }
-    }
-  };
-
-  const handleCheckSignatureTrustMe = async () => {
-    // Здесь будет логика проверки подписи контракта
-    toast.success('Подпись контракта успешно проверена');
-  };
-
-  const handleViewContract = async () => {
-    if (!id || !user?.role) return;
-
-    try {
-      const response = await fetch(`/api/contracts`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ role: user.role, id }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Ошибка при получении контракта');
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      window.open(url, '_blank');
-    } catch (error) {
-      console.error('Ошибка при открытии контракта:', error);
-      toast.error('Не удалось открыть контракт');
-    }
-  };
-
-  // console.log('singleApplication', singleApplication);
+  console.log('singleApplication', singleApplication);
 
   if (!singleApplication && id) {
     return (
@@ -1562,6 +1481,9 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           </Tabs>
 
           <div className="my-4 flex w-full items-center justify-end gap-4 rounded-lg border bg-white p-4">
+            {/* {singleApplication?.submittedAt && user?.role !== Role.USER && ( */}
+            <Button onClick={handleGenerateContract}>Сгенерировать контракт</Button>
+            {/* )} */}
             {/* Кнопка Next для перемещения по табам */}
             {(!singleApplication?.submittedAt || user?.role !== Role.USER) && (
               <div className="flex justify-end gap-4">
@@ -1633,86 +1555,6 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               </div>
             )}
           </div>
-
-          {singleApplication?.submittedAt &&
-            user?.role !== Role.USER &&
-            (latestLog?.statusId === 'PROCESSING' || latestLog?.statusId === 'RE_PROCESSING') && (
-              <div className="my-12 flex w-full flex-col gap-6 rounded-lg border bg-white p-4">
-                <div className="flex flex-col gap-4">
-                  <h3 className="text-lg font-semibold">{c('signatureContract')}</h3>
-                  <div className="flex gap-4">
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        type="radio"
-                        id="online"
-                        name="signatureMethod"
-                        value="online"
-                        checked={signatureMethod === 'online'}
-                        onChange={(e) => setSignatureMethod(e.target.value as 'online' | 'offline')}
-                        className="text-primary focus:ring-primary h-4 w-4 border-gray-300"
-                      />
-                      <Label htmlFor="online">{c('online')}</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        type="radio"
-                        id="offline"
-                        name="signatureMethod"
-                        value="offline"
-                        checked={signatureMethod === 'offline'}
-                        onChange={(e) => setSignatureMethod(e.target.value as 'online' | 'offline')}
-                        className="text-primary focus:ring-primary h-4 w-4 border-gray-300"
-                      />
-                      <Label htmlFor="offline">{c('offline')}</Label>
-                    </div>
-                  </div>
-                </div>
-
-                {signatureMethod === 'online' ? (
-                  <div>
-                    <Button onClick={handleGenerateContractAndSendTrustMe}>
-                      {c('sendToSignTrustMe')}
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-4">
-                    <div className="flex flex-wrap items-center justify-start gap-12">
-                      <Button onClick={handleGenerateContract}>{c('generateContract')}</Button>
-
-                      <div className="flex flex-col gap-2">
-                        <Label>{c('uploadSignedContract')}</Label>
-                        <Input type="file" accept=".pdf" onChange={handleFileChange} />
-                        <Button onClick={handleUploadSignedContract} disabled={!signedContractFile}>
-                          {c('saveSignedContract')}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-          {singleApplication?.submittedAt &&
-            user?.role !== Role.USER &&
-            latestLog?.statusId === 'NEED_SIGNATURE' && (
-              <div className="my-12 flex w-full flex-col gap-6 rounded-lg border bg-white p-4">
-                <div className="flex flex-col gap-4">
-                  <Button onClick={handleCheckSignatureTrustMe}>
-                    {c('checkSignatureTrustMe')}
-                  </Button>
-                </div>
-              </div>
-            )}
-
-          {singleApplication?.submittedAt &&
-            user?.role !== Role.USER &&
-            (latestLog?.statusId === 'CHECK_DOCS' || latestLog?.statusId === 'NEED_DOCS') && (
-              <div className="my-12 flex w-full flex-col gap-6 rounded-lg border bg-white p-4">
-                <div className="flex flex-col gap-4">
-                  <Button onClick={handleViewContract}>{c('viewContract')}</Button>
-                </div>
-              </div>
-            )}
         </form>
       </Form>
 

@@ -60,7 +60,16 @@
     "confirmSubmitDescription": "Are you sure you want to submit the application? After submission, you will not be able to change the data.",
     "success": "Successfully completed",
     "error": "Error occurred",
-    "validationError": "Form contains errors. Please check all fields."
+    "validationError": "Form contains errors. Please check all fields.",
+    "signatureContract": "Signature Contract",
+    "online": "Online",
+    "offline": "Offline",
+    "sendToSignTrustMe": "Send to Sign (TrustMe)",
+    "generateContract": "Generate Contract",
+    "uploadSignedContract": "Upload Signed Contract",
+    "saveSignedContract": "Save Signed Contract",
+    "checkSignatureTrustMe": "Check Signature (TrustMe)",
+    "viewContract": "View Contract"
   },
   "Roles": {
     "USER": "User",

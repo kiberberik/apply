@@ -50,7 +50,7 @@ export async function fillPdfPlaceholders(
         // Удаляем старый текст с переменной
         pageRef.drawRectangle({
           x,
-          y: y - 1.5, // центрируем по высоте
+          y: y - 1.7, // центрируем по высоте
           width,
           height: 8,
           color: rgb(1, 1, 1),

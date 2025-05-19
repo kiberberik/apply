@@ -60,7 +60,16 @@
     "confirmSubmitDescription": "Вы уверены, что хотите отправить заявление? После отправки вы не сможете изменить данные.",
     "success": "Успешно выполнено",
     "error": "Произошла ошибка",
-    "validationError": "Форма содержит ошибки. Пожалуйста, проверьте все поля."
+    "validationError": "Форма содержит ошибки. Пожалуйста, проверьте все поля.",
+    "signatureContract": "Подпись контракта",
+    "online": "Онлайн",
+    "offline": "Офлайн",
+    "sendToSignTrustMe": "Отправить на подпись (TrustMe)",
+    "generateContract": "Сгенерировать контракт",
+    "uploadSignedContract": "Загрузить подписанный контракт",
+    "saveSignedContract": "Сохранить подписанный контракт",
+    "checkSignatureTrustMe": "Проверить подпись контракта (TrustMe)",
+    "viewContract": "Посмотреть контракт"
   },
   "Roles": {
     "USER": "Пользователь",

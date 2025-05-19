@@ -12,54 +12,52 @@ export async function POST(req: Request) {
   const { data } = body;
   console.log('data', data);
   const convertedData = {
-    contract: data.contractNumber as string,
-    created: dateUtils.formatDateForDisplay(data.submittedAt as string),
-    lastname: data.applicant.surname as string,
-    name: data.applicant.givennames as string,
-    surname: data.applicant.patronymic as string,
+    contract_number: data.contractNumber as string,
+    created_at: dateUtils.formatDateForDisplay(data.submittedAt as string),
+    surname: data.applicant.surname as string,
+    givennames: data.applicant.givennames as string,
+    patronymic: data.applicant.patronymic as string,
     fullname:
       (data.applicant.surname as string) +
       ' ' +
       (data.applicant.givennames as string) +
       ' ' +
       (data.applicant.patronymic as string),
-    iin: data.applicant.identificationNumber as string,
-    documents: data.applicant.documentType as string,
-    numberdocuments: data.applicant.documentNumber as string,
-    organviachi: data.applicant.documentIssuingAuthority as string,
-    datevidachidocuments: dateUtils.formatDateForDisplay(
-      data.applicant.documentIssueDate as string,
-    ),
-    grazhdanstvo: data.applicant.citizenship as string,
-    telephon: data.applicant.phone as string,
-    gorodiadresprozhivani: data.applicant.addressResidential as string,
-    adresspropiski: data.applicant.addressRegistration as string,
-    fullnameparents:
+    identification_number: data.applicant.identificationNumber as string,
+    doc_type: data.applicant.documentType as string,
+    doc_number: data.applicant.documentNumber as string,
+    doc_issuing_authority: data.applicant.documentIssuingAuthority as string,
+    doc_issue_date: dateUtils.formatDateForDisplay(data.applicant.documentIssueDate as string),
+    citizenship: data.applicant.citizenship ? data.applicant.citizenship : 'Қазақстан',
+    phone: data.applicant.phone as string,
+    address_residential: data.applicant.addressResidential as string,
+    address_registration: data.applicant.addressRegistration as string,
+    representative_fullname:
       (data.representative.surname as string) +
       ' ' +
       (data.representative.givennames as string) +
       ' ' +
       (data.representative.patronymic as string),
-    iinparents: data.representative.identificationNumber as string,
-    documentrodstvo:
+    representative_identification_number: data.representative.identificationNumber as string,
+    representative_doc_type:
       data.representative.relationshipDegree === RelationshipDegree.PARENT
         ? 'Удостоверение личности'
         : data.representative.relationshipDegree === RelationshipDegree.GUARDIAN
           ? 'Документ об опекунстве'
           : 'Нотариально заверенная доверенность',
-    numrodsto: data.representative.representativeDocumentNumber as string,
-    dateparents: dateUtils.formatDateForDisplay(
+    representative_doc_number: data.representative.representativeDocumentNumber as string,
+    representative_doc_issue_date: dateUtils.formatDateForDisplay(
       data.representative.representativeDocumentIssueDate as string,
     ),
-    telephonparents: data.representative.phone as string,
-    obshejitie: data.details.isDormsNeed ? 'Нуждаюсь' : 'Не нуждаюсь',
-    akadem: data.details.academicLevel as string,
-    'gop.gop.label': data.details.educationalProgram.group as string,
-    'gop.op.label': data.details.educationalProgram.name as string,
-    'gop.op.code': data.details.educationalProgram.code as string,
-    'gop.op.period': data.details.educationalProgram.duration as string,
-    'gop.op.price': data.details.educationalProgram.costPerCredit as string,
-    'gop.op.language':
+    representative_phone: data.representative.phone as string,
+    is_dorm_needs: data.details.isDormsNeed ? 'Нуждаюсь' : 'Не нуждаюсь',
+    academic_level: data.details.academicLevel as string,
+    edu_group_name: data.details.educationalProgram.group as string,
+    edu_program_name: data.details.educationalProgram.name as string,
+    edu_program_code: data.details.educationalProgram.code as string,
+    edu_program_duration: data.details.educationalProgram.duration as string,
+    edu_program_price: data.details.educationalProgram.costPerCredit as string,
+    studying_language:
       (data.details.studyingLanguage as string) === 'RUS'
         ? 'Русский'
         : (data.details.studyingLanguage as string) === 'KAZ'
@@ -117,10 +115,12 @@ export async function POST(req: Request) {
       break;
   }
 
+  currentTemplate = 'public/template-docs/test4.pdf';
+
   const templatePath = path.join(
     process.cwd(),
     currentTemplate,
-    // 'public/template-docs/paid_minor_application_for_accession.pdf',
+    //'public/template-docs/test4.pdf',
   );
   const pdfBytes = await fillPdfPlaceholders(templatePath, convertedData);
 

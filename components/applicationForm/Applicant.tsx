@@ -241,6 +241,10 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
                       {...field}
                       value={field.value || ''}
                       disabled={isSubmitted}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
+                        field.onChange(value);
+                      }}
                       className={cn(
                         '',
                         isFieldChanged(

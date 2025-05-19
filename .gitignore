@@ -47,3 +47,5 @@ public/uploads/*
 public/upload-docs/*
 
 public/generated-docs/*
+
+private/contracts/*

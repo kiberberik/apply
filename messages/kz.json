@@ -60,7 +60,16 @@
     "confirmSubmitDescription": "Өтінімді жолдауға сенімдісіз бе? Жолдағаннан кейін өтінімді өзгертуге болмайды.",
     "success": "Сәтті орындалды",
     "error": "Қате орын алды",
-    "validationError": "Пішінде қате бар. Барлық жолдарды тексеруіңізді сұраймыз."
+    "validationError": "Пішінде қате бар. Барлық жолдарды тексеруіңізді сұраймыз.",
+    "signatureContract": "Келісім-шартқа қол қою",
+    "online": "Онлайн",
+    "offline": "Офлайн",
+    "sendToSignTrustMe": "Қол қоюға жолдау (TrustMe)",
+    "generateContract": "Келісім-шартты жасау",
+    "uploadSignedContract": "Қол қойылған келісім-шартты жүктеу",
+    "saveSignedContract": "Қол қойылған келісім-шартты сақтау",
+    "checkSignatureTrustMe": "Келісім-шартқа қол қойылғанын тексеру (TrustMe)",
+    "viewContract": "Келісім-шартты көру"
   },
   "Roles": {
     "USER": "Пайдаланушы",
