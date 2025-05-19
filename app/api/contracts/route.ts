@@ -16,7 +16,7 @@ export async function POST(request: Request) {
 
     const { role, id } = await request.json();
 
-    if (!role || role !== Role.USER) {
+    if (!role || role === Role.USER) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
