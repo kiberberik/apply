@@ -2,7 +2,7 @@
 import { fillPdfPlaceholders } from '@/lib/pdfFill';
 import path from 'path';
 import { NextResponse } from 'next/server';
-import { RelationshipDegree, StudyType } from '@prisma/client';
+import { StudyType } from '@prisma/client';
 import dateUtils from '@/lib/dateUtils';
 
 export const dynamic = 'force-dynamic'; // если нужно всегда получать свежие данные
