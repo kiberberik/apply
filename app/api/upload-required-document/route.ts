@@ -11,6 +11,11 @@ export async function POST(request: Request) {
     const documentCode = formData.get('documentCode') as string;
     const userId = formData.get('userId') as string;
     const uploadedById = formData.get('uploadedById') as string;
+    const role = formData.get('role') as string;
+
+    if (!role) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });

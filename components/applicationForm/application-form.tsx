@@ -948,6 +948,8 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         }
       }
 
+      let selectedConsultant: any;
+
       // Получаем консультанта с наименьшей нагрузкой при отправке заявления
       if (isSubmit && !singleApplication?.consultantId) {
         try {
@@ -993,7 +995,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
                 );
 
                 // Выбираем случайного консультанта из списка с минимальной нагрузкой
-                const selectedConsultant =
+                selectedConsultant =
                   consultantsWithMinProcessing[
                     Math.floor(Math.random() * consultantsWithMinProcessing.length)
                   ];
@@ -1035,7 +1037,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               applicationId: id,
               statusId: 'PROCESSING',
               createdById: user?.id,
-              description: 'Заявление отправлено на рассмотрение',
+              description: `Consultant: ${selectedConsultant.name || ''} ${selectedConsultant.email || ''}`,
             });
           } catch (logError) {
             console.warn('Failed to create log, but application was saved:', logError);
@@ -1291,7 +1293,10 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     }
   };
 
-  const handleGenerateContractAndSendTrustMe = async () => {};
+  const handleGenerateContractAndSendTrustMe = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    toast.info('Генерация контракта и отправка в TrustMe еще не реализована');
+  };
 
   const handleGenerateContract = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -1356,7 +1361,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       document.body.removeChild(a);
     } catch (error) {
       console.error('Ошибка:', error);
-      alert('Произошла ошибка при генерации контракта');
+      toast.error('Произошла ошибка при генерации контракта');
     }
   };
 
@@ -1390,7 +1395,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           applicationId: id as string,
           createdById: user.id,
           statusId: 'CHECK_DOCS',
-          description: `Contract file uploaded: ${data.filename}`,
+          description: `Contract: ${data.filename}`,
         });
       } catch (error) {
         toast.error('Ошибка при загрузке контракта');

@@ -18,8 +18,14 @@ export async function POST(request: NextRequest) {
     const representativeId = formData.get('representativeId') as string;
     const activeTab = formData.get('activeTab') as string;
 
+    const role = formData.get('role') as string;
+
+    if (!role) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
+
     if (!file) {
-      return NextResponse.json({ error: 'Файл не найден' }, { status: 400 });
+      return NextResponse.json({ error: 'File not found' }, { status: 400 });
     }
 
     // Создаем уникальное имя файла

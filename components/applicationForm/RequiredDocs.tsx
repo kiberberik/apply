@@ -19,7 +19,7 @@ import {
   DialogFooter,
   DialogDescription,
 } from '../ui/dialog';
-
+import { useAuthStore } from '@/store/useAuthStore';
 interface RequiredDocsProps {
   application: ExtendedApplication;
   isSubmitted?: boolean;
@@ -39,7 +39,7 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
   );
   const [documentsLoaded, setDocumentsLoaded] = useState(false);
   const updatePendingRef = useRef(false);
-
+  const { user } = useAuthStore();
   const t = useTranslations('RequiredDocuments');
   const c = useTranslations('Common');
   const locale = useLocale();
@@ -263,7 +263,7 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                                   }
 
                                   formData.append('documentCode', doc.code || '');
-
+                                  formData.append('role', user?.role || '');
                                   try {
                                     const response = await fetch('/api/upload-required-document', {
                                       method: 'POST',

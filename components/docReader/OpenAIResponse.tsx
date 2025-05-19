@@ -272,6 +272,8 @@ error: "criteriaError" json.
                 }
               }
 
+              formData.append('role', user?.role || '');
+
               const uploadResponse = await fetch('/api/upload-document', {
                 method: 'POST',
                 body: formData,

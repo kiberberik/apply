@@ -11,7 +11,11 @@ import { prisma } from '@/lib/prisma';
  */
 export async function DELETE(request: NextRequest) {
   try {
-    const { fileUrl, applicantId, representativeId } = await request.json();
+    const { fileUrl, applicantId, representativeId, role } = await request.json();
+
+    if (!role) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
 
     if (!fileUrl) {
       return NextResponse.json({ error: 'URL файла не указан' }, { status: 400 });

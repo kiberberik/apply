@@ -32,24 +32,20 @@ export async function POST(req: Request) {
     phone: data.applicant.phone as string,
     address_residential: data.applicant.addressResidential as string,
     address_registration: data.applicant.addressRegistration as string,
-    representative_fullname:
-      (data.representative.surname as string) +
-      ' ' +
-      (data.representative.givennames as string) +
-      ' ' +
-      (data.representative.patronymic as string),
-    representative_identification_number: data.representative.identificationNumber as string,
-    representative_doc_type:
-      data.representative.relationshipDegree === RelationshipDegree.PARENT
-        ? 'Удостоверение личности'
-        : data.representative.relationshipDegree === RelationshipDegree.GUARDIAN
-          ? 'Документ об опекунстве'
-          : 'Нотариально заверенная доверенность',
-    representative_doc_number: data.representative.representativeDocumentNumber as string,
-    representative_doc_issue_date: dateUtils.formatDateForDisplay(
-      data.representative.representativeDocumentIssueDate as string,
-    ),
-    representative_phone: data.representative.phone as string,
+    representative_fullname: data.representative
+      ? `${data.representative.surname || ''} ${data.representative.givennames || ''} ${data.representative.patronymic || ''}`.trim()
+      : '',
+    representative_identification_number: data.representative?.identificationNumber || '',
+    representative_doc_type: data.representative?.documentType || '',
+    representative_doc_number: data.representative?.documentNumber || '',
+    representative_doc_issue_date: data.representative?.documentIssueDate || '',
+    representative_doc_expiry_date: data.representative?.documentExpiryDate || '',
+    representative_doc_issuing_authority: data.representative?.documentIssuingAuthority || '',
+    representative_relationship_degree: data.representative?.relationshipDegree || '',
+    representative_email: data.representative?.email || '',
+    representative_phone: data.representative?.phone || '',
+    representative_address_residential: data.representative?.addressResidential || '',
+    representative_address_registration: data.representative?.addressRegistration || '',
     is_dorm_needs: data.details.isDormsNeed ? 'Нуждаюсь' : 'Не нуждаюсь',
     academic_level: data.details.academicLevel as string,
     edu_group_name: data.details.educationalProgram.group as string,

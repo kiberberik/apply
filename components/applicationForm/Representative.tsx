@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import dateUtils from '@/lib/dateUtils';
 import { DocumentPreview } from '../ui/document-preview';
 import React, { useState } from 'react';
-
+import { useAuthStore } from '@/store/useAuthStore';
 interface RepresentativeProps {
   application: ExtendedApplication | null;
   isSubmitted?: boolean;
@@ -24,7 +24,7 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
   const form = useFormContext();
   const [localRepresentativeDocumentFileLinks, setLocalRepresentativeDocumentFileLinks] =
     useState<string>('');
-
+  const { user } = useAuthStore();
   const isFieldChanged = (fieldName: string): boolean => {
     const value = form.watch(`representative.${fieldName}`);
     const defaultValue =
@@ -530,6 +530,7 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
                                 formData.append('activeTab', 'representative-document');
 
                                 try {
+                                  formData.append('role', user?.role || '');
                                   const response = await fetch('/api/upload-document', {
                                     method: 'POST',
                                     body: formData,
