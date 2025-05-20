@@ -611,6 +611,7 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
                         <Input
                           {...field}
                           value={field.value || ''}
+                          maxLength={70}
                           disabled={isSubmitted}
                           className={cn(
                             '',
@@ -638,6 +639,7 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
                         <Input
                           {...field}
                           value={field.value || ''}
+                          maxLength={70}
                           disabled={isSubmitted}
                           className={cn(
                             '',

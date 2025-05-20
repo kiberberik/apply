@@ -69,7 +69,10 @@
     "uploadSignedContract": "Upload Signed Contract",
     "saveSignedContract": "Save Signed Contract",
     "checkSignatureTrustMe": "Check Signature (TrustMe)",
-    "viewContract": "View Contract"
+    "viewContract": "View Contract",
+    "revokeTrustMe": "Revoke Contract (TrustMe)",
+    "confirmRevokeTitle": "Confirm Revocation/Termination of Contract",
+    "confirmRevokeDescription": "Are you sure you want to revoke/terminate the contract through TrustMe? This action cannot be undone."
   },
   "Roles": {
     "USER": "User",
@@ -482,5 +485,18 @@
     "title": "System Settings",
     "educationalPrograms": "Educational Programs",
     "requiredDocuments": "Documents"
+  },
+  "TrustMeStatus": {
+    "notSigned": "Not Signed",
+    "companySigned": "Company Signed",
+    "clientSigned": "Client Signed",
+    "fullSigned": "Full Signed",
+    "revokedCompany": "Company revoked contract",
+    "companyInitiatedTermination": "Company initiated termination",
+    "clientInitiatedTermination": "Client initiated termination",
+    "clientRefusedTermination": "Client refused termination",
+    "terminated": "Contract terminated",
+    "clientRefusedSignature": "Client refused to sign the contract",
+    "unknown": "Unknown status"
   }
 }

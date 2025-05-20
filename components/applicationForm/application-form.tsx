@@ -25,6 +25,7 @@ import {
   AcademicLevel,
   SupportLanguages,
   Role,
+  ApplicationStatus,
 } from '@prisma/client';
 import { toast } from 'react-toastify';
 import dateUtils from '@/lib/dateUtils';
@@ -338,19 +339,20 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   const c = useTranslations('Common');
   const { fetchSingleApplication, updateSingleApplication, singleApplication, isLoadingSingleApp } =
     useApplicationStore();
-  const { createLog, fetchLogsByApplicationId } = useLogStore();
+  const { createLog, fetchLogsByApplicationId, getLatestLogByApplicationId } = useLogStore();
 
   const tApplicant = useTranslations('Applicant');
   const tRepresentative = useTranslations('Representative');
   const tDetails = useTranslations('Details');
   const tDocuments = useTranslations('Documents');
   const tApplications = useTranslations('Applications');
-  const { getLatestLogByApplicationId } = useLogStore();
+  const tTrustMeStatus = useTranslations('TrustMeStatus');
 
   const latestLog = singleApplication?.id
     ? getLatestLogByApplicationId(singleApplication.id)
     : null;
 
+  const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(() => {
     // Попытка восстановить сохраненный таб из localStorage при инициализации
     if (typeof window !== 'undefined') {
@@ -364,6 +366,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [formValuesForSubmit, setFormValuesForSubmit] = useState<FormValues | null>(null);
+  const [revokeDialogOpen, setRevokeDialogOpen] = useState(false);
 
   const { getEducationalProgramDetails } = useEducationalStore();
 
@@ -490,7 +493,23 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   });
 
   const isSubmitted = Boolean(singleApplication?.submittedAt);
-  const isReadOnly = isSubmitted && user?.role === Role.USER;
+  const isReadOnly =
+    (isSubmitted && user?.role === Role.USER) ||
+    (isSubmitted &&
+      user?.role === Role.CONSULTANT &&
+      (latestLog?.statusId === 'NEED_SIGNATURE' ||
+        latestLog?.statusId === 'CHECK_DOCS' ||
+        latestLog?.statusId === 'NEED_DOCS')) ||
+    (isSubmitted &&
+      user?.role === Role.MANAGER &&
+      (latestLog?.statusId === 'NEED_SIGNATURE' ||
+        latestLog?.statusId === 'CHECK_DOCS' ||
+        latestLog?.statusId === 'NEED_DOCS')) ||
+    (isSubmitted &&
+      user?.role === Role.ADMIN &&
+      (latestLog?.statusId === 'NEED_SIGNATURE' ||
+        latestLog?.statusId === 'CHECK_DOCS' ||
+        latestLog?.statusId === 'NEED_DOCS'));
 
   // Мемоизация isApplicantAdult для предотвращения лишних рендеров
   const isApplicantAdult = useCallback(() => {
@@ -1037,7 +1056,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               applicationId: id,
               statusId: 'PROCESSING',
               createdById: user?.id,
-              description: `Consultant: ${selectedConsultant.name || ''} ${selectedConsultant.email || ''}`,
+              description: `Consultant: ${selectedConsultant.name || ''} - ${selectedConsultant.email || ''}`,
             });
           } catch (logError) {
             console.warn('Failed to create log, but application was saved:', logError);
@@ -1295,11 +1314,165 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
 
   const handleGenerateContractAndSendTrustMe = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    toast.info('Генерация контракта и отправка в TrustMe еще не реализована');
+    setIsLoading(true);
+    try {
+      // Получаем данные образовательной программы
+      const educationalProgramId = singleApplication?.details?.educationalProgramId;
+      if (!educationalProgramId) {
+        throw new Error('Не выбран образовательный курс');
+      }
+
+      const program = await getEducationalProgramDetails(educationalProgramId);
+      if (!program) {
+        throw new Error('Не удалось получить данные образовательного курса');
+      }
+
+      // Генерируем номер контракта
+      const contractNumber = generateContractNumber(
+        singleApplication?.details?.academicLevel || AcademicLevel.BACHELORS,
+        singleApplication?.details?.type || StudyType.PAID,
+        program.duration || 0,
+        singleApplication?.applicant?.identificationNumber ||
+          singleApplication?.applicant?.documentNumber ||
+          '',
+      );
+
+      // Генерируем контракт и получаем URL
+      const response = await fetch('/api/fill', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          data: {
+            ...singleApplication,
+            contractNumber,
+            details: {
+              ...singleApplication?.details,
+              educationalProgram: {
+                group: program.group?.name_rus || '',
+                name: program.name_rus || '',
+                code: program.code || '',
+                duration: String(program.duration) || '',
+                costPerCredit: program.costPerCredit || '',
+                studyingLanguage: singleApplication?.details?.studyingLanguage || '',
+              },
+            },
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Ошибка при генерации контракта');
+      }
+
+      const blob = await response.blob();
+
+      // Конвертируем Blob в Base64
+      const arrayBuffer = await blob.arrayBuffer();
+      const base64String = Buffer.from(arrayBuffer).toString('base64');
+
+      // Создаем заголовки
+      const headers = new Headers();
+      headers.append('Authorization', process.env.NEXT_PUBLIC_TRUSTME_API_TOKEN || '');
+
+      // Создаем FormData
+      const formData = new FormData();
+      formData.append('FileBase64', base64String);
+
+      // Подготавливаем details в точном формате из документации
+      const details = {
+        NumberDial: contractNumber,
+        KzBmg: false,
+        FaceId: false,
+        AdditionalInfo: 'Договор на обучение',
+        Requisites: [
+          {
+            CompanyName: 'Second Signatory',
+            FIO: `${singleApplication?.applicant?.surname} ${singleApplication?.applicant?.givennames} ${singleApplication?.applicant?.patronymic || ''}`,
+            IIN_BIN:
+              singleApplication?.applicant?.identificationNumber ||
+              singleApplication?.applicant?.documentNumber ||
+              '',
+            PhoneNumber: singleApplication?.applicant?.phone || '',
+          },
+        ],
+      };
+
+      // Если заявитель несовершеннолетний, добавляем данные представителя
+      if (!isAdult && singleApplication?.representative) {
+        details.Requisites.push({
+          CompanyName: 'Second Signatory',
+          FIO: `${singleApplication.representative.surname} ${singleApplication.representative.givennames} ${singleApplication.representative.patronymic || ''}`,
+          IIN_BIN:
+            singleApplication.representative.identificationNumber ||
+            singleApplication.representative.documentNumber ||
+            '',
+          PhoneNumber: singleApplication.representative.phone || '',
+        });
+      }
+
+      // Добавляем details как JSON строку
+      formData.append('details', JSON.stringify(details));
+      formData.append('contract_name', contractNumber);
+
+      console.log('Отправляем данные в TrustMe:', {
+        details: JSON.stringify(details, null, 2),
+        contract_name: contractNumber,
+      });
+
+      // Отправляем в TrustMe
+      const trustMeResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_TRUSTME_API_URL}/SendToSignBase64FileExt/pdf`,
+        {
+          method: 'POST',
+          headers: headers,
+          body: formData,
+          redirect: 'follow',
+        },
+      );
+
+      const responseText = await trustMeResponse.text();
+      console.log('TrustMe raw response:', responseText);
+
+      if (!trustMeResponse.ok) {
+        throw new Error(`Ошибка при отправке в TrustMe: ${responseText}`);
+      }
+
+      let result;
+      try {
+        result = JSON.parse(responseText);
+        console.log('TrustMe parsed response:', result);
+      } catch (parseError) {
+        console.error('Ошибка при парсинге ответа:', parseError);
+        throw new Error('Неверный формат ответа от TrustMe');
+      }
+
+      // Создаем лог о отправке в TrustMe
+      if (id && user?.id) {
+        await createLog({
+          applicationId: id,
+          createdById: user.id,
+          statusId: 'NEED_SIGNATURE',
+          description: `TrustMe: ${JSON.stringify(result?.data, null, 2)}`,
+        });
+        toast.success('Контракт успешно отправлен на подписание');
+      }
+
+      // Обновляем данные заявки
+      await fetchSingleApplication(id as string);
+      await fetchLogsByApplicationId(id as string);
+    } catch (error) {
+      console.error('Ошибка при отправке контракта:', error);
+      toast.error('Произошла ошибка при отправке контракта на подписание');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGenerateContract = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
       const educationalProgramId = singleApplication?.details?.educationalProgramId;
       if (!educationalProgramId) {
@@ -1362,6 +1535,8 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     } catch (error) {
       console.error('Ошибка:', error);
       toast.error('Произошла ошибка при генерации контракта');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -1408,13 +1583,239 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   };
 
   const handleCheckSignatureTrustMe = async () => {
-    // Здесь будет логика проверки подписи контракта
-    toast.success('Подпись контракта успешно проверена');
+    setIsLoading(true);
+    try {
+      // Получаем последний лог заявки
+      const latestLog = getLatestLogByApplicationId(id as string);
+      if (!latestLog) {
+        throw new Error('Не найден лог заявки');
+      }
+
+      // Извлекаем document_id из описания лога
+      const description = latestLog.description || '';
+      const documentIdMatch = description.match(/"id":\s*"([^"]+)"/);
+      if (!documentIdMatch) {
+        throw new Error('Не найден ID документа в логах');
+      }
+      const documentId = documentIdMatch[1].trim();
+
+      console.log('Извлеченный ID документа:', documentId);
+
+      // Создаем заголовки
+      const headers = new Headers();
+      headers.append('Authorization', process.env.NEXT_PUBLIC_TRUSTME_API_TOKEN || '');
+      headers.append('Content-Type', 'application/json');
+
+      console.log('Проверяем статус документа:', documentId);
+
+      // Отправляем запрос на проверку статуса
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_TRUSTME_API_URL}/ContractStatus/${documentId.trim()}`,
+        {
+          method: 'GET',
+          headers: headers,
+          redirect: 'follow',
+        },
+      );
+
+      console.log('Ответ от TrustMe:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Ошибка TrustMe API:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorText,
+        });
+        throw new Error(
+          `Ошибка при проверке статуса подписания: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result = await response.json();
+      console.log('Статус подписания:', result);
+
+      // Определяем статус подписания
+      let statusText = '';
+      let newStatusId: ApplicationStatus;
+
+      switch (result.data) {
+        case 0:
+          statusText = tTrustMeStatus('notSigned');
+          newStatusId = 'NEED_SIGNATURE';
+          break;
+        case 1:
+          statusText = tTrustMeStatus('companySigned');
+          newStatusId = 'NEED_SIGNATURE';
+          break;
+        case 2:
+          statusText = tTrustMeStatus('clientSigned');
+          newStatusId = 'NEED_SIGNATURE';
+          break;
+        case 3:
+          statusText = tTrustMeStatus('fullSigned');
+          newStatusId = 'CHECK_DOCS';
+          break;
+        case 4:
+          statusText = tTrustMeStatus('revokedCompany');
+          newStatusId = 'REJECTED';
+          break;
+        case 5:
+          statusText = tTrustMeStatus('companyInitiatedTermination');
+          newStatusId = 'RE_PROCESSING';
+          break;
+        case 6:
+          statusText = tTrustMeStatus('clientInitiatedTermination');
+          newStatusId = 'RE_PROCESSING';
+          break;
+        case 7:
+          statusText = tTrustMeStatus('clientRefusedTermination');
+          newStatusId = 'RE_PROCESSING';
+          break;
+        case 8:
+          statusText = tTrustMeStatus('terminated');
+          newStatusId = 'REFUSED_TO_ENROLL';
+          break;
+        case 9:
+          statusText = tTrustMeStatus('clientRefusedSignature');
+          newStatusId = 'REFUSED_TO_SIGN';
+          break;
+        default:
+          statusText = tTrustMeStatus('unknownStatus');
+          newStatusId = 'NEED_SIGNATURE';
+      }
+
+      // Создаем новый лог с обновленным статусом только если статус изменился
+      if (id && user?.id && latestLog?.statusId !== newStatusId) {
+        await createLog({
+          applicationId: id,
+          createdById: user.id,
+          statusId: newStatusId,
+          description: `TrustMe: ${statusText} (${result.data})`,
+        });
+
+        // Если контракт полностью подписан, обновляем статус заявки
+        if (result.data === 3) {
+          toast.success(`${statusText}`);
+        } else {
+          toast.info(`${statusText}`);
+        }
+      } else {
+        // Если статус не изменился, просто показываем текущий статус
+        toast.info(`${statusText}`);
+      }
+
+      // Обновляем данные заявки
+      await fetchSingleApplication(id as string);
+      await fetchLogsByApplicationId(id as string);
+    } catch (error) {
+      console.error('Ошибка при проверке статуса подписания:', error);
+      toast.error('Произошла ошибка при проверке статуса подписания');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRevokeTrustMe = async () => {
+    setIsLoading(true);
+    try {
+      // Получаем последний лог заявки
+      const latestLog = getLatestLogByApplicationId(id as string);
+      if (!latestLog) {
+        throw new Error('Не найден лог заявки');
+      }
+
+      // Извлекаем document_id из описания лога
+      const description = latestLog.description || '';
+      const documentIdMatch = description.match(/"id":\s*"([^"]+)"/);
+      if (!documentIdMatch) {
+        throw new Error('Не найден ID документа в логах');
+      }
+      const documentId = documentIdMatch[1].trim();
+
+      console.log('Отзываем документ:', documentId);
+
+      // Создаем заголовки
+      const headers = new Headers();
+      headers.append('Authorization', process.env.NEXT_PUBLIC_TRUSTME_API_TOKEN || '');
+      headers.append('Content-Type', 'application/json');
+
+      // Отправляем запрос на отзыв/расторжение
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_TRUSTME_API_URL}/RevokeContract/${documentId}`,
+        {
+          method: 'GET',
+          headers: headers,
+          redirect: 'follow',
+        },
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Ошибка TrustMe API:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorText,
+        });
+        throw new Error(`Ошибка при отзыве контракта: ${response.status} ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log('Результат отзыва:', result);
+
+      // Определяем статус и создаем соответствующий лог
+      let statusText = '';
+      let newStatusId: ApplicationStatus;
+
+      // Проверяем статус из ответа API
+      const status = result?.data?.status || result?.status;
+      console.log('Статус отзыва:', status);
+
+      switch (status) {
+        case 4:
+          statusText = 'Контракт отозван';
+          newStatusId = 'RE_PROCESSING';
+          break;
+        case 5:
+          statusText = 'Инициировано расторжение контракта';
+          newStatusId = 'RE_PROCESSING';
+          break;
+        default:
+          statusText = 'Неизвестный статус';
+          newStatusId = 'RE_PROCESSING';
+      }
+
+      // Создаем новый лог
+      if (id && user?.id) {
+        await createLog({
+          applicationId: id,
+          createdById: user.id,
+          statusId: newStatusId,
+          description: `TrustMe: ${statusText} (${status})`,
+        });
+
+        toast.success(statusText);
+      }
+
+      // Обновляем данные заявки
+      await fetchSingleApplication(id as string);
+      await fetchLogsByApplicationId(id as string);
+    } catch (error) {
+      console.error('Ошибка при отзыве контракта:', error);
+      toast.error('Произошла ошибка при отзыве контракта');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleViewContract = async () => {
     if (!id || !user?.role) return;
 
+    setIsLoading(true);
     try {
       const response = await fetch(`/api/contracts`, {
         method: 'POST',
@@ -1434,6 +1835,8 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     } catch (error) {
       console.error('Ошибка при открытии контракта:', error);
       toast.error('Не удалось открыть контракт');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -1565,9 +1968,8 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
             </fieldset>
           </Tabs>
 
-          <div className="my-4 flex w-full items-center justify-end gap-4 rounded-lg border bg-white p-4">
-            {/* Кнопка Next для перемещения по табам */}
-            {(!singleApplication?.submittedAt || user?.role !== Role.USER) && (
+          {(!singleApplication?.submittedAt || user?.role !== Role.USER) && (
+            <div className="my-4 flex w-full items-center justify-end gap-4 rounded-lg border bg-white p-4">
               <div className="flex justify-end gap-4">
                 <Button
                   type="button"
@@ -1635,13 +2037,13 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
                     </Button>
                   ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {singleApplication?.submittedAt &&
             user?.role !== Role.USER &&
             (latestLog?.statusId === 'PROCESSING' || latestLog?.statusId === 'RE_PROCESSING') && (
-              <div className="my-12 flex w-full flex-col gap-6 rounded-lg border bg-white p-4">
+              <div className="my-12 flex w-full flex-col gap-6 rounded-lg p-4">
                 <div className="flex flex-col gap-4">
                   <h3 className="text-lg font-semibold">{c('signatureContract')}</h3>
                   <div className="flex gap-4">
@@ -1674,7 +2076,10 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
 
                 {signatureMethod === 'online' ? (
                   <div>
-                    <Button onClick={handleGenerateContractAndSendTrustMe}>
+                    <Button
+                      onClick={handleGenerateContractAndSendTrustMe}
+                      disabled={!singleApplication?.submittedAt || isLoading}
+                    >
                       {c('sendToSignTrustMe')}
                     </Button>
                   </div>
@@ -1686,7 +2091,10 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
                       <div className="flex flex-col gap-2">
                         <Label>{c('uploadSignedContract')}</Label>
                         <Input type="file" accept=".pdf" onChange={handleFileChange} />
-                        <Button onClick={handleUploadSignedContract} disabled={!signedContractFile}>
+                        <Button
+                          onClick={handleUploadSignedContract}
+                          disabled={!signedContractFile || isLoading}
+                        >
                           {c('saveSignedContract')}
                         </Button>
                       </div>
@@ -1699,10 +2107,25 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           {singleApplication?.submittedAt &&
             user?.role !== Role.USER &&
             latestLog?.statusId === 'NEED_SIGNATURE' && (
-              <div className="my-12 flex w-full flex-col gap-6 rounded-lg border bg-white p-4">
-                <div className="flex flex-col gap-4">
-                  <Button onClick={handleCheckSignatureTrustMe}>
+              <div className="my-12 flex w-full flex-col gap-6 rounded-lg p-4">
+                <div className="flex flex-row justify-end gap-4">
+                  <Button
+                    onClick={handleCheckSignatureTrustMe}
+                    disabled={isLoading}
+                    className="bg-blue-500"
+                  >
                     {c('checkSignatureTrustMe')}
+                  </Button>
+
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setRevokeDialogOpen(true);
+                    }}
+                    disabled={isLoading}
+                    className="bg-red-700"
+                  >
+                    {c('revokeTrustMe')}
                   </Button>
                 </div>
               </div>
@@ -1713,7 +2136,9 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
             (latestLog?.statusId === 'CHECK_DOCS' || latestLog?.statusId === 'NEED_DOCS') && (
               <div className="my-12 flex w-full flex-col gap-6 rounded-lg border bg-white p-4">
                 <div className="flex flex-col gap-4">
-                  <Button onClick={handleViewContract}>{c('viewContract')}</Button>
+                  <Button onClick={handleViewContract} disabled={isLoading}>
+                    {c('viewContract')}
+                  </Button>
                 </div>
               </div>
             )}
@@ -1736,12 +2161,34 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         </DialogContent>
       </Dialog>
 
-      {hasAccess(user?.role as Role, Role.CONSULTANT) && (
-        <div className="flex w-full flex-col justify-between gap-4 md:flex-row">
-          <Info />
-          <LogHistory />
-        </div>
-      )}
+      <div className="flex w-full flex-col justify-between gap-4 md:flex-row">
+        <Info />
+        {hasAccess(user?.role as Role, Role.CONSULTANT) && <LogHistory />}
+      </div>
+
+      {/* диалог подтверждения отзыва */}
+      <Dialog open={revokeDialogOpen} onOpenChange={setRevokeDialogOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{c('confirmRevokeTitle')}</DialogTitle>
+            <DialogDescription>{c('confirmRevokeDescription')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRevokeDialogOpen(false)}>
+              {c('cancel')}
+            </Button>
+            <Button
+              onClick={() => {
+                setRevokeDialogOpen(false);
+                handleRevokeTrustMe();
+              }}
+              className="bg-red-700"
+            >
+              {c('confirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

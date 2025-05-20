@@ -69,7 +69,10 @@
     "uploadSignedContract": "Загрузить подписанный контракт",
     "saveSignedContract": "Сохранить подписанный контракт",
     "checkSignatureTrustMe": "Проверить подпись контракта (TrustMe)",
-    "viewContract": "Посмотреть контракт"
+    "viewContract": "Посмотреть контракт",
+    "revokeTrustMe": "Отозвать контракт (TrustMe)",
+    "confirmRevokeTitle": "Подтверждение отозвания/расторжения контракта",
+    "confirmRevokeDescription": "Вы уверены, что хотите отозвать/расторгнуть контракт через TrustMe? Это действие нельзя отменить."
   },
   "Roles": {
     "USER": "Пользователь",
@@ -482,5 +485,18 @@
     "title": "Настройки системы",
     "educationalPrograms": "Образовательные программы",
     "requiredDocuments": "Документы"
+  },
+  "TrustMeStatus": {
+    "notSigned": "Не подписан",
+    "companySigned": "Подписан компанией",
+    "clientSigned": "Подписан клиентом",
+    "fullSigned": "Полностью подписан",
+    "revokedCompany": "Отозван компанией",
+    "companyInitiatedTermination": "Компания инициировала расторжение",
+    "clientInitiatedTermination": "Клиент инициировал расторжение",
+    "clientRefusedTermination": "Клиент отказался от расторжения",
+    "terminated": "Расторгнут",
+    "clientRefusedSignature": "Клиент отказался подписывать договор",
+    "unknown": "Неизвестный статус"
   }
 }
