@@ -1436,6 +1436,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       console.log('TrustMe raw response:', responseText);
 
       if (!trustMeResponse.ok) {
+        toast.error('Не удалось отправить контракт на подписание');
         throw new Error(`Ошибка при отправке в TrustMe: ${responseText}`);
       }
 
@@ -1446,6 +1447,11 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       } catch (parseError) {
         console.error('Ошибка при парсинге ответа:', parseError);
         throw new Error('Неверный формат ответа от TrustMe');
+      }
+
+      if (!result.data) {
+        toast.error('Не удалось отправить контракт на подписание');
+        throw new Error(`Ошибка при отправке в TrustMe: ${responseText}`);
       }
 
       // Создаем лог о отправке в TrustMe
