@@ -11,7 +11,7 @@ import {
 import { Button } from './button';
 import { toast } from 'react-toastify';
 import { useTranslations } from 'next-intl';
-import { useAuthStore } from '@/store/useAuthStore';
+
 interface DocumentPreviewProps {
   documentFileLinks: string | null;
   onDocumentRemoved?: () => void;
@@ -32,7 +32,7 @@ export function DocumentPreview({
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [localLinks, setLocalLinks] = React.useState<string[]>([]);
   const c = useTranslations('Common');
-  const { user } = useAuthStore();
+
   useEffect(() => {
     let links: string[] = [];
     try {
@@ -93,7 +93,6 @@ export function DocumentPreview({
           fileUrl: deleteTarget,
           applicantId,
           representativeId,
-          role: user?.role,
         }),
       });
 

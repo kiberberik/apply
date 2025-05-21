@@ -3,17 +3,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { prisma } from '@/lib/prisma';
 import { Role } from '@prisma/client';
-// import { getServerSession } from 'next-auth';
-// import { authOptions } from '@/lib/auth';
+import { checkServerAccess } from '@/lib/serverAuth';
 
 export async function POST(request: Request) {
+  const hasAccess = await checkServerAccess(Role.CONSULTANT);
+  if (!hasAccess) {
+    return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
+  }
   try {
-    // const session = await getServerSession(authOptions);
-
-    // if (!session) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
-
     const { role, id } = await request.json();
 
     if (!role || role === Role.USER) {
@@ -24,7 +21,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Contract ID is required' }, { status: 400 });
     }
 
-    // Получаем информацию о заявке
     const application = await prisma.application.findUnique({
       where: { id },
       select: { contractFileLinks: true },
@@ -34,7 +30,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No contracts found' }, { status: 404 });
     }
 
-    // Получаем последний загруженный контракт
     let contractLinks;
     try {
       contractLinks = JSON.parse(application.contractFileLinks);
@@ -52,10 +47,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Contract file not found' }, { status: 404 });
     }
 
-    // Читаем файл
     const fileBuffer = fs.readFileSync(filePath);
 
-    // Возвращаем файл с правильными заголовками
     return new NextResponse(fileBuffer, {
       headers: {
         'Content-Type': 'application/pdf',

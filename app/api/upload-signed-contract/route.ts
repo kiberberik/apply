@@ -2,18 +2,19 @@ import { NextResponse } from 'next/server';
 import * as fs from 'fs';
 import * as path from 'path';
 import { prisma } from '@/lib/prisma';
+import { checkServerAccess } from '@/lib/serverAuth';
+import { Role } from '@prisma/client';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_FILE_TYPES = ['application/pdf'];
 
 export async function POST(request: Request) {
+  const hasAccess = await checkServerAccess(Role.CONSULTANT);
+  if (!hasAccess) {
+    return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
+  }
+
   try {
-    // const session = await getServerSession(authOptions);
-
-    // if (!session) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
-
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const applicationId = formData.get('applicationId') as string;

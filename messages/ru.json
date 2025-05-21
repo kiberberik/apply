@@ -68,7 +68,7 @@
     "generateContract": "Сгенерировать контракт",
     "uploadSignedContract": "Загрузить подписанный контракт",
     "saveSignedContract": "Сохранить подписанный контракт",
-    "checkSignatureTrustMe": "Проверить подпись контракта (TrustMe)",
+    "checkSignatureTrustMe": "Проверить подписание (TrustMe)",
     "viewContract": "Посмотреть контракт",
     "revokeTrustMe": "Отозвать контракт (TrustMe)",
     "confirmRevokeTitle": "Подтверждение отозвания/расторжения контракта",
@@ -477,9 +477,9 @@
     "user": "Пользователь"
   },
   "ContractSignType": {
-    "TRUSTME": "Подписано через Trust Me",
-    "OFFLINE": "Подписано офлайн",
-    "NOT_SIGNED": "Не подписано"
+    "TRUSTME": "Подписан через Trust Me",
+    "OFFLINE": "Подписан офлайн",
+    "NOT_SIGNED": "Не подписан"
   },
   "SystemSettings": {
     "title": "Настройки системы",

@@ -68,7 +68,7 @@
     "generateContract": "Келісім-шартты жасау",
     "uploadSignedContract": "Қол қойылған келісім-шартты жүктеу",
     "saveSignedContract": "Қол қойылған келісім-шартты сақтау",
-    "checkSignatureTrustMe": "Келісім-шартқа қол қойылғанын тексеру (TrustMe)",
+    "checkSignatureTrustMe": "Қол қойылуын тексеру (TrustMe)",
     "viewContract": "Келісім-шартты көру",
     "revokeTrustMe": "Келісім-шартты қайтару (TrustMe)",
     "confirmRevokeTitle": "Келісім-шартты қайтаруды/бұзуды растау",

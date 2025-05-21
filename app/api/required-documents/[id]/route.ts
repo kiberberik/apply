@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { checkServerAccess } from '@/lib/serverAuth';
+import { Role } from '@prisma/client';
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const hasAccess = await checkServerAccess(Role.ADMIN);
+  if (!hasAccess) {
+    return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
+  }
+
   try {
     const id = (await params).id;
     const body = await req.json();
@@ -32,12 +39,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 }
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const hasAccess = await checkServerAccess(Role.ADMIN);
+  if (!hasAccess) {
+    return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
+  }
+
   try {
     const id = (await params).id;
-    // const session = await getServerSession(authOptions);
-    // if (!session?.user?.isAdmin) {
-    //   return new NextResponse('Unauthorized', { status: 401 });
-    // }
 
     await prisma.requiredDocument.update({
       where: { id },

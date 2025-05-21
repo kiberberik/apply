@@ -1,6 +1,13 @@
+import { checkServerAccess } from '@/lib/serverAuth';
+import { Role } from '@prisma/client';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
+  const hasAccess = await checkServerAccess(Role.CONSULTANT);
+  if (!hasAccess) {
+    return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
+  }
+
   try {
     const data = await request.json();
 

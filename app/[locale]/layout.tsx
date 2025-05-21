@@ -5,7 +5,6 @@ import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { Mulish } from 'next/font/google';
 import NextTopLoader from 'nextjs-toploader';
-
 import { ToastContainer } from 'react-toastify';
 import Footer from '@/components/layout/Footer';
 

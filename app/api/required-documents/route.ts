@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { checkServerAccess } from '@/lib/serverAuth';
+import { Role } from '@prisma/client';
 
 export async function GET() {
   try {
@@ -24,6 +26,11 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const hasAccess = await checkServerAccess(Role.ADMIN);
+  if (!hasAccess) {
+    return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
+  }
+
   try {
     const body = await req.json();
     const { countries, academicLevels, studyTypes, ageCategories, ...documentData } = body;

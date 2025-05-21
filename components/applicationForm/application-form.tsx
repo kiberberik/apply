@@ -2114,7 +2114,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
             user?.role !== Role.USER &&
             latestLog?.statusId === 'NEED_SIGNATURE' && (
               <div className="my-12 flex w-full flex-col gap-6 rounded-lg p-4">
-                <div className="flex flex-row justify-end gap-4">
+                <div className="flex flex-row flex-wrap justify-end gap-4">
                   <Button
                     onClick={handleCheckSignatureTrustMe}
                     disabled={isLoading}

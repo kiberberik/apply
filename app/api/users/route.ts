@@ -1,10 +1,16 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Role } from '@prisma/client';
+import { checkServerAccess } from '@/lib/serverAuth';
 
 // Получение всех пользователей
 export async function GET(request: Request) {
   try {
+    const hasAccess = await checkServerAccess(Role.CONSULTANT);
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url);
     const role = searchParams.get('role') as Role | null;
 
@@ -57,6 +63,12 @@ export async function GET(request: Request) {
 // Обновление email или роли пользователя
 export async function PATCH(req: Request) {
   try {
+    // Проверяем доступ
+    const hasAccess = await checkServerAccess(Role.CONSULTANT);
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
+    }
+
     const { id, name, email, role, managerId } = await req.json();
     if (!id) return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
 

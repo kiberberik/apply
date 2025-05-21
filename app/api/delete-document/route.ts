@@ -3,6 +3,8 @@ import { unlink } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
 import { prisma } from '@/lib/prisma';
+import { checkServerAccess } from '@/lib/serverAuth';
+import { Role } from '@prisma/client';
 
 /**
  * Обработчик удаления документов
@@ -10,18 +12,19 @@ import { prisma } from '@/lib/prisma';
  * Этот маршрут удаляет файл документа из файловой системы и обновляет ссылки в соответствующей модели
  */
 export async function DELETE(request: NextRequest) {
-  try {
-    const { fileUrl, applicantId, representativeId, role } = await request.json();
+  const hasAccess = await checkServerAccess(Role.USER);
+  if (!hasAccess) {
+    return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
+  }
 
-    if (!role) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
-    }
+  try {
+    const { fileUrl, applicantId, representativeId } = await request.json();
 
     if (!fileUrl) {
       return NextResponse.json({ error: 'URL файла не указан' }, { status: 400 });
     }
 
-    console.log('Запрос на удаление файла:', { fileUrl, applicantId, representativeId });
+    // console.log('Запрос на удаление файла:', { fileUrl, applicantId, representativeId });
 
     // Извлекаем имя файла из URL
     const fileName = fileUrl.split('/').pop();
@@ -32,19 +35,19 @@ export async function DELETE(request: NextRequest) {
     // Полный путь к файлу в файловой системе
     const filePath = join(process.cwd(), 'public', 'upload-docs', fileName);
 
-    console.log('Путь к файлу для удаления:', filePath);
+    // console.log('Путь к файлу для удаления:', filePath);
 
     // Проверяем существование файла перед удалением
     const fileExists = existsSync(filePath);
-    console.log('Файл существует:', fileExists);
+    // console.log('Файл существует:', fileExists);
 
     if (fileExists) {
       try {
         // Удаляем файл
         await unlink(filePath);
-        console.log('Файл успешно удален');
+        // console.log('Файл успешно удален');
       } catch (error) {
-        console.error('Ошибка при удалении файла:', error);
+        // console.error('Ошибка при удалении файла:', error);
         // Если произошла ошибка при удалении файла, возвращаем ошибку
         return NextResponse.json(
           {
@@ -67,7 +70,7 @@ export async function DELETE(request: NextRequest) {
         select: { documentFileLinks: true },
       });
 
-      console.log('Найденный applicant:', applicant);
+      // console.log('Найденный applicant:', applicant);
 
       if (applicant?.documentFileLinks) {
         try {
@@ -83,11 +86,11 @@ export async function DELETE(request: NextRequest) {
             links = [];
           }
 
-          console.log('Текущие ссылки applicant:', links);
+          // console.log('Текущие ссылки applicant:', links);
 
           // Фильтруем массив, оставляя все ссылки, кроме той, что нужно удалить
           const newLinks = links.filter((link) => link !== fileUrl);
-          console.log('Новые ссылки applicant после фильтрации:', newLinks);
+          //  console.log('Новые ссылки applicant после фильтрации:', newLinks);
 
           // Обновляем только если массив изменился (ссылка была найдена и удалена)
           if (newLinks.length !== links.length) {
@@ -99,13 +102,13 @@ export async function DELETE(request: NextRequest) {
               data: { documentFileLinks: newLinksJson },
             });
 
-            console.log('Ссылки applicant обновлены в БД:', newLinksJson);
+            // console.log('Ссылки applicant обновлены в БД:', newLinksJson);
             documentUpdated = true;
           } else {
-            console.log('Ссылка не найдена в documentFileLinks applicant');
+            // console.log('Ссылка не найдена в documentFileLinks applicant');
           }
         } catch (error) {
-          console.error('Ошибка при обновлении ссылок applicant:', error);
+          // console.error('Ошибка при обновлении ссылок applicant:', error);
           return NextResponse.json(
             {
               error: 'Ошибка при обновлении ссылок',
@@ -124,7 +127,7 @@ export async function DELETE(request: NextRequest) {
         },
       });
 
-      console.log('Найденный representative:', representative);
+      // console.log('Найденный representative:', representative);
 
       // Сначала проверяем documentFileLinks
       if (representative?.documentFileLinks) {
@@ -141,11 +144,11 @@ export async function DELETE(request: NextRequest) {
             links = [];
           }
 
-          console.log('Текущие ссылки documentFileLinks representative:', links);
+          // console.log('Текущие ссылки documentFileLinks representative:', links);
 
           // Фильтруем массив, оставляя все ссылки, кроме той, что нужно удалить
           const newLinks = links.filter((link) => link !== fileUrl);
-          console.log('Новые ссылки documentFileLinks после фильтрации:', newLinks);
+          // console.log('Новые ссылки documentFileLinks после фильтрации:', newLinks);
 
           // Обновляем только если массив изменился (ссылка была найдена и удалена)
           if (newLinks.length !== links.length) {
@@ -157,13 +160,13 @@ export async function DELETE(request: NextRequest) {
               data: { documentFileLinks: newLinksJson },
             });
 
-            console.log('Ссылки documentFileLinks representative обновлены в БД:', newLinksJson);
+            // console.log('Ссылки documentFileLinks representative обновлены в БД:', newLinksJson);
             documentUpdated = true;
           } else {
             console.log('Ссылка не найдена в documentFileLinks representative');
           }
         } catch (error) {
-          console.error('Ошибка при обновлении documentFileLinks представителя:', error);
+          // console.error('Ошибка при обновлении documentFileLinks представителя:', error);
           return NextResponse.json(
             {
               error: 'Ошибка при обновлении ссылок',
@@ -189,11 +192,11 @@ export async function DELETE(request: NextRequest) {
             links = [];
           }
 
-          console.log('Текущие ссылки representativeDocumentFileLinks:', links);
+          // console.log('Текущие ссылки representativeDocumentFileLinks:', links);
 
           // Фильтруем массив, оставляя все ссылки, кроме той, что нужно удалить
           const newLinks = links.filter((link) => link !== fileUrl);
-          console.log('Новые ссылки representativeDocumentFileLinks после фильтрации:', newLinks);
+          // console.log('Новые ссылки representativeDocumentFileLinks после фильтрации:', newLinks);
 
           // Обновляем только если массив изменился (ссылка была найдена и удалена)
           if (newLinks.length !== links.length) {
@@ -205,13 +208,13 @@ export async function DELETE(request: NextRequest) {
               data: { representativeDocumentFileLinks: newLinksJson },
             });
 
-            console.log('Ссылки representativeDocumentFileLinks обновлены в БД:', newLinksJson);
+            // console.log('Ссылки representativeDocumentFileLinks обновлены в БД:', newLinksJson);
             documentUpdated = true;
           } else {
             console.log('Ссылка не найдена в representativeDocumentFileLinks');
           }
         } catch (error) {
-          console.error('Ошибка при обновлении representativeDocumentFileLinks:', error);
+          // console.error('Ошибка при обновлении representativeDocumentFileLinks:', error);
           return NextResponse.json(
             {
               error: 'Ошибка при обновлении ссылок',
@@ -240,7 +243,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
   } catch (error) {
-    console.error('Ошибка при обработке запроса:', error);
+    // console.error('Ошибка при обработке запроса:', error);
     return NextResponse.json(
       {
         error: 'Внутренняя ошибка сервера',

@@ -80,6 +80,17 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
   const documentType = form.watch('applicant.documentType');
   const isCitizenshipKz = form.watch('applicant.isCitizenshipKz');
 
+  // Добавляем эффект для автоматической установки значения citizenship
+  React.useEffect(() => {
+    if (isCitizenshipKz) {
+      form.setValue('applicant.citizenship', 'Казахстан', {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+    }
+  }, [isCitizenshipKz, form]);
+
   // Функция для валидации даты
   const validateAndUpdateDate = (
     e: React.FocusEvent<HTMLInputElement>,
@@ -155,37 +166,33 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
               )}
             />
 
-            {!isCitizenshipKz && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="applicant.citizenship"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{tCitizenship('enterCitizenship')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value || ''}
-                          className={cn(
-                            '',
-                            isFieldChanged(
-                              'citizenship',
-                              application?.applicant?.citizenship,
-                              field.value,
-                            )
-                              ? 'border-yellow-500'
-                              : '',
-                          )}
-                          disabled={isSubmitted}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
-            )}
+            <FormField
+              control={form.control}
+              name="applicant.citizenship"
+              render={({ field }) => (
+                <FormItem className={isCitizenshipKz ? 'hidden' : ''}>
+                  <FormLabel>{tCitizenship('enterCitizenship')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value || ''}
+                      className={cn(
+                        '',
+                        isFieldChanged(
+                          'citizenship',
+                          application?.applicant?.citizenship,
+                          field.value,
+                        )
+                          ? 'border-yellow-500'
+                          : '',
+                      )}
+                      disabled={isSubmitted || isCitizenshipKz}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {isCitizenshipKz && (
               <>

@@ -2,12 +2,18 @@
 import { fillPdfPlaceholders } from '@/lib/pdfFill';
 import path from 'path';
 import { NextResponse } from 'next/server';
-import { StudyType } from '@prisma/client';
+import { Role, StudyType } from '@prisma/client';
 import dateUtils from '@/lib/dateUtils';
+import { checkServerAccess } from '@/lib/serverAuth';
 
 export const dynamic = 'force-dynamic'; // если нужно всегда получать свежие данные
 
 export async function POST(req: Request) {
+  const hasAccess = await checkServerAccess(Role.CONSULTANT);
+  if (!hasAccess) {
+    return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
+  }
+
   const body = await req.json();
   const { data } = body;
   console.log('data', data);
