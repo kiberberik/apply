@@ -122,45 +122,33 @@ export const formSchema = z.object({
   }),
   representative: z
     .object({
-      givennames: z.string().trim().min(1, '').nullable().optional(),
-      surname: z.string().trim().min(1, '').nullable().optional(),
+      givennames: z.string().nullable().optional(),
+      surname: z.string().nullable().optional(),
       patronymic: z.string().nullable().optional(),
-      citizenship: z.string().trim().min(1, '').nullable().optional(),
+      // isCitizenshipKz: z.boolean().nullable().optional(),
+      citizenship: z.string().nullable().optional(),
       identificationNumber: z.string().nullable().optional(),
-      documentType: z
-        .nativeEnum(IdentificationDocumentType, {
-          errorMap: () => {
-            return { message: '' };
-          },
-        })
-        .nullable()
-        .optional(),
-      documentNumber: z.string().trim().min(1, '').nullable().optional(),
-      documentIssueDate: z.string().min(1, '').nullable().optional(),
-      documentExpiryDate: z.string().min(1, '').nullable().optional(),
-      documentIssuingAuthority: z.string().trim().min(1, '').nullable().optional(),
+      documentType: z.nativeEnum(IdentificationDocumentType).nullable().optional(),
+      documentNumber: z.string().nullable().optional(),
+      documentIssueDate: z.string().nullable().optional(),
+      documentExpiryDate: z.string().nullable().optional(),
+      documentIssuingAuthority: z.string().nullable().optional(),
       documentFileLinks: z.string().nullable().optional(),
-      representativeDocumentNumber: z.string().trim().min(1, '').nullable().optional(),
-      representativeDocumentIssueDate: z.string().min(1, '').nullable().optional(),
-      representativeDocumentExpiryDate: z.string().min(1, '').nullable().optional(),
-      representativeDocumentIssuingAuthority: z.string().trim().min(1, '').nullable().optional(),
+      representativeDocumentNumber: z.string().nullable().optional(),
+      representativeDocumentIssueDate: z.string().nullable().optional(),
+      representativeDocumentExpiryDate: z.string().nullable().optional(),
+      representativeDocumentIssuingAuthority: z.string().nullable().optional(),
       representativeDocumentFileLinks: z.string().nullable().optional(),
-      relationshipDegree: z
-        .nativeEnum(RelationshipDegree, {
-          errorMap: () => {
-            return { message: '' };
-          },
-        })
-        .nullable()
-        .optional(),
-      email: z.string().email('').nullable().optional(),
-      phone: z.string().trim().min(1, '').nullable().optional(),
-      addressResidential: z.string().trim().min(1, '').nullable().optional(),
-      addressRegistration: z.string().trim().min(1, '').nullable().optional(),
+      relationshipDegree: z.nativeEnum(RelationshipDegree).nullable().optional(),
+      email: z.string().email().nullable().optional(),
+      phone: z.string().nullable().optional(),
+      addressResidential: z.string().nullable().optional(),
+      addressRegistration: z.string().nullable().optional(),
       applicantId: z.string().nullable().optional(),
       id: z.string().nullable().optional(),
     })
-    .nullable(),
+    .nullable()
+    .optional(),
   details: z.object({
     type: z.nativeEnum(StudyType, {
       errorMap: () => {
