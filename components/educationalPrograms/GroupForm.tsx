@@ -51,6 +51,7 @@ const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
 
   const [group, setGroup] = useState<Partial<EducationalProgramGroup>>({
     code: groupToEdit?.code || '',
+    platonusId: groupToEdit?.platonusId || '',
     name_rus: groupToEdit?.name_rus || '',
     name_kaz: groupToEdit?.name_kaz || '',
     name_eng: groupToEdit?.name_eng || '',
@@ -65,7 +66,8 @@ const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
   useEffect(() => {
     fetchPrograms(); // Загружаем программы изначально
     if (groupToEdit) {
-      const { name_rus, name_kaz, name_eng, academic_level, code, visibility } = groupToEdit;
+      const { name_rus, name_kaz, name_eng, academic_level, code, visibility, platonusId } =
+        groupToEdit;
       setGroup({
         name_rus: name_rus ?? '',
         name_kaz: name_kaz ?? '',
@@ -73,6 +75,7 @@ const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
         academic_level: academic_level ?? AcademicLevel.BACHELORS,
         code: code ?? '',
         visibility: visibility ?? true,
+        platonusId: platonusId ?? '',
       });
     }
   }, [groupToEdit, fetchPrograms]);
@@ -84,7 +87,7 @@ const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
       } else {
         await addGroup(group as EducationalProgramGroup);
       }
-      onClose();
+      // onClose();
     } catch (err) {
       console.error('Ошибка при сохранении группы:', err);
       toast.error('Произошла ошибка при сохранении группы');
@@ -147,6 +150,15 @@ const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
             {/* Основная информация о группе */}
             <Card className="p-6">
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="w-full">
+                  <Label className="text-sm font-medium">Platonus Id</Label>
+                  <Input
+                    placeholder="Platonus Id"
+                    value={group.platonusId ?? ''}
+                    onChange={(e) => setGroup({ ...group, platonusId: e.target.value })}
+                    className="mt-2"
+                  />
+                </div>
                 <div className="w-full">
                   <Label className="text-sm font-medium">{t('code')}</Label>
                   <Input

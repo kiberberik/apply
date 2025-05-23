@@ -19,6 +19,8 @@ interface ProgramFormData {
   name_kaz: string;
   name_eng: string;
   code: string;
+  platonusId: string;
+  platonusStudyFormId: string;
   languages: string[]; // теперь это массив ID языков
   academic_level: AcademicLevel;
   duration: number;
@@ -54,6 +56,8 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ programToEdit, groupId, onClo
     name_kaz: programToEdit?.name_kaz || '',
     name_eng: programToEdit?.name_eng || '',
     code: programToEdit?.code || '',
+    platonusId: programToEdit?.platonusId || '',
+    platonusStudyFormId: programToEdit?.platonusStudyFormId || '',
     languages: programToEdit?.languages?.map((lang) => lang.language.id) || [],
     academic_level:
       programToEdit?.academic_level || group?.academic_level || AcademicLevel.BACHELORS,
@@ -107,6 +111,8 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ programToEdit, groupId, onClo
         name_kaz: programToEdit.name_kaz || '',
         name_eng: programToEdit.name_eng || '',
         code: programToEdit.code || '',
+        platonusId: programToEdit.platonusId || '',
+        platonusStudyFormId: programToEdit.platonusStudyFormId || '',
         languages: selectedLanguageIds,
         academic_level:
           programToEdit.academic_level || group?.academic_level || AcademicLevel.BACHELORS,
@@ -225,6 +231,27 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ programToEdit, groupId, onClo
                 {errors.code}
               </motion.p>
             )}
+
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+              <div className="w-full">
+                <Label className="text-sm font-medium">Platonus Id</Label>
+                <Input
+                  value={formData.platonusId}
+                  onChange={(e) => setFormData({ ...formData, platonusId: e.target.value })}
+                  placeholder="Platonus Id"
+                />
+              </div>
+              <div className="w-full">
+                <Label className="text-sm font-medium">Platonus Study Form Id</Label>
+                <Input
+                  value={formData.platonusStudyFormId}
+                  onChange={(e) =>
+                    setFormData({ ...formData, platonusStudyFormId: e.target.value })
+                  }
+                  placeholder="Platonus Study Form Id"
+                />
+              </div>
+            </div>
 
             <Label className="block text-sm font-medium">{t('name')}</Label>
             <div className="space-y-4">

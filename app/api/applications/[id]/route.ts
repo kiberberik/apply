@@ -209,6 +209,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           ...(birthDate !== undefined && { birthDate }),
           ...(documentIssueDate !== undefined && { documentIssueDate }),
           ...(documentExpiryDate !== undefined && { documentExpiryDate }),
+          // Устанавливаем documentType в null, если оно пустое
+          documentType: applicantData.documentType || null,
           updatedAt: new Date(),
         };
 
@@ -402,6 +404,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           updatedDetails = await tx.details.create({
             data: {
               ...detailsBaseData,
+              type: detailsBaseData.type || null,
+              academicLevel: detailsBaseData.academicLevel || null,
+              studyingLanguage: detailsBaseData.studyingLanguage || null,
               createdAt: new Date(),
               application: { connect: { id } },
             },

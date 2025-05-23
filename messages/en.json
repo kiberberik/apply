@@ -392,6 +392,7 @@
     "PASSPORT": "Passport",
     "number": "Document Number",
     "issuingAuthority": "Issued By",
+    "selectIssuingAuthority": "Select Issuing Authority",
     "issueDate": "Issue Date",
     "expirationDate": "Expiry Date",
     "id_card": "ID Card",
@@ -501,5 +502,10 @@
     "terminated": "Contract terminated",
     "clientRefusedSignature": "Client refused to sign the contract",
     "unknown": "Unknown status"
+  },
+  "icdepartments": {
+    "ministryJustice": "Ministry of Justice of the RK",
+    "ministryInternalAffairs": "The Ministry of Internal Affairs of the RK",
+    "another": "Another authorized authority"
   }
 }

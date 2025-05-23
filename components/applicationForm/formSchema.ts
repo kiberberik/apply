@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import {
   AcademicLevel,
   IdentificationDocumentType,
@@ -5,7 +6,6 @@ import {
   StudyType,
   SupportLanguages,
 } from '@prisma/client';
-import { z } from 'zod';
 
 export const formSchema = z.object({
   applicant: z.object({
@@ -23,9 +23,12 @@ export const formSchema = z.object({
       .transform((v) => (v === null ? '' : v)),
     patronymic: z.string().nullable(),
     birthDate: z
-      .string({ required_error: '' })
+      .string()
+      .min(1, '')
       .nullable()
-      .transform((v) => (v === null ? '' : v)),
+      .refine((val) => val !== null && val !== '', {
+        message: '',
+      }),
     birthPlace: z
       .string({ required_error: '' })
       .trim()
@@ -45,10 +48,14 @@ export const formSchema = z.object({
     identificationNumber: z.string().nullable(),
     documentType: z
       .nativeEnum(IdentificationDocumentType, {
-        required_error: '',
+        errorMap: () => {
+          return { message: '' };
+        },
       })
       .nullable()
-      .transform((v) => (v === null ? ('ID_CARD' as IdentificationDocumentType) : v)),
+      .refine((val) => val !== null, {
+        message: '',
+      }),
     documentNumber: z
       .string({ required_error: '' })
       .trim()
@@ -56,13 +63,19 @@ export const formSchema = z.object({
       .nullable()
       .transform((v) => (v === null ? '' : v)),
     documentIssueDate: z
-      .string({ required_error: '' })
+      .string()
+      .min(1, '')
       .nullable()
-      .transform((v) => (v === null ? '' : v)),
+      .refine((val) => val !== null && val !== '', {
+        message: '',
+      }),
     documentExpiryDate: z
-      .string({ required_error: '' })
+      .string()
+      .min(1, '')
       .nullable()
-      .transform((v) => (v === null ? '' : v)),
+      .refine((val) => val !== null && val !== '', {
+        message: '',
+      }),
     documentIssuingAuthority: z
       .string({ required_error: '' })
       .trim()
@@ -76,80 +89,207 @@ export const formSchema = z.object({
     // .nullable()
     // .transform((v) => (v === null ? '' : v)),
     email: z
-      .string({ required_error: '' })
-      .trim()
-      .min(1, '')
-      .email('Некорректный формат email')
+      .string()
+      .email('')
       .nullable()
-      .transform((v) => (v === null ? '' : v)),
+      .refine((val) => val !== null && val !== '', {
+        message: '',
+      }),
     phone: z
-      .string({ required_error: '' })
+      .string()
       .trim()
-      .min(1, '')
+      .min(1)
       .nullable()
-      .transform((v) => (v === null ? '' : v)),
+      .refine((val) => val !== null && val !== '', {
+        message: '',
+      }),
     addressResidential: z
-      .string({ required_error: '' })
+      .string()
       .trim()
-      .min(1, '')
+      .min(1)
       .nullable()
-      .transform((v) => (v === null ? '' : v)),
+      .refine((val) => val !== null && val !== '', {
+        message: '',
+      }),
     addressRegistration: z
-      .string({ required_error: '' })
+      .string()
       .trim()
-      .min(1, '')
+      .min(1)
       .nullable()
-      .transform((v) => (v === null ? '' : v)),
+      .refine((val) => val !== null && val !== '', {
+        message: '',
+      }),
   }),
   representative: z
     .object({
-      givennames: z.string().nullable().optional(),
-      surname: z.string().nullable().optional(),
-      patronymic: z.string().nullable().optional(),
-      // isCitizenshipKz: z.boolean().nullable().optional(),
-      citizenship: z.string().nullable().optional(),
-      identificationNumber: z.string().nullable().optional(),
-      documentType: z.nativeEnum(IdentificationDocumentType).nullable().optional(),
-      documentNumber: z.string().nullable().optional(),
-      documentIssueDate: z.string().nullable().optional(),
-      documentExpiryDate: z.string().nullable().optional(),
-      documentIssuingAuthority: z.string().nullable().optional(),
-      documentFileLinks: z.string().nullable().optional(),
-      representativeDocumentNumber: z.string().nullable().optional(),
-      representativeDocumentIssueDate: z.string().nullable().optional(),
-      representativeDocumentExpiryDate: z.string().nullable().optional(),
-      representativeDocumentIssuingAuthority: z.string().nullable().optional(),
-      representativeDocumentFileLinks: z.string().nullable().optional(),
-      relationshipDegree: z.nativeEnum(RelationshipDegree).nullable().optional(),
-      email: z.string().email().nullable().optional(),
-      phone: z.string().nullable().optional(),
-      addressResidential: z.string().nullable().optional(),
-      addressRegistration: z.string().nullable().optional(),
-      applicantId: z.string().nullable().optional(),
-      id: z.string().nullable().optional(),
+      givennames: z
+        .string()
+        .trim()
+        .min(1, '')
+        .nullable()
+        .refine((val) => val !== null && val !== '', {
+          message: '',
+        }),
+      surname: z
+        .string()
+        .trim()
+        .min(1, '')
+        .nullable()
+        .refine((val) => val !== null && val !== '', {
+          message: '',
+        }),
+      patronymic: z.string().nullable(),
+      citizenship: z
+        .string()
+        .trim()
+        .min(1, '')
+        .nullable()
+        .refine((val) => val !== null && val !== '', {
+          message: '',
+        }),
+      identificationNumber: z.string().nullable(),
+      documentType: z
+        .nativeEnum(IdentificationDocumentType, {
+          errorMap: () => {
+            return { message: '' };
+          },
+        })
+        .nullable()
+        .refine((val) => val !== null, {
+          message: '',
+        }),
+      documentNumber: z
+        .string()
+        .trim()
+        .min(1, '')
+        .nullable()
+        .refine((val) => val !== null && val !== '', {
+          message: '',
+        }),
+      documentIssueDate: z
+        .string()
+        .min(1, '')
+        .nullable()
+        .refine((val) => val !== null && val !== '', {
+          message: '',
+        }),
+      documentExpiryDate: z
+        .string()
+        .min(1, '')
+        .nullable()
+        .refine((val) => val !== null && val !== '', {
+          message: '',
+        }),
+      documentIssuingAuthority: z
+        .string()
+        .trim()
+        .min(1, '')
+        .nullable()
+        .refine((val) => val !== null && val !== '', {
+          message: '',
+        }),
+      documentFileLinks: z.string().nullable(),
+      representativeDocumentNumber: z
+        .string()
+        .trim()
+        .min(1, '')
+        .nullable()
+        .refine((val) => val !== null && val !== '', {
+          message: '',
+        }),
+      representativeDocumentIssueDate: z
+        .string()
+        .min(1, '')
+        .nullable()
+        .refine((val) => val !== null && val !== '', {
+          message: '',
+        }),
+      representativeDocumentExpiryDate: z
+        .string()
+        .min(1, '')
+        .nullable()
+        .refine((val) => val !== null && val !== '', {
+          message: '',
+        }),
+      representativeDocumentIssuingAuthority: z
+        .string()
+        .trim()
+        .min(1, '')
+        .nullable()
+        .refine((val) => val !== null && val !== '', {
+          message: '',
+        }),
+      representativeDocumentFileLinks: z.string().nullable(),
+      relationshipDegree: z
+        .nativeEnum(RelationshipDegree, {
+          errorMap: () => {
+            return { message: '' };
+          },
+        })
+        .nullable()
+        .refine((val) => val !== null, {
+          message: '',
+        }),
+      email: z
+        .string()
+        .email('')
+        .nullable()
+        .refine((val) => val !== null && val !== '', {
+          message: '',
+        }),
+      phone: z
+        .string()
+        .trim()
+        .min(1, '')
+        .nullable()
+        .refine((val) => val !== null && val !== '', {
+          message: '',
+        }),
+      addressResidential: z
+        .string()
+        .trim()
+        .min(1, '')
+        .nullable()
+        .refine((val) => val !== null && val !== '', {
+          message: '',
+        }),
+      addressRegistration: z
+        .string()
+        .trim()
+        .min(1, '')
+        .nullable()
+        .refine((val) => val !== null && val !== '', {
+          message: '',
+        }),
+      applicantId: z.string().nullable(),
+      id: z.string().nullable(),
     })
-    .nullable()
-    .optional(),
+    .nullable(),
   details: z.object({
-    type: z
-      .nativeEnum(StudyType, { required_error: '' })
-      .nullable()
-      .transform((v) => (v === null ? ('PAID' as StudyType) : v)),
-    academicLevel: z
-      .nativeEnum(AcademicLevel, { required_error: '' })
-      .nullable()
-      .transform((v) => (v === null ? ('BACHELORS' as AcademicLevel) : v)),
+    type: z.nativeEnum(StudyType, {
+      errorMap: () => {
+        return { message: '' };
+      },
+    }),
+    academicLevel: z.nativeEnum(AcademicLevel, {
+      errorMap: () => {
+        return { message: '' };
+      },
+    }),
     isDormNeeds: z.boolean().nullable().optional(),
-    studyingLanguage: z
-      .nativeEnum(SupportLanguages, { required_error: '' })
-      .nullable()
-      .transform((v) => (v === null ? ('RUS' as SupportLanguages) : v)),
+    studyingLanguage: z.nativeEnum(SupportLanguages, {
+      errorMap: () => {
+        return { message: '' };
+      },
+    }),
     educationalProgramId: z
-      .string({ required_error: '' })
+      .string()
       .trim()
       .min(1, '')
       .nullable()
-      .transform((v) => (v === null ? '' : v)),
+      .refine((val) => val !== null && val !== '', {
+        message: '',
+      }),
   }),
   contractLanguage: z
     .nativeEnum(SupportLanguages, { required_error: '' })

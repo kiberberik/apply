@@ -305,11 +305,11 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                           )}
                         </div>
                       </FormControl>
-                      {fieldState.error && (
+                      {/* {fieldState.error && (
                         <div className="mt-1 text-sm text-red-500">
                           {fieldState.error.message || 'Этот документ обязателен'}
                         </div>
-                      )}
+                      )} */}
                     </FormItem>
                   )}
                 />

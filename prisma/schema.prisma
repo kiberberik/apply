@@ -310,6 +310,7 @@ model EducationalProgramGroup {
     name_kaz       String?
     name_eng       String?
     code           String?
+    platonusId     String?
     programs       EducationalProgram[]
     academic_level AcademicLevel?
     visibility     Boolean?             @default(true)
@@ -332,22 +333,24 @@ model Language {
 }
 
 model EducationalProgram {
-    id             String                       @id @default(cuid())
-    name_rus       String?
-    name_kaz       String?
-    name_eng       String?
-    code           String?
-    group          EducationalProgramGroup?     @relation(fields: [groupId], references: [id])
-    groupId        String?
-    academic_level AcademicLevel?
-    duration       Int?
-    languages      EducationalProgramLanguage[]
-    visibility     Boolean?                     @default(true)
-    isDeleted      Boolean?                     @default(false)
-    costPerCredit  String?
-    createdAt      DateTime                     @default(now())
-    updatedAt      DateTime                     @updatedAt
-    Details        Details[]
+    id                  String                       @id @default(cuid())
+    name_rus            String?
+    name_kaz            String?
+    name_eng            String?
+    code                String?
+    platonusId          String?
+    platonusStudyFormId String?
+    group               EducationalProgramGroup?     @relation(fields: [groupId], references: [id])
+    groupId             String?
+    academic_level      AcademicLevel?
+    duration            Int?
+    languages           EducationalProgramLanguage[]
+    visibility          Boolean?                     @default(true)
+    isDeleted           Boolean?                     @default(false)
+    costPerCredit       String?
+    createdAt           DateTime                     @default(now())
+    updatedAt           DateTime                     @updatedAt
+    Details             Details[]
 }
 
 model EducationalProgramLanguage {

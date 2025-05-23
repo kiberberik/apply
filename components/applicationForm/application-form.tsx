@@ -77,6 +77,11 @@ const validateForSubmission = (
     return { success: false, error: 'Не заполнены данные о заявителе' };
   }
 
+  if (!data.representative) {
+    // console.log('Не заполнены данные о заявителе');
+    return { success: false, error: 'Не заполнены данные о представителе' };
+  }
+
   if (!data.details) {
     // console.log('Не заполнены данные о программе обучения');
     return { success: false, error: 'Не заполнены данные о программе обучения' };
@@ -239,7 +244,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               // isCitizenshipKz: singleApplication.applicant.isCitizenshipKz || false,
               citizenship: singleApplication.applicant.citizenship || '',
               identificationNumber: singleApplication.applicant.identificationNumber || null,
-              documentType: singleApplication.applicant.documentType || 'ID_CARD',
+              documentType: singleApplication.applicant.documentType || '',
               documentNumber: singleApplication.applicant.documentNumber || '',
               documentIssueDate: singleApplication.applicant.documentIssueDate
                 ? dateUtils.formatToInputDate(singleApplication.applicant.documentIssueDate)
@@ -263,7 +268,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               // isCitizenshipKz: false,
               citizenship: '',
               identificationNumber: null,
-              documentType: 'ID_CARD',
+              documentType: '',
               documentNumber: '',
               documentIssueDate: '',
               documentExpiryDate: '',
@@ -282,7 +287,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               // isCitizenshipKz: singleApplication.representative.isCitizenshipKz || false,
               citizenship: singleApplication.representative.citizenship || '',
               identificationNumber: singleApplication.representative.identificationNumber || null,
-              documentType: singleApplication.representative.documentType || 'ID_CARD',
+              documentType: singleApplication.representative.documentType || '',
               documentNumber: singleApplication.representative.documentNumber || '',
               documentIssueDate: singleApplication.representative.documentIssueDate
                 ? dateUtils.formatToInputDate(singleApplication.representative.documentIssueDate)
@@ -322,20 +327,20 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           : null,
         details: singleApplication?.details
           ? {
-              type: singleApplication.details.type || 'PAID',
-              academicLevel: singleApplication.details.academicLevel || 'BACHELORS',
+              type: singleApplication.details.type || '',
+              academicLevel: singleApplication.details.academicLevel || '',
               isDormNeeds: singleApplication.details.isDormNeeds || false,
-              studyingLanguage: singleApplication.details.studyingLanguage || 'RUS',
+              studyingLanguage: singleApplication.details.studyingLanguage || '',
               educationalProgramId: singleApplication.details.educationalProgramId || '',
             }
           : {
-              type: 'PAID',
-              academicLevel: 'BACHELORS',
+              type: '',
+              academicLevel: '',
               isDormNeeds: false,
-              studyingLanguage: 'RUS',
+              studyingLanguage: '',
               educationalProgramId: '',
             },
-        contractLanguage: singleApplication?.contractLanguage || 'RUS',
+        contractLanguage: singleApplication?.contractLanguage || '',
         documents: singleApplication?.documents ? {} : null,
       }),
       [singleApplication],
@@ -491,7 +496,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           },
         );
 
-        form.setValue('contractLanguage', singleApplication.contractLanguage || 'RUS', {
+        form.setValue('contractLanguage', singleApplication.contractLanguage || '', {
           shouldDirty: false,
           shouldTouch: false,
           shouldValidate: false,
@@ -594,7 +599,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
             form.setValue('details', {
               ...updatedApp.details,
             });
-            form.setValue('contractLanguage', updatedApp.contractLanguage || 'RUS');
+            form.setValue('contractLanguage', updatedApp.contractLanguage || '');
           }
         }
 
@@ -957,7 +962,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
                   );
 
                   // Устанавливаем contractLanguage отдельно
-                  form.setValue('contractLanguage', updatedApplication.contractLanguage || 'RUS', {
+                  form.setValue('contractLanguage', updatedApplication.contractLanguage || '', {
                     shouldDirty: false,
                     shouldTouch: false,
                     shouldValidate: false,

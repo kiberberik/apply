@@ -392,6 +392,7 @@
     "PASSPORT": "Паспорт",
     "number": "Құжат нөмірі",
     "issuingAuthority": "Кім берген",
+    "selectIssuingAuthority": "Кім бергенін таңдаңыз",
     "issueDate": "Берілген күні",
     "expirationDate": "Жарамдылық мерзімі",
     "id_card": "Жеке куәлік",
@@ -501,5 +502,10 @@
     "terminated": "Келісім-шарт бұзылды",
     "clientRefusedSignature": "Клиент келісім-шартқа қол қоюдан бас тартты",
     "unknown": "Белгісіз статус"
+  },
+  "icdepartments": {
+    "ministryJustice": "ҚР Әділет Министрлігі",
+    "ministryInternalAffairs": "ҚР Ішкі Істер министрлігі",
+    "another": "Басқа уәкілетті орган"
   }
 }

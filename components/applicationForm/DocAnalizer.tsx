@@ -9,6 +9,7 @@ import { useFormContext, Path, PathValue } from 'react-hook-form';
 import { formatToDatabaseDate } from '@/lib/dateUtils';
 import { toast } from 'react-toastify';
 import { useLogStore } from '@/store/useLogStore';
+import countries from '@/data/countries.json';
 
 interface DocAnalizerProps {
   id: string;
@@ -42,6 +43,19 @@ interface DocumentData {
   activeTab?: string;
   [key: string]: unknown;
 }
+
+const findCountryCode = (countryName: string): string => {
+  if (!countryName) return '';
+
+  const country = countries.find(
+    (c) =>
+      c.ru.toLowerCase() === countryName.toLowerCase() ||
+      c.kz.toLowerCase() === countryName.toLowerCase() ||
+      c.en.toLowerCase() === countryName.toLowerCase(),
+  );
+
+  return country ? country.id.toString() : '';
+};
 
 const DocAnalizer = ({ id, activeTab, setActiveTab, isAdult, setFormValue }: DocAnalizerProps) => {
   const [images, setImages] = useState<string[]>([]);
@@ -115,10 +129,15 @@ const DocAnalizer = ({ id, activeTab, setActiveTab, isAdult, setFormValue }: Doc
         docType = IdentificationDocumentType.PASSPORT;
       }
 
-      let isCitizenshipKz = true;
-      if (documentData.citizenship && documentData.citizenship !== 'Казахстан') {
-        isCitizenshipKz = false;
-      }
+      // let isCitizenshipKz = true;
+      // if (
+      //   documentData.citizenship &&
+      //   documentData.citizenship.toLowerCase() !== 'казахстан' &&
+      //   documentData.citizenship.toLowerCase() !== 'kazakhstan' &&
+      //   documentData.citizenship.toLowerCase() !== 'қазақстан'
+      // ) {
+      //   isCitizenshipKz = false;
+      // }
 
       const hasForm = form !== null && form !== undefined;
       const currentValues = hasForm ? form.getValues() : { applicant: {} };
@@ -143,8 +162,10 @@ const DocAnalizer = ({ id, activeTab, setActiveTab, isAdult, setFormValue }: Doc
           birthDate: documentData.birthDate
             ? formatToDatabaseDate(documentData.birthDate)
             : undefined,
-          isCitizenshipKz: isCitizenshipKz,
-          citizenship: documentData.citizenship || currentValues.applicant?.citizenship || '',
+          // isCitizenshipKz: isCitizenshipKz,
+          citizenship: findCountryCode(
+            documentData.citizenship || currentValues.applicant?.citizenship || '',
+          ),
           documentType: docType,
           documentNumber: documentData.documentNumber || '',
           documentIssueDate: documentData.issueDate
@@ -191,10 +212,10 @@ const DocAnalizer = ({ id, activeTab, setActiveTab, isAdult, setFormValue }: Doc
         docType = IdentificationDocumentType.PASSPORT;
       }
 
-      let isCitizenshipKz = true;
-      if (documentData.citizenship && documentData.citizenship !== 'Казахстан') {
-        isCitizenshipKz = false;
-      }
+      // let isCitizenshipKz = true;
+      // if (documentData.citizenship && documentData.citizenship !== 'Казахстан') {
+      //   isCitizenshipKz = false;
+      // }
 
       const hasForm = form !== null && form !== undefined;
       const currentValues = hasForm ? form.getValues() : { representative: {} };
@@ -215,8 +236,10 @@ const DocAnalizer = ({ id, activeTab, setActiveTab, isAdult, setFormValue }: Doc
             documentData.identificationNumber ||
             currentValues.representative?.identificationNumber ||
             '',
-          isCitizenshipKz: isCitizenshipKz,
-          citizenship: documentData.citizenship || currentValues.representative?.citizenship || '',
+          // isCitizenshipKz: isCitizenshipKz,
+          citizenship: findCountryCode(
+            documentData.citizenship || currentValues.representative?.citizenship || '',
+          ),
           documentType: docType,
           // Поля документа удостоверения личности
           documentNumber: documentData.documentNumber || '',

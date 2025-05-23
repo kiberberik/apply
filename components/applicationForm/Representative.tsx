@@ -36,6 +36,7 @@ interface RepresentativeProps {
 function Representative({ application, isSubmitted = false }: RepresentativeProps) {
   const t = useTranslations('Representative');
   const c = useTranslations('Common');
+  const icdepartments = useTranslations('icdepartments');
   const tDocument = useTranslations('Document');
   const locale = useLocale() as 'ru' | 'kz' | 'en';
   const form = useFormContext();
@@ -55,7 +56,6 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
   }, [locale]);
 
   const citizenship = form.watch('representative.citizenship');
-  const documentType = form.watch('representative.documentType');
 
   // Находим ID Казахстана в списке стран
   const kazakhstanId = React.useMemo(() => {
@@ -88,17 +88,6 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
       citizenship === 'КАЗАХСТАН' || citizenship === 'ҚАЗАҚСТАН' || citizenship === 'KAZAKHSTAN'
     );
   }, [citizenship, kazakhstanId]);
-
-  // Автоматически устанавливаем тип документа PASSPORT при смене гражданства
-  React.useEffect(() => {
-    // Предотвращаем бесконечный цикл обновлений
-    if (!isCitizenshipKz && documentType !== 'PASSPORT') {
-      form.setValue('representative.documentType', 'PASSPORT', {
-        shouldValidate: false,
-        shouldDirty: false,
-      });
-    }
-  }, [isCitizenshipKz, documentType, form]);
 
   const isFieldChanged = (fieldName: string): boolean => {
     const value = form.watch(`representative.${fieldName}`);
@@ -148,9 +137,10 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
               name="representative.citizenship"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('citizenship')}</FormLabel>
+                  <div className="text-sm font-medium">{t('citizenship')}</div>
                   <FormControl>
                     <ReactSelect
+                      name="representative.citizenship"
                       options={countryOptions}
                       value={
                         field.value
@@ -161,6 +151,14 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
                       }
                       onChange={(selectedOption: CountryOption | null) => {
                         field.onChange(selectedOption ? String(selectedOption.value) : null);
+                        const isKazakhstan = selectedOption?.value === kazakhstanId;
+
+                        if (!isKazakhstan) {
+                          form.setValue('representative.documentType', 'PASSPORT', {
+                            shouldValidate: false,
+                            shouldDirty: false,
+                          });
+                        }
                       }}
                       isDisabled={isSubmitted}
                       placeholder={t('citizenship')}
@@ -180,7 +178,7 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
                   <FormLabel>{tDocument('documentType')}</FormLabel>
                   <Select
                     name="representative.documentType"
-                    disabled={isSubmitted || !isCitizenshipKz}
+                    disabled={isSubmitted}
                     onValueChange={field.onChange}
                     value={field.value || ''}
                   >
@@ -195,9 +193,7 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {isCitizenshipKz && (
-                        <SelectItem value="ID_CARD">{tDocument('ID_CARD')}</SelectItem>
-                      )}
+                      <SelectItem value="ID_CARD">{tDocument('ID_CARD')}</SelectItem>
                       <SelectItem value="PASSPORT">{tDocument('PASSPORT')}</SelectItem>
                     </SelectContent>
                   </Select>
@@ -235,17 +231,23 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{tDocument('issuingAuthority')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      value={field.value || ''}
-                      disabled={isSubmitted}
-                      className={cn(
-                        '',
-                        isFieldChanged('documentIssuingAuthority') ? 'border-yellow-500' : '',
-                      )}
-                    />
-                  </FormControl>
+                  <Select
+                    name="representative.documentIssuingAuthority"
+                    onValueChange={field.onChange}
+                    value={field.value || ''}
+                    disabled={isSubmitted}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={tDocument('selectIssuingAuthority')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="1">{icdepartments('ministryJustice')}</SelectItem>
+                      <SelectItem value="2">{icdepartments('ministryInternalAffairs')}</SelectItem>
+                      <SelectItem value="3">{icdepartments('another')}</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -310,7 +312,7 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
                 }
               })() && (
                 <div className="mt-4 flex flex-col">
-                  <FormLabel>{c('uploadedDocuments')}</FormLabel>
+                  <p>{c('uploadedDocuments')}</p>
 
                   <DocumentPreview
                     documentFileLinks={application?.representative?.documentFileLinks || null}

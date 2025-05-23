@@ -18,6 +18,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         name_kaz: true,
         name_eng: true,
         code: true,
+        platonusId: true,
+        platonusStudyFormId: true,
         duration: true,
         costPerCredit: true,
         academic_level: true,

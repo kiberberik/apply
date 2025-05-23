@@ -146,7 +146,6 @@ function Details({ application, isSubmitted = false }: DetailsProps) {
                       <SelectItem value="GRANT">{t('grant')}</SelectItem>
                       <SelectItem value="NONE_DEGREE">{t('noneDegree')}</SelectItem>
                       <SelectItem value="CONDITIONAL">{t('conditional')}</SelectItem>
-                      <SelectItem value="OTHER">{t('other')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

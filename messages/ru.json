@@ -391,6 +391,7 @@
     "ID_CARD": "Удостоверение личности",
     "PASSPORT": "Паспорт",
     "number": "Номер документа",
+    "selectIssuingAuthority": "Выберите кем выдан",
     "issuingAuthority": "Кем выдан",
     "issueDate": "Дата выдачи",
     "expirationDate": "Срок действия",
@@ -501,5 +502,10 @@
     "terminated": "Расторгнут",
     "clientRefusedSignature": "Клиент отказался подписывать договор",
     "unknown": "Неизвестный статус"
+  },
+  "icdepartments": {
+    "ministryJustice": "Министерство Юстиции РК",
+    "ministryInternalAffairs": "Министерство внутренних дел РК",
+    "another": "Другой уполномоченный орган"
   }
 }

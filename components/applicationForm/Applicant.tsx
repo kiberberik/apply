@@ -43,9 +43,9 @@ interface ApplicantProps {
 function Applicant({ application, isSubmitted = false }: ApplicantProps) {
   const t = useTranslations('Applicant');
   const c = useTranslations('Common');
+  const icdepartments = useTranslations('icdepartments');
   const tDocument = useTranslations('Document');
   const locale = useLocale() as 'ru' | 'kz' | 'en';
-  console.log('locale', locale);
   const form = useFormContext();
   const { user } = useAuthStore();
   const { latestLogs } = useLogStore();
@@ -107,7 +107,7 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
     return value !== defaultValue;
   };
 
-  const documentType = form.watch('applicant.documentType');
+  // const documentType = form.watch('applicant.documentType');
   const citizenship = form.watch('applicant.citizenship');
 
   // Находим ID Казахстана в списке стран
@@ -141,18 +141,6 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
       citizenship === 'КАЗАХСТАН' || citizenship === 'ҚАЗАҚСТАН' || citizenship === 'KAZAKHSTAN'
     );
   }, [citizenship, kazakhstanId]);
-
-  // Автоматически устанавливаем тип документа PASSPORT при смене гражданства
-  React.useEffect(() => {
-    // Предотвращаем бесконечный цикл обновлений
-    if (!isCitizenshipKz && documentType !== 'PASSPORT') {
-      form.setValue('applicant.documentType', 'PASSPORT', {
-        shouldValidate: false,
-        shouldDirty: false,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isCitizenshipKz, documentType]);
 
   // Функция для валидации даты
   const validateAndUpdateDate = (
@@ -196,7 +184,7 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
               name="applicant.citizenship"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('citizenship')}</FormLabel>
+                  <div className="text-sm font-medium">{t('citizenship')}</div>
                   <FormControl>
                     <ReactSelect
                       options={countryOptions}
@@ -209,6 +197,14 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
                       }
                       onChange={(selectedOption: CountryOption | null) => {
                         field.onChange(selectedOption ? String(selectedOption.value) : null);
+                        const isKazakhstan = selectedOption?.value === kazakhstanId;
+
+                        if (!isKazakhstan) {
+                          form.setValue('applicant.documentType', 'PASSPORT', {
+                            shouldValidate: false,
+                            shouldDirty: false,
+                          });
+                        }
                       }}
                       isDisabled={isSubmitted}
                       placeholder={t('citizenship')}
@@ -237,7 +233,7 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
                   <FormLabel>{t('documentType')}</FormLabel>
                   <Select
                     name="applicant.documentType"
-                    disabled={isSubmitted || !isCitizenshipKz}
+                    disabled={isSubmitted}
                     onValueChange={field.onChange}
                     value={field.value || ''}
                   >
@@ -258,9 +254,7 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {isCitizenshipKz && (
-                        <SelectItem value="ID_CARD">{tDocument('ID_CARD')}</SelectItem>
-                      )}
+                      <SelectItem value="ID_CARD">{tDocument('ID_CARD')}</SelectItem>
                       <SelectItem value="PASSPORT">{tDocument('PASSPORT')}</SelectItem>
                     </SelectContent>
                   </Select>
@@ -307,23 +301,23 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{tDocument('issuingAuthority')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      value={field.value || ''}
-                      disabled={isSubmitted}
-                      className={cn(
-                        '',
-                        isFieldChanged(
-                          'documentIssuingAuthority',
-                          application?.applicant?.documentIssuingAuthority,
-                          field.value,
-                        )
-                          ? 'border-yellow-500'
-                          : '',
-                      )}
-                    />
-                  </FormControl>
+                  <Select
+                    name="applicant.documentIssuingAuthority"
+                    onValueChange={field.onChange}
+                    value={field.value || ''}
+                    disabled={isSubmitted}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={tDocument('selectIssuingAuthority')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="1">{icdepartments('ministryJustice')}</SelectItem>
+                      <SelectItem value="2">{icdepartments('ministryInternalAffairs')}</SelectItem>
+                      <SelectItem value="3">{icdepartments('another')}</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -414,292 +408,288 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
               )}
           </div>
 
-          {(!isCitizenshipKz || (isCitizenshipKz && documentType)) && (
-            <>
-              <Divider className="my-12" />
-              {isCitizenshipKz && (
-                <FormField
-                  control={form.control}
-                  name="applicant.identificationNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{tDocument('identificationNumber')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value || ''}
-                          disabled={isSubmitted}
-                          className={cn(
-                            '',
-                            isFieldChanged(
-                              'identificationNumber',
-                              application?.applicant?.identificationNumber,
-                              field.value,
-                            )
-                              ? 'border-yellow-500'
-                              : '',
-                          )}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          {/* {(!isCitizenshipKz || (isCitizenshipKz && documentType)) && (
+            <> */}
+          <Divider className="my-12" />
+          {isCitizenshipKz && (
+            <FormField
+              control={form.control}
+              name="applicant.identificationNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{tDocument('identificationNumber')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value || ''}
+                      disabled={isSubmitted}
+                      className={cn(
+                        '',
+                        isFieldChanged(
+                          'identificationNumber',
+                          application?.applicant?.identificationNumber,
+                          field.value,
+                        )
+                          ? 'border-yellow-500'
+                          : '',
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-
-              <div className={`grid grid-cols-1 gap-4 md:grid-cols-3`}>
-                <FormField
-                  control={form.control}
-                  name="applicant.surname"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('surname')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value || ''}
-                          disabled={isSubmitted}
-                          className={cn(
-                            '',
-                            isFieldChanged('surname', application?.applicant?.surname, field.value)
-                              ? 'border-yellow-500'
-                              : '',
-                          )}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="applicant.givennames"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('givennames')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value || ''}
-                          disabled={isSubmitted}
-                          className={cn(
-                            '',
-                            isFieldChanged(
-                              'givennames',
-                              application?.applicant?.givennames,
-                              field.value,
-                            )
-                              ? 'border-yellow-500'
-                              : '',
-                          )}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="applicant.patronymic"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('patronymic')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value || ''}
-                          disabled={isSubmitted}
-                          className={cn(
-                            '',
-                            isFieldChanged(
-                              'patronymic',
-                              application?.applicant?.patronymic,
-                              field.value,
-                            )
-                              ? 'border-yellow-500'
-                              : '',
-                          )}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="applicant.birthDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('birthDate')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="date"
-                          value={field.value ? dateUtils.formatToInputDate(field.value) : ''}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            field.onChange(dateUtils.formatToInputDate(value));
-                          }}
-                          onBlur={(e) => validateAndUpdateDate(e, field.onChange)}
-                          disabled={isSubmitted}
-                          className={cn(
-                            '',
-                            isFieldChanged(
-                              'birthDate',
-                              application?.applicant?.birthDate,
-                              field.value,
-                            )
-                              ? 'border-yellow-500'
-                              : '',
-                          )}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="applicant.birthPlace"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('birthPlace')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value || ''}
-                          disabled={isSubmitted}
-                          className={cn(
-                            '',
-                            isFieldChanged(
-                              'birthPlace',
-                              application?.applicant?.birthPlace,
-                              field.value,
-                            )
-                              ? 'border-yellow-500'
-                              : '',
-                          )}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="applicant.email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('email')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="email"
-                          value={isDraftForUser ? user?.email : field.value || ''}
-                          disabled={isSubmitted || isDraftForUser}
-                          className={cn(
-                            '',
-                            isFieldChanged('email', application?.applicant?.email, field.value)
-                              ? 'border-yellow-500'
-                              : '',
-                          )}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="applicant.phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('phone')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="tel"
-                          value={field.value || ''}
-                          disabled={isSubmitted}
-                          className={cn(
-                            '',
-                            isFieldChanged('phone', application?.applicant?.phone, field.value)
-                              ? 'border-yellow-500'
-                              : '',
-                          )}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="applicant.addressResidential"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('addressResidential')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value || ''}
-                          maxLength={70}
-                          disabled={isSubmitted}
-                          className={cn(
-                            '',
-                            isFieldChanged(
-                              'addressResidential',
-                              application?.applicant?.addressResidential,
-                              field.value,
-                            )
-                              ? 'border-yellow-500'
-                              : '',
-                          )}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="applicant.addressRegistration"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('addressRegistration')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value || ''}
-                          maxLength={70}
-                          disabled={isSubmitted}
-                          className={cn(
-                            '',
-                            isFieldChanged(
-                              'addressRegistration',
-                              application?.applicant?.addressRegistration,
-                              field.value,
-                            )
-                              ? 'border-yellow-500'
-                              : '',
-                          )}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </>
+            />
           )}
+
+          <div className={`grid grid-cols-1 gap-4 md:grid-cols-3`}>
+            <FormField
+              control={form.control}
+              name="applicant.surname"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('surname')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value || ''}
+                      disabled={isSubmitted}
+                      className={cn(
+                        '',
+                        isFieldChanged('surname', application?.applicant?.surname, field.value)
+                          ? 'border-yellow-500'
+                          : '',
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="applicant.givennames"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('givennames')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value || ''}
+                      disabled={isSubmitted}
+                      className={cn(
+                        '',
+                        isFieldChanged(
+                          'givennames',
+                          application?.applicant?.givennames,
+                          field.value,
+                        )
+                          ? 'border-yellow-500'
+                          : '',
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="applicant.patronymic"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('patronymic')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value || ''}
+                      disabled={isSubmitted}
+                      className={cn(
+                        '',
+                        isFieldChanged(
+                          'patronymic',
+                          application?.applicant?.patronymic,
+                          field.value,
+                        )
+                          ? 'border-yellow-500'
+                          : '',
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="applicant.birthDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('birthDate')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      value={field.value ? dateUtils.formatToInputDate(field.value) : ''}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(dateUtils.formatToInputDate(value));
+                      }}
+                      onBlur={(e) => validateAndUpdateDate(e, field.onChange)}
+                      disabled={isSubmitted}
+                      className={cn(
+                        '',
+                        isFieldChanged('birthDate', application?.applicant?.birthDate, field.value)
+                          ? 'border-yellow-500'
+                          : '',
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="applicant.birthPlace"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('birthPlace')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value || ''}
+                      disabled={isSubmitted}
+                      className={cn(
+                        '',
+                        isFieldChanged(
+                          'birthPlace',
+                          application?.applicant?.birthPlace,
+                          field.value,
+                        )
+                          ? 'border-yellow-500'
+                          : '',
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="applicant.email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('email')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="email"
+                      value={isDraftForUser ? user?.email : field.value || ''}
+                      disabled={isSubmitted || isDraftForUser}
+                      className={cn(
+                        '',
+                        isFieldChanged('email', application?.applicant?.email, field.value)
+                          ? 'border-yellow-500'
+                          : '',
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="applicant.phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('phone')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="tel"
+                      value={field.value || ''}
+                      disabled={isSubmitted}
+                      className={cn(
+                        '',
+                        isFieldChanged('phone', application?.applicant?.phone, field.value)
+                          ? 'border-yellow-500'
+                          : '',
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="applicant.addressResidential"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('addressResidential')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value || ''}
+                      maxLength={70}
+                      disabled={isSubmitted}
+                      className={cn(
+                        '',
+                        isFieldChanged(
+                          'addressResidential',
+                          application?.applicant?.addressResidential,
+                          field.value,
+                        )
+                          ? 'border-yellow-500'
+                          : '',
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="applicant.addressRegistration"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('addressRegistration')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value || ''}
+                      maxLength={70}
+                      disabled={isSubmitted}
+                      className={cn(
+                        '',
+                        isFieldChanged(
+                          'addressRegistration',
+                          application?.applicant?.addressRegistration,
+                          field.value,
+                        )
+                          ? 'border-yellow-500'
+                          : '',
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          {/* </>
+          )} */}
         </div>
       </CardContent>
     </Card>
