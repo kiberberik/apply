@@ -122,32 +122,11 @@ export const formSchema = z.object({
   }),
   representative: z
     .object({
-      givennames: z
-        .string()
-        .trim()
-        .min(1, '')
-        .nullable()
-        .refine((val) => val !== null && val !== '', {
-          message: '',
-        }),
-      surname: z
-        .string()
-        .trim()
-        .min(1, '')
-        .nullable()
-        .refine((val) => val !== null && val !== '', {
-          message: '',
-        }),
-      patronymic: z.string().nullable(),
-      citizenship: z
-        .string()
-        .trim()
-        .min(1, '')
-        .nullable()
-        .refine((val) => val !== null && val !== '', {
-          message: '',
-        }),
-      identificationNumber: z.string().nullable(),
+      givennames: z.string().trim().min(1, '').nullable().optional(),
+      surname: z.string().trim().min(1, '').nullable().optional(),
+      patronymic: z.string().nullable().optional(),
+      citizenship: z.string().trim().min(1, '').nullable().optional(),
+      identificationNumber: z.string().nullable().optional(),
       documentType: z
         .nativeEnum(IdentificationDocumentType, {
           errorMap: () => {
@@ -155,71 +134,17 @@ export const formSchema = z.object({
           },
         })
         .nullable()
-        .refine((val) => val !== null, {
-          message: '',
-        }),
-      documentNumber: z
-        .string()
-        .trim()
-        .min(1, '')
-        .nullable()
-        .refine((val) => val !== null && val !== '', {
-          message: '',
-        }),
-      documentIssueDate: z
-        .string()
-        .min(1, '')
-        .nullable()
-        .refine((val) => val !== null && val !== '', {
-          message: '',
-        }),
-      documentExpiryDate: z
-        .string()
-        .min(1, '')
-        .nullable()
-        .refine((val) => val !== null && val !== '', {
-          message: '',
-        }),
-      documentIssuingAuthority: z
-        .string()
-        .trim()
-        .min(1, '')
-        .nullable()
-        .refine((val) => val !== null && val !== '', {
-          message: '',
-        }),
-      documentFileLinks: z.string().nullable(),
-      representativeDocumentNumber: z
-        .string()
-        .trim()
-        .min(1, '')
-        .nullable()
-        .refine((val) => val !== null && val !== '', {
-          message: '',
-        }),
-      representativeDocumentIssueDate: z
-        .string()
-        .min(1, '')
-        .nullable()
-        .refine((val) => val !== null && val !== '', {
-          message: '',
-        }),
-      representativeDocumentExpiryDate: z
-        .string()
-        .min(1, '')
-        .nullable()
-        .refine((val) => val !== null && val !== '', {
-          message: '',
-        }),
-      representativeDocumentIssuingAuthority: z
-        .string()
-        .trim()
-        .min(1, '')
-        .nullable()
-        .refine((val) => val !== null && val !== '', {
-          message: '',
-        }),
-      representativeDocumentFileLinks: z.string().nullable(),
+        .optional(),
+      documentNumber: z.string().trim().min(1, '').nullable().optional(),
+      documentIssueDate: z.string().min(1, '').nullable().optional(),
+      documentExpiryDate: z.string().min(1, '').nullable().optional(),
+      documentIssuingAuthority: z.string().trim().min(1, '').nullable().optional(),
+      documentFileLinks: z.string().nullable().optional(),
+      representativeDocumentNumber: z.string().trim().min(1, '').nullable().optional(),
+      representativeDocumentIssueDate: z.string().min(1, '').nullable().optional(),
+      representativeDocumentExpiryDate: z.string().min(1, '').nullable().optional(),
+      representativeDocumentIssuingAuthority: z.string().trim().min(1, '').nullable().optional(),
+      representativeDocumentFileLinks: z.string().nullable().optional(),
       relationshipDegree: z
         .nativeEnum(RelationshipDegree, {
           errorMap: () => {
@@ -227,42 +152,13 @@ export const formSchema = z.object({
           },
         })
         .nullable()
-        .refine((val) => val !== null, {
-          message: '',
-        }),
-      email: z
-        .string()
-        .email('')
-        .nullable()
-        .refine((val) => val !== null && val !== '', {
-          message: '',
-        }),
-      phone: z
-        .string()
-        .trim()
-        .min(1, '')
-        .nullable()
-        .refine((val) => val !== null && val !== '', {
-          message: '',
-        }),
-      addressResidential: z
-        .string()
-        .trim()
-        .min(1, '')
-        .nullable()
-        .refine((val) => val !== null && val !== '', {
-          message: '',
-        }),
-      addressRegistration: z
-        .string()
-        .trim()
-        .min(1, '')
-        .nullable()
-        .refine((val) => val !== null && val !== '', {
-          message: '',
-        }),
-      applicantId: z.string().nullable(),
-      id: z.string().nullable(),
+        .optional(),
+      email: z.string().email('').nullable().optional(),
+      phone: z.string().trim().min(1, '').nullable().optional(),
+      addressResidential: z.string().trim().min(1, '').nullable().optional(),
+      addressRegistration: z.string().trim().min(1, '').nullable().optional(),
+      applicantId: z.string().nullable().optional(),
+      id: z.string().nullable().optional(),
     })
     .nullable(),
   details: z.object({
