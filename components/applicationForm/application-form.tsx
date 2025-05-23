@@ -46,6 +46,8 @@ import {
 import { useEducationalStore } from '@/store/useEducationalStore';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { formSchema } from './formSchema';
+import { generateContractNumber } from '@/lib/generateContractNumber';
 
 interface ApplicationFormProps {
   id?: string;
@@ -62,158 +64,6 @@ export interface ApplicationWithConsultant extends Omit<ExtendedApplication, 'co
 
 // Определяем тип для использования в форме
 type FormValues = any;
-
-// Создаем более гибкую схему, которая работает как для черновиков, так и для финальной отправки
-const formSchema = z.object({
-  applicant: z.object({
-    givennames: z
-      .string({ required_error: '' })
-      .trim()
-      .min(1, '')
-      .nullable()
-      .transform((v) => (v === null ? '' : v)),
-    surname: z
-      .string({ required_error: '' })
-      .trim()
-      .min(1, '')
-      .nullable()
-      .transform((v) => (v === null ? '' : v)),
-    patronymic: z.string().nullable(),
-    birthDate: z
-      .string({ required_error: '' })
-      .nullable()
-      .transform((v) => (v === null ? '' : v)),
-    birthPlace: z
-      .string({ required_error: '' })
-      .trim()
-      .min(1, '')
-      .nullable()
-      .transform((v) => (v === null ? '' : v)),
-    isCitizenshipKz: z
-      .boolean({ required_error: '' })
-      .nullable()
-      .transform((v) => (v === null ? false : v)),
-    citizenship: z
-      .string({ required_error: '' })
-      .trim()
-      .min(1, '')
-      .nullable()
-      .transform((v) => (v === null ? '' : v)),
-    identificationNumber: z.string().nullable(),
-    documentType: z
-      .nativeEnum(IdentificationDocumentType, {
-        required_error: '',
-      })
-      .nullable()
-      .transform((v) => (v === null ? ('ID_CARD' as IdentificationDocumentType) : v)),
-    documentNumber: z
-      .string({ required_error: '' })
-      .trim()
-      .min(1, '')
-      .nullable()
-      .transform((v) => (v === null ? '' : v)),
-    documentIssueDate: z
-      .string({ required_error: '' })
-      .nullable()
-      .transform((v) => (v === null ? '' : v)),
-    documentExpiryDate: z
-      .string({ required_error: '' })
-      .nullable()
-      .transform((v) => (v === null ? '' : v)),
-    documentIssuingAuthority: z
-      .string({ required_error: '' })
-      .trim()
-      .min(1, '')
-      .nullable()
-      .transform((v) => (v === null ? '' : v)),
-    documentFileLinks: z.string().nullable(),
-    // .string({ required_error: '' })
-    // .trim()
-    // .min(1, '')
-    // .nullable()
-    // .transform((v) => (v === null ? '' : v)),
-    email: z
-      .string({ required_error: '' })
-      .trim()
-      .min(1, '')
-      .email('Некорректный формат email')
-      .nullable()
-      .transform((v) => (v === null ? '' : v)),
-    phone: z
-      .string({ required_error: '' })
-      .trim()
-      .min(1, '')
-      .nullable()
-      .transform((v) => (v === null ? '' : v)),
-    addressResidential: z
-      .string({ required_error: '' })
-      .trim()
-      .min(1, '')
-      .nullable()
-      .transform((v) => (v === null ? '' : v)),
-    addressRegistration: z
-      .string({ required_error: '' })
-      .trim()
-      .min(1, '')
-      .nullable()
-      .transform((v) => (v === null ? '' : v)),
-  }),
-  representative: z
-    .object({
-      givennames: z.string().nullable().optional(),
-      surname: z.string().nullable().optional(),
-      patronymic: z.string().nullable().optional(),
-      isCitizenshipKz: z.boolean().nullable().optional(),
-      citizenship: z.string().nullable().optional(),
-      identificationNumber: z.string().nullable().optional(),
-      documentType: z.nativeEnum(IdentificationDocumentType).nullable().optional(),
-      documentNumber: z.string().nullable().optional(),
-      documentIssueDate: z.string().nullable().optional(),
-      documentExpiryDate: z.string().nullable().optional(),
-      documentIssuingAuthority: z.string().nullable().optional(),
-      documentFileLinks: z.string().nullable().optional(),
-      representativeDocumentNumber: z.string().nullable().optional(),
-      representativeDocumentIssueDate: z.string().nullable().optional(),
-      representativeDocumentExpiryDate: z.string().nullable().optional(),
-      representativeDocumentIssuingAuthority: z.string().nullable().optional(),
-      representativeDocumentFileLinks: z.string().nullable().optional(),
-      relationshipDegree: z.nativeEnum(RelationshipDegree).nullable().optional(),
-      email: z.string().email().nullable().optional(),
-      phone: z.string().nullable().optional(),
-      addressResidential: z.string().nullable().optional(),
-      addressRegistration: z.string().nullable().optional(),
-      applicantId: z.string().nullable().optional(),
-      id: z.string().nullable().optional(),
-    })
-    .nullable()
-    .optional(),
-  details: z.object({
-    type: z
-      .nativeEnum(StudyType, { required_error: '' })
-      .nullable()
-      .transform((v) => (v === null ? ('PAID' as StudyType) : v)),
-    academicLevel: z
-      .nativeEnum(AcademicLevel, { required_error: '' })
-      .nullable()
-      .transform((v) => (v === null ? ('BACHELORS' as AcademicLevel) : v)),
-    isDormNeeds: z.boolean().nullable().optional(),
-    studyingLanguage: z
-      .nativeEnum(SupportLanguages, { required_error: '' })
-      .nullable()
-      .transform((v) => (v === null ? ('RUS' as SupportLanguages) : v)),
-    educationalProgramId: z
-      .string({ required_error: '' })
-      .trim()
-      .min(1, '')
-      .nullable()
-      .transform((v) => (v === null ? '' : v)),
-  }),
-  contractLanguage: z
-    .nativeEnum(SupportLanguages, { required_error: '' })
-    .nullable()
-    .transform((v) => (v === null ? ('RUS' as SupportLanguages) : v)),
-  documents: z.record(z.string(), z.string()).nullable().optional(),
-});
 
 // Более строгая схема для проверки при отправке
 const validateForSubmission = (
@@ -246,7 +96,7 @@ const validateForSubmission = (
 
   // Фильтруем документы, которые требуются для данного заявления
   const applicantData = data.applicant;
-  const isKzCitizen = applicantData?.isCitizenshipKz;
+  const isKzCitizen = applicantData?.citizenship === 113;
   const birthDate = applicantData?.birthDate;
   let isAdult = true;
 
@@ -386,7 +236,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
                 ? dateUtils.formatToInputDate(singleApplication.applicant.birthDate)
                 : '',
               birthPlace: singleApplication.applicant.birthPlace || '',
-              isCitizenshipKz: singleApplication.applicant.isCitizenshipKz || false,
+              // isCitizenshipKz: singleApplication.applicant.isCitizenshipKz || false,
               citizenship: singleApplication.applicant.citizenship || '',
               identificationNumber: singleApplication.applicant.identificationNumber || null,
               documentType: singleApplication.applicant.documentType || 'ID_CARD',
@@ -410,7 +260,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               patronymic: null,
               birthDate: '',
               birthPlace: '',
-              isCitizenshipKz: false,
+              // isCitizenshipKz: false,
               citizenship: '',
               identificationNumber: null,
               documentType: 'ID_CARD',
@@ -429,7 +279,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               givennames: singleApplication.representative.givennames || '',
               surname: singleApplication.representative.surname || '',
               patronymic: singleApplication.representative.patronymic || null,
-              isCitizenshipKz: singleApplication.representative.isCitizenshipKz || false,
+              // isCitizenshipKz: singleApplication.representative.isCitizenshipKz || false,
               citizenship: singleApplication.representative.citizenship || '',
               identificationNumber: singleApplication.representative.identificationNumber || null,
               documentType: singleApplication.representative.documentType || 'ID_CARD',
@@ -758,57 +608,6 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     }
   };
 
-  const generateContractNumber = (
-    academicLevel: AcademicLevel,
-    type: StudyType,
-    duration: number,
-    identificationNumber: string,
-  ) => {
-    let contractCode = '';
-
-    // Определяем код контракта
-    if (academicLevel === AcademicLevel.BACHELORS) {
-      if (type === StudyType.PAID) {
-        contractCode = 'Б';
-      } else if (type === StudyType.CONDITIONAL) {
-        contractCode = 'УЗ';
-      } else if (type === StudyType.NONE_DEGREE) {
-        contractCode = 'ND';
-      }
-    } else if (academicLevel === AcademicLevel.MASTERS) {
-      if (type === StudyType.PAID) {
-        contractCode = 'М';
-      } else if (type === StudyType.CONDITIONAL) {
-        contractCode = 'М-УЗ';
-      } else if (type === StudyType.NONE_DEGREE) {
-        contractCode = 'M-ND';
-      }
-    } else if (academicLevel === AcademicLevel.DOCTORAL) {
-      contractCode = 'Д';
-    }
-
-    // Если код контракта не определен, используем значение по умолчанию
-    if (!contractCode) {
-      contractCode = 'Б'; // По умолчанию бакалавриат
-    }
-
-    // Определяем код длительности
-    let durationCode = '040'; // По умолчанию 4 года
-    if (duration === 2) {
-      durationCode = '020';
-    } else if (duration === 1) {
-      durationCode = '010';
-    } else if (duration === 3) {
-      durationCode = '030';
-    }
-
-    const year = new Date().getFullYear().toString().slice(-2);
-    const contractNumber = `${contractCode}-${durationCode}/${year}-${identificationNumber}`;
-
-    console.log('Generated contract number:', contractNumber);
-    return contractNumber;
-  };
-
   const saveApplicantFormData = async (data: FormValues, isSubmit: boolean) => {
     console.log(`Saving form data, isSubmit=${isSubmit}`, data);
     try {
@@ -900,7 +699,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               addressResidential: data.representative.addressResidential,
               addressRegistration: data.representative.addressRegistration,
               relationshipDegree: data.representative.relationshipDegree,
-              isCitizenshipKz: data.representative.isCitizenshipKz,
+              // isCitizenshipKz: data.representative.isCitizenshipKz,
               citizenship: data.representative.citizenship,
               documentType: data.representative.documentType,
               identificationNumber: data.representative.identificationNumber,

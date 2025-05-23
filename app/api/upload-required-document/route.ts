@@ -2,8 +2,14 @@ import { NextResponse } from 'next/server';
 import * as fs from 'fs';
 import * as path from 'path';
 import { prisma } from '@/lib/prisma';
+import { checkServerAccess } from '@/lib/serverAuth';
+import { Role } from '@prisma/client';
 
 export async function POST(request: Request) {
+  const hasAccess = await checkServerAccess(Role.USER);
+  if (!hasAccess) {
+    return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
+  }
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
@@ -11,11 +17,6 @@ export async function POST(request: Request) {
     const documentCode = formData.get('documentCode') as string;
     const userId = formData.get('userId') as string;
     const uploadedById = formData.get('uploadedById') as string;
-    const role = formData.get('role') as string;
-
-    if (!role) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
-    }
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });

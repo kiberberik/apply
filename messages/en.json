@@ -463,7 +463,10 @@
     "ENROLLED": "Enrolled",
     "EARLY_REFUSED_TO_ENROLL": "Early Refused to Enroll",
     "REFUSED_TO_ENROLL": "Refused to Enroll",
-    "REJECTED": "Rejected"
+    "REJECTED": "Rejected",
+    "NEED_SIGNATURE_TERMINATE_CONTRACT": "Need to sign the contract to terminate",
+    "REFUSED_TO_SIGN_TERMINATE_CONTRACT": "Refused to sign the contract to terminate",
+    "SIGNED_TERMINATE_CONTRACT": "Signed the contract to terminate"
   },
   "LogHistory": {
     "title": "Application Status",

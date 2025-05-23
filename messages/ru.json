@@ -463,7 +463,10 @@
     "ENROLLED": "Зачислен",
     "EARLY_REFUSED_TO_ENROLL": "Отказался от зачисления до подписания договора",
     "REFUSED_TO_ENROLL": "Отказался от зачисления после подписания договора",
-    "REJECTED": "Отклонен"
+    "REJECTED": "Отклонен",
+    "NEED_SIGNATURE_TERMINATE_CONTRACT": "Нужно подписать договор для расторжения",
+    "REFUSED_TO_SIGN_TERMINATE_CONTRACT": "Отказался подписать договор для расторжения",
+    "SIGNED_TERMINATE_CONTRACT": "Подписан договор для расторжения"
   },
   "LogHistory": {
     "title": "Статус заявки",

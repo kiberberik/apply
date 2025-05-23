@@ -463,7 +463,10 @@
     "ENROLLED": "Қабылданды",
     "EARLY_REFUSED_TO_ENROLL": "Келісім-шартқа қол қоймай тұрып оқуға түсуден бас тартты",
     "REFUSED_TO_ENROLL": "Келісім-шартқа қол қойғаннан кейін оқуға түсуден бас тартты",
-    "REJECTED": "Қабылданбады"
+    "REJECTED": "Қабылданбады",
+    "NEED_SIGNATURE_TERMINATE_CONTRACT": "Келісім-шартты бұзу үшін қол қою қажет",
+    "REFUSED_TO_SIGN_TERMINATE_CONTRACT": "Келісім-шартты бұзу үшін қол қоюдан бас тартты",
+    "SIGNED_TERMINATE_CONTRACT": "Келісім-шартты бұзу үшін қол қойылды"
   },
   "LogHistory": {
     "title": "Өтінім статусы",

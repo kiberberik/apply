@@ -6,7 +6,7 @@ import { checkServerAccess } from '@/lib/serverAuth';
 // Получение всех пользователей
 export async function GET(request: Request) {
   try {
-    const hasAccess = await checkServerAccess(Role.CONSULTANT);
+    const hasAccess = await checkServerAccess(Role.USER);
     if (!hasAccess) {
       return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
     }

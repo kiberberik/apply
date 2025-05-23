@@ -103,9 +103,6 @@ enum ApplicationStatus {
     EARLY_REFUSED_TO_ENROLL
     REFUSED_TO_ENROLL
     REJECTED
-}
-
-enum ContractTerminationStatus {
     NEED_SIGNATURE_TERMINATE_CONTRACT
     REFUSED_TO_SIGN_TERMINATE_CONTRACT
     SIGNED_TERMINATE_CONTRACT
@@ -153,31 +150,30 @@ enum ContactSignType {
 }
 
 model Application {
-    id                        String                     @id @default(cuid())
-    createdBy                 User?                      @relation("CreatedApplications", fields: [createdById], references: [id])
-    createdById               String?
-    consultant                User?                      @relation("ConsultedApplications", fields: [consultantId], references: [id])
-    consultantId              String?
-    applicant                 Applicant?                 @relation(fields: [applicantId], references: [id])
-    applicantId               String?
-    representative            Representative?            @relation(fields: [representativeId], references: [id])
-    representativeId          String?
-    documents                 Document[]
-    details                   Details?                   @relation(fields: [detailsId], references: [id])
-    detailsId                 String?                    @unique
-    createdAt                 DateTime                   @default(now())
-    updatedAt                 DateTime                   @updatedAt
-    submittedAt               DateTime?
-    Log                       Log[]
-    User                      User?                      @relation(fields: [userId], references: [id])
-    userId                    String?
-    isDeleted                 Boolean?                   @default(false)
-    contractSignType          ContactSignType?           @default(NOT_SIGNED)
-    contractTerminationStatus ContractTerminationStatus?
-    contractTerminationDate   DateTime?
-    contractLanguage          SupportLanguages?          @default(RUS)
-    contractFileLinks         String?                    @db.Text
-    contractNumber            String?
+    id                String            @id @default(cuid())
+    createdBy         User?             @relation("CreatedApplications", fields: [createdById], references: [id])
+    createdById       String?
+    consultant        User?             @relation("ConsultedApplications", fields: [consultantId], references: [id])
+    consultantId      String?
+    applicant         Applicant?        @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+    applicantId       String?
+    representative    Representative?   @relation(fields: [representativeId], references: [id], onDelete: Cascade)
+    representativeId  String?
+    documents         Document[]
+    details           Details?          @relation(fields: [detailsId], references: [id], onDelete: Cascade)
+    detailsId         String?           @unique
+    createdAt         DateTime          @default(now())
+    updatedAt         DateTime          @updatedAt
+    submittedAt       DateTime?
+    terminatedAt      DateTime?
+    Log               Log[]
+    User              User?             @relation(fields: [userId], references: [id])
+    userId            String?
+    isDeleted         Boolean?          @default(false)
+    contractSignType  ContactSignType?  @default(NOT_SIGNED)
+    contractLanguage  SupportLanguages? @default(RUS)
+    contractFileLinks String?           @db.Text
+    contractNumber    String?
 }
 
 model Details {
@@ -362,13 +358,6 @@ model EducationalProgramLanguage {
     languageId           String
 
     @@unique([educationalProgramId, languageId])
-}
-
-model Instruction {
-    id        String   @id @default(cuid())
-    content   String   @db.Text
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
 }
 
 model ApplicantAccepting {

@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import Divider from '../ui/divider';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Input } from '@/components/ui/input';
 import { useFormContext } from 'react-hook-form';
 import { ExtendedApplication } from '@/types/application';
@@ -14,6 +14,22 @@ import { Role } from '@prisma/client';
 import React from 'react';
 import { DocumentPreview } from '../ui/document-preview';
 import { useLogStore } from '@/store/useLogStore';
+import ReactSelect from 'react-select';
+import countries from '@/data/countries.json';
+
+// Типизация для страны из JSON
+interface Country {
+  id: number;
+  ru: string;
+  kz: string;
+  en: string;
+}
+
+// Типизация для опций select
+interface CountryOption {
+  value: number;
+  label: string;
+}
 
 // Константы для ограничения дат
 const MIN_DATE = '1960-01-01';
@@ -27,11 +43,25 @@ interface ApplicantProps {
 function Applicant({ application, isSubmitted = false }: ApplicantProps) {
   const t = useTranslations('Applicant');
   const c = useTranslations('Common');
-  const tCitizenship = useTranslations('Citizenship');
   const tDocument = useTranslations('Document');
+  const locale = useLocale() as 'ru' | 'kz' | 'en';
+  console.log('locale', locale);
   const form = useFormContext();
   const { user } = useAuthStore();
   const { latestLogs } = useLogStore();
+
+  // Преобразуем страны в опции для селекта с учетом текущего языка
+  const countryOptions: CountryOption[] = React.useMemo(() => {
+    return (countries as Country[]).map((country) => {
+      // Безопасный доступ к полям с проверкой существования
+      const label = country[locale] || country.ru || country.en || '';
+
+      return {
+        value: country.id,
+        label: label,
+      };
+    });
+  }, [locale]);
 
   console.log('latestLogs', latestLogs);
   // Проверяем, является ли пользователь с ролью USER и статус заявки DRAFT
@@ -78,18 +108,51 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
   };
 
   const documentType = form.watch('applicant.documentType');
-  const isCitizenshipKz = form.watch('applicant.isCitizenshipKz');
+  const citizenship = form.watch('applicant.citizenship');
 
-  // Добавляем эффект для автоматической установки значения citizenship
+  // Находим ID Казахстана в списке стран
+  const kazakhstanId = React.useMemo(() => {
+    const kazakhstanCountry = countries.find(
+      (country) =>
+        country.ru === 'КАЗАХСТАН' || country.en === 'KAZAKHSTAN' || country.kz === 'ҚАЗАҚСТАН',
+    );
+    return kazakhstanCountry?.id;
+  }, []);
+
+  // Проверяем, является ли выбранное гражданство Казахстаном
+  const isCitizenshipKz = React.useMemo(() => {
+    // Если это строка с id страны (новый формат)
+    if (citizenship && typeof citizenship === 'string') {
+      return String(kazakhstanId) === citizenship;
+    }
+
+    // Для обратной совместимости
+    if (typeof citizenship === 'object' && citizenship?.value) {
+      return citizenship.value === kazakhstanId;
+    }
+
+    // Если это число (идентификатор страны)
+    if (typeof citizenship === 'number') {
+      return citizenship === kazakhstanId;
+    }
+
+    // Если это название страны
+    return (
+      citizenship === 'КАЗАХСТАН' || citizenship === 'ҚАЗАҚСТАН' || citizenship === 'KAZAKHSTAN'
+    );
+  }, [citizenship, kazakhstanId]);
+
+  // Автоматически устанавливаем тип документа PASSPORT при смене гражданства
   React.useEffect(() => {
-    if (isCitizenshipKz) {
-      form.setValue('applicant.citizenship', 'Казахстан', {
-        shouldValidate: true,
-        shouldDirty: true,
-        shouldTouch: true,
+    // Предотвращаем бесконечный цикл обновлений
+    if (!isCitizenshipKz && documentType !== 'PASSPORT') {
+      form.setValue('applicant.documentType', 'PASSPORT', {
+        shouldValidate: false,
+        shouldDirty: false,
       });
     }
-  }, [isCitizenshipKz, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCitizenshipKz, documentType]);
 
   // Функция для валидации даты
   const validateAndUpdateDate = (
@@ -130,52 +193,25 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
-              name="applicant.isCitizenshipKz"
+              name="applicant.citizenship"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('citizenship')}</FormLabel>
-                  <Select
-                    name="applicant.isCitizenshipKz"
-                    onValueChange={(value) => field.onChange(value === 'true')}
-                    value={field.value ? 'true' : 'false'}
-                    disabled={isSubmitted}
-                  >
-                    <FormControl>
-                      <SelectTrigger
-                        className={cn(
-                          'w-full',
-                          isFieldChanged(
-                            'isCitizenshipKz',
-                            application?.applicant?.isCitizenshipKz,
-                            field.value,
-                          )
-                            ? 'border-yellow-500'
-                            : '',
-                        )}
-                      >
-                        <SelectValue placeholder={tCitizenship('selectCitizenship')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="true">{tCitizenship('KAZAKHSTAN')}</SelectItem>
-                      <SelectItem value="false">{tCitizenship('OTHER')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="applicant.citizenship"
-              render={({ field }) => (
-                <FormItem className={isCitizenshipKz ? 'hidden' : ''}>
-                  <FormLabel>{tCitizenship('enterCitizenship')}</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      value={field.value || ''}
+                    <ReactSelect
+                      options={countryOptions}
+                      value={
+                        field.value
+                          ? typeof field.value === 'string'
+                            ? countryOptions.find((option) => String(option.value) === field.value)
+                            : null
+                          : null
+                      }
+                      onChange={(selectedOption: CountryOption | null) => {
+                        field.onChange(selectedOption ? String(selectedOption.value) : null);
+                      }}
+                      isDisabled={isSubmitted}
+                      placeholder={t('citizenship')}
                       className={cn(
                         '',
                         isFieldChanged(
@@ -186,7 +222,6 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
                           ? 'border-yellow-500'
                           : '',
                       )}
-                      disabled={isSubmitted || isCitizenshipKz}
                     />
                   </FormControl>
                   <FormMessage />
@@ -194,47 +229,45 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
               )}
             />
 
-            {isCitizenshipKz && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="applicant.documentType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('documentType')}</FormLabel>
-                      <Select
-                        name="applicant.documentType"
-                        disabled={isSubmitted}
-                        onValueChange={field.onChange}
-                        value={field.value || ''}
+            <FormField
+              control={form.control}
+              name="applicant.documentType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('documentType')}</FormLabel>
+                  <Select
+                    name="applicant.documentType"
+                    disabled={isSubmitted || !isCitizenshipKz}
+                    onValueChange={field.onChange}
+                    value={field.value || ''}
+                  >
+                    <FormControl>
+                      <SelectTrigger
+                        className={cn(
+                          'w-full',
+                          isFieldChanged(
+                            'documentType',
+                            application?.applicant?.documentType,
+                            field.value,
+                          )
+                            ? 'border-yellow-500'
+                            : '',
+                        )}
                       >
-                        <FormControl>
-                          <SelectTrigger
-                            className={cn(
-                              'w-full',
-                              isFieldChanged(
-                                'documentType',
-                                application?.applicant?.documentType,
-                                field.value,
-                              )
-                                ? 'border-yellow-500'
-                                : '',
-                            )}
-                          >
-                            <SelectValue placeholder={tDocument('selectDocumentType')} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="ID_CARD">{tDocument('ID_CARD')}</SelectItem>
-                          <SelectItem value="PASSPORT">{tDocument('PASSPORT')}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
-            )}
+                        <SelectValue placeholder={tDocument('selectDocumentType')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {isCitizenshipKz && (
+                        <SelectItem value="ID_CARD">{tDocument('ID_CARD')}</SelectItem>
+                      )}
+                      <SelectItem value="PASSPORT">{tDocument('PASSPORT')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
           <div className="my-auto grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
