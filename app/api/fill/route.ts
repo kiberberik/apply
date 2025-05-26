@@ -7,6 +7,7 @@ import dateUtils from '@/lib/dateUtils';
 import { checkServerAccess } from '@/lib/serverAuth';
 import countries from '@/data/countries.json';
 import platonusIds from '@/data/platonusIds.json';
+import { getTranslations } from 'next-intl/server';
 
 export const dynamic = 'force-dynamic'; // если нужно всегда получать свежие данные
 
@@ -15,6 +16,8 @@ export async function POST(req: Request) {
   if (!hasAccess) {
     return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
   }
+  const tAcademicLevel = getTranslations('AcademicLevel');
+  const tStudyingLanguage = getTranslations('SupportLanguages');
 
   const body = await req.json();
   const { data } = body;
@@ -61,18 +64,13 @@ export async function POST(req: Request) {
     representative_address_residential: data.representative?.addressResidential || '',
     representative_address_registration: data.representative?.addressRegistration || '',
     is_dorm_needs: data.details.isDormsNeed ? 'Нуждаюсь' : 'Не нуждаюсь',
-    academic_level: data.details.academicLevel as string,
+    academic_level: (await tAcademicLevel)(data.details.academicLevel as string) as string,
     edu_group_name: data.details.educationalProgram.group as string,
     edu_program_name: data.details.educationalProgram.name as string,
     edu_program_code: data.details.educationalProgram.code as string,
     edu_program_duration: data.details.educationalProgram.duration as string,
     edu_program_price: data.details.educationalProgram.costPerCredit as string,
-    studying_language:
-      (data.details.studyingLanguage as string) === 'RUS'
-        ? 'Русский'
-        : (data.details.studyingLanguage as string) === 'KAZ'
-          ? 'Қазақша'
-          : 'English',
+    studying_language: (await tStudyingLanguage)(data.details.studyingLanguage as string) as string,
   };
 
   const paid_adult = 'public/template-docs/paid_adult_application_for_accession.pdf';
