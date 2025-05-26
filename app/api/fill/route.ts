@@ -5,6 +5,8 @@ import { NextResponse } from 'next/server';
 import { Role, StudyType } from '@prisma/client';
 import dateUtils from '@/lib/dateUtils';
 import { checkServerAccess } from '@/lib/serverAuth';
+import countries from '@/data/countries.json';
+import platonusIds from '@/data/platonusIds.json';
 
 export const dynamic = 'force-dynamic'; // если нужно всегда получать свежие данные
 
@@ -30,11 +32,17 @@ export async function POST(req: Request) {
       ' ' +
       (data.applicant.patronymic as string),
     identification_number: data.applicant.identificationNumber as string,
-    doc_type: data.applicant.documentType as string,
+    doc_type: data.applicant.documentType == 'ID_CARD' ? 'Удостоверение личности' : 'Паспорт',
     doc_number: data.applicant.documentNumber as string,
-    doc_issuing_authority: data.applicant.documentIssuingAuthority as string,
+    doc_issuing_authority: data.applicant.documentIssuingAuthority
+      ? (platonusIds.icdepartments.find(
+          (department) => department.id == data.applicant.documentIssuingAuthority,
+        )?.ru as string)
+      : '',
     doc_issue_date: dateUtils.formatDateForDisplay(data.applicant.documentIssueDate as string),
-    citizenship: data.applicant.citizenship ? data.applicant.citizenship : 'Қазақстан',
+    citizenship: data.applicant.citizenship
+      ? (countries.find((country) => country.id == data.applicant.citizenship)?.ru as string)
+      : '',
     phone: data.applicant.phone as string,
     address_residential: data.applicant.addressResidential as string,
     address_registration: data.applicant.addressRegistration as string,

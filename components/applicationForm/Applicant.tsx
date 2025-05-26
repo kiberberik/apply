@@ -290,6 +290,7 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
                           ? 'border-yellow-500'
                           : '',
                       )}
+                      maxLength={30}
                     />
                   </FormControl>
                   <FormMessage />
@@ -424,6 +425,12 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
                       {...field}
                       value={field.value || ''}
                       disabled={isSubmitted}
+                      onChange={(e) => {
+                        // Оставляем только цифры
+                        const value = e.target.value.replace(/\D/g, '');
+                        // Ограничиваем длину до 12 символов
+                        field.onChange(value.slice(0, 12));
+                      }}
                       className={cn(
                         '',
                         isFieldChanged(
@@ -434,6 +441,9 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
                           ? 'border-yellow-500'
                           : '',
                       )}
+                      maxLength={12}
+                      pattern="[0-9]*"
+                      inputMode="numeric"
                     />
                   </FormControl>
                   <FormMessage />

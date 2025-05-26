@@ -1,0 +1,178 @@
+{
+  "ictype": [
+    {
+      "id": 1,
+      "ru": "Удостоверение личности",
+      "kz": "Жеке куәлік",
+      "en": "Identity card"
+    },
+    {
+      "id": 2,
+      "ru": "Паспорт",
+      "kz": "Паспорт",
+      "en": "Passport"
+    },
+    {
+      "id": 3,
+      "ru": "Свидетельство о рождении",
+      "kz": "Туу туралы куәлік",
+      "en": "Certificate of birth"
+    },
+    {
+      "id": 4,
+      "ru": "Вид на жительств",
+      "kz": "Тұру рұқсаты",
+      "en": "Residence permit"
+    },
+    {
+      "id": 5,
+      "ru": "Другой документ",
+      "kz": "Басқа құжат",
+      "en": "Other document"
+    }
+  ],
+  "icdepartments": [
+    {
+      "id": 1,
+      "ru": "Министерство Юстиции РК",
+      "kz": "ҚР Әділет Министрлігі",
+      "en": "Ministry of Justice of the RK"
+    },
+    {
+      "id": 2,
+      "ru": "Министерство внутренних дел РК",
+      "kz": "ҚР Ішкі Істер Министрлігі",
+      "en": "Ministry of Internal Affairs of the RK"
+    },
+    {
+      "id": 3,
+      "ru": "Другой уполномоченный орган",
+      "kz": "Басқа уәкілетті орган",
+      "en": "Another authorized authority"
+    }
+  ],
+  "dorm_states": [
+    {
+      "id": 1,
+      "ru": "Не нуждается",
+      "kz": "Қажет емес",
+      "en": "Not needed"
+    },
+    {
+      "id": 2,
+      "ru": "Нуждается",
+      "kz": "Қажетсінеді",
+      "en": "Needed"
+    }
+  ],
+  "studylanguages": [
+    {
+      "id": 1,
+      "ru": "русский",
+      "kz": "орыс",
+      "en": "Russian"
+    },
+    {
+      "id": 2,
+      "ru": "казахский",
+      "kz": "қазақ",
+      "en": "Kazakh"
+    },
+    {
+      "id": 3,
+      "ru": "английский",
+      "kz": "ағылшын",
+      "en": "English"
+    }
+  ],
+  "paymentforms": [
+    {
+      "id": 1,
+      "ru": "Договор",
+      "kz": "Келісімшарт",
+      "en": "Deal"
+    },
+    {
+      "id": 2,
+      "ru": "Государственный грант",
+      "kz": "Мемлекеттік грант",
+      "en": "Government grant"
+    }
+  ],
+  "documentType": [
+    {
+      "id": "identity_document",
+      "description": "Документ, удостоверяющий личность (скан)"
+    },
+    {
+      "id": "photo",
+      "description": "ФОТО"
+    },
+    {
+      "id": "education_document",
+      "description": "Документ об образовании (скан)"
+    },
+    {
+      "id": "education_attachment",
+      "description": "Документ об образовании, приложение (скан)"
+    },
+    {
+      "id": "ent_certificate",
+      "description": "Сертификат ЕНТ/КТ (скан)"
+    },
+    {
+      "id": "kaztest_certificate",
+      "description": "Сертификат КАЗТЕСТ (скан)"
+    },
+    {
+      "id": "education_contract",
+      "description": "Скан-копия договора оказания образовательных услуг"
+    },
+    {
+      "id": "international_language_certificate",
+      "description": "Международный сертификат по иностранному языку (скан)"
+    },
+    {
+      "id": "work_experience_document",
+      "description": "Скан документа, подтверждающего трудовой стаж (скан)"
+    },
+    {
+      "id": "medical_certificate_075u",
+      "description": "Справка 075/У"
+    },
+    {
+      "id": "fluorography",
+      "description": "Флюорография (скан)"
+    },
+    {
+      "id": "grant_certificate",
+      "description": "Сертификат гранта (скан)"
+    }
+  ],
+  "application_types": [
+    {
+      "id": "3",
+      "description": "Заявление на зачисление в ВУЗ (на грант)"
+    },
+    {
+      "id": "6",
+      "description": "Заявление на зачисление в ВУЗ (на договорной основе)"
+    },
+    {
+      "id": "9",
+      "description": "Заявление на зачисление в ВУЗ для докторантов (на грант)"
+    },
+    {
+      "id": "10",
+      "description": "Заявление на зачисление в ВУЗ для докторантов (на договорной основе)"
+    },
+    {
+      "id": "18",
+      "description": "Заявление на зачисление в ВУЗ для магистрантов (на грант)"
+    },
+    {
+      "id": "19",
+      "description": "Заявление на зачисление в ВУЗ для магистрантов (на договорной основе)"
+    }
+  ]
+}

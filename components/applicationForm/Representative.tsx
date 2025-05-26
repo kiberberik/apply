@@ -341,11 +341,20 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
                     <Input
                       {...field}
                       value={field.value || ''}
+                      onChange={(e) => {
+                        // Оставляем только цифры
+                        const value = e.target.value.replace(/\D/g, '');
+                        // Ограничиваем длину до 12 символов
+                        field.onChange(value.slice(0, 12));
+                      }}
                       className={cn(
                         '',
                         isFieldChanged('identificationNumber') ? 'border-yellow-500' : '',
                       )}
                       disabled={isSubmitted}
+                      maxLength={12}
+                      pattern="[0-9]*"
+                      inputMode="numeric"
                     />
                   </FormControl>
                   <FormMessage />

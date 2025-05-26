@@ -39,6 +39,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { formSchema } from './formSchema';
 import { generateContractNumber } from '@/lib/generateContractNumber';
+import ConfirmDialog from './ConfirmDialog';
 
 interface ApplicationFormProps {
   id?: string;
@@ -1887,50 +1888,32 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         </form>
       </Form>
 
-      {/* диалог подтверждения */}
-      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle>{c('confirmSubmitTitle')}</DialogTitle>
-            <DialogDescription>{c('confirmSubmitDescription')}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={closeConfirmDialog}>
-              {c('cancel')}
-            </Button>
-            <Button onClick={confirmSubmit}>{c('confirm')}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        dialogOpen={confirmDialogOpen}
+        setDialogOpen={setConfirmDialogOpen}
+        onClick={confirmSubmit}
+        closeDialog={closeConfirmDialog}
+        titleKey="confirmSubmitTitle"
+        descriptionKey="confirmSubmitDescription"
+      />
+
+      <ConfirmDialog
+        dialogOpen={revokeDialogOpen}
+        setDialogOpen={setRevokeDialogOpen}
+        onClick={() => {
+          setRevokeDialogOpen(false);
+          handleRevokeTrustMe();
+        }}
+        closeDialog={() => setRevokeDialogOpen(false)}
+        titleKey="confirmRevokeTitle"
+        descriptionKey="confirmRevokeDescription"
+        confirmButtonClassName="bg-red-700"
+      />
 
       <div className="flex w-full flex-col justify-between gap-4 md:flex-row">
         <Info />
         {hasAccess(user?.role as Role, Role.CONSULTANT) && <LogHistory />}
       </div>
-
-      {/* диалог подтверждения отзыва */}
-      <Dialog open={revokeDialogOpen} onOpenChange={setRevokeDialogOpen}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle>{c('confirmRevokeTitle')}</DialogTitle>
-            <DialogDescription>{c('confirmRevokeDescription')}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRevokeDialogOpen(false)}>
-              {c('cancel')}
-            </Button>
-            <Button
-              onClick={() => {
-                setRevokeDialogOpen(false);
-                handleRevokeTrustMe();
-              }}
-              className="bg-red-700"
-            >
-              {c('confirm')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
