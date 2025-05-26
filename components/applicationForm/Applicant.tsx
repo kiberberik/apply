@@ -16,6 +16,7 @@ import { DocumentPreview } from '../ui/document-preview';
 import { useLogStore } from '@/store/useLogStore';
 import ReactSelect from 'react-select';
 import countries from '@/data/countries.json';
+import { formatPhoneNumber } from '@/lib/formatPhoneNumber';
 
 // Типизация для страны из JSON
 interface Country {
@@ -534,7 +535,7 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
                       value={field.value ? dateUtils.formatToInputDate(field.value) : ''}
                       onChange={(e) => {
                         const value = e.target.value;
-                        field.onChange(dateUtils.formatToInputDate(value));
+                        field.onChange(value);
                       }}
                       onBlur={(e) => validateAndUpdateDate(e, field.onChange)}
                       disabled={isSubmitted}
@@ -616,6 +617,12 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
                       type="tel"
                       value={field.value || ''}
                       disabled={isSubmitted}
+                      onChange={(e) => {
+                        const formattedValue = formatPhoneNumber(e.target.value);
+                        field.onChange(formattedValue);
+                      }}
+                      placeholder="+XXXXXXXXXXXX"
+                      maxLength={15}
                       className={cn(
                         '',
                         isFieldChanged('phone', application?.applicant?.phone, field.value)

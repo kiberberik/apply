@@ -1,7 +1,6 @@
 /* eslint-disable */
 'use client';
 
-import * as z from 'zod';
 import Details from './Details';
 import DocAnalizer from './DocAnalizer';
 import ApplicantForm from './Applicant';
@@ -18,15 +17,7 @@ import { ExtendedApplication } from '@/types/application';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UpdateApplicationRequest, useApplicationStore } from '@/store/useApplicationStore';
 import { useLogStore } from '@/store/useLogStore';
-import {
-  RelationshipDegree,
-  IdentificationDocumentType,
-  StudyType,
-  AcademicLevel,
-  SupportLanguages,
-  Role,
-  ApplicationStatus,
-} from '@prisma/client';
+import { StudyType, AcademicLevel, Role, ApplicationStatus } from '@prisma/client';
 import { toast } from 'react-toastify';
 import dateUtils from '@/lib/dateUtils';
 import { Loader2 } from 'lucide-react';
@@ -62,44 +53,25 @@ export interface ApplicationWithConsultant extends Omit<ExtendedApplication, 'co
   } | null;
 }
 
-// Определяем тип для использования в форме
 type FormValues = any;
 
-// Более строгая схема для проверки при отправке
 const validateForSubmission = (
   data: FormValues,
   requiredDocuments: any[] | undefined,
   uploadedDocuments: any[] | undefined,
 ) => {
-  // Проверяем обязательные поля для отправки
   if (!data.applicant) {
-    // console.log('Не заполнены данные о заявителе');
     return { success: false, error: 'Не заполнены данные о заявителе' };
   }
 
-  if (!data.representative) {
-    // console.log('Не заполнены данные о заявителе');
-    return { success: false, error: 'Не заполнены данные о представителе' };
-  }
-
   if (!data.details) {
-    // console.log('Не заполнены данные о программе обучения');
     return { success: false, error: 'Не заполнены данные о программе обучения' };
   }
 
-  // Логирование данных формы
-  // console.log('Проверка документов:');
-  // console.log('data.documents:', data.documents);
-  // console.log('uploadedDocuments:', uploadedDocuments);
-  // console.log('requiredDocuments:', requiredDocuments);
-
-  // Проверка загрузки обязательных документов
   if (!requiredDocuments || !uploadedDocuments) {
-    // console.log('Не удалось получить информацию о документах');
-    return { success: true }; // Пропускаем проверку документов, если данные недоступны
+    return { success: true };
   }
 
-  // Фильтруем документы, которые требуются для данного заявления
   const applicantData = data.applicant;
   const isKzCitizen = applicantData?.citizenship === 113;
   const birthDate = applicantData?.birthDate;
@@ -116,64 +88,47 @@ const validateForSubmission = (
       }
       isAdult = age >= 18;
     } catch (e) {
-      // console.error('Ошибка при расчете возраста:', e);
+      throw new Error(e as string);
     }
   }
 
   try {
-    // Фильтруем документы, которые требуются для данного заявления
     const filteredRequiredDocuments = requiredDocuments.filter((doc) => {
-      // Проверка гражданства
       const matchesCountry =
         doc.countries &&
         doc.countries.some((country: any) => country === (isKzCitizen ? 'KAZAKHSTAN' : 'OTHER'));
 
-      // Проверка возраста
       const matchesAgeCategory =
         doc.ageCategories &&
         doc.ageCategories.some((category: any) => category === (isAdult ? 'ADULT' : 'MINOR'));
 
-      // Проверка академического уровня
       const matchesAcademicLevel =
         doc.academicLevels &&
         doc.academicLevels.some((level: any) => level === data.details?.academicLevel);
 
-      // Проверка типа обучения
       const matchesStudyType =
         doc.studyTypes && doc.studyTypes.some((type: any) => type === data.details?.type);
 
       return matchesCountry && matchesAgeCategory && matchesAcademicLevel && matchesStudyType;
     });
 
-    // console.log('Отфильтрованные обязательные документы:', filteredRequiredDocuments);
-
-    // Проверка обязательных документов используя данные формы
     const requiredDocCodes = filteredRequiredDocuments
       .filter((doc) => doc.isScanRequired)
       .map((doc) => doc.code);
 
-    // console.log('Коды обязательных документов:', requiredDocCodes);
-
-    // Проверяем, что в data.documents есть все необходимые документы
     if (requiredDocCodes.length > 0) {
       const documentValues = data.documents || {};
-      // console.log('Значения документов в форме:', documentValues);
 
       const missingDocs = requiredDocCodes.filter((code) => {
-        // Проверяем наличие и непустое значение для кода документа
         return !documentValues[code] || documentValues[code] === '';
       });
 
-      // console.log('Отсутствующие документы по форме:', missingDocs);
-
       if (missingDocs.length > 0) {
-        // Находим имена отсутствующих документов
         const missingDocNames = missingDocs.map((code) => {
           const doc = filteredRequiredDocuments.find((d) => d.code === code);
           return doc?.name_rus || doc?.name_eng || doc?.name_kaz || code;
         });
 
-        // console.log('Не загружены обязательные документы:', missingDocNames);
         return {
           success: false,
           error: `Не загружены обязательные документы: ${missingDocNames.join(', ')}`,
@@ -181,12 +136,9 @@ const validateForSubmission = (
       }
     }
   } catch (error) {
-    // console.error('Ошибка при проверке документов:', error);
-    // В случае ошибки пропускаем проверку документов
     return { success: true };
   }
 
-  // console.log('Проверка документов успешно пройдена');
   return { success: true };
 };
 
@@ -241,7 +193,6 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
                 ? dateUtils.formatToInputDate(singleApplication.applicant.birthDate)
                 : '',
               birthPlace: singleApplication.applicant.birthPlace || '',
-              // isCitizenshipKz: singleApplication.applicant.isCitizenshipKz || false,
               citizenship: singleApplication.applicant.citizenship || '',
               identificationNumber: singleApplication.applicant.identificationNumber || null,
               documentType: singleApplication.applicant.documentType || '',
@@ -265,7 +216,6 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               patronymic: null,
               birthDate: '',
               birthPlace: '',
-              // isCitizenshipKz: false,
               citizenship: '',
               identificationNumber: null,
               documentType: '',
@@ -284,7 +234,6 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               givennames: singleApplication.representative.givennames || '',
               surname: singleApplication.representative.surname || '',
               patronymic: singleApplication.representative.patronymic || null,
-              // isCitizenshipKz: singleApplication.representative.isCitizenshipKz || false,
               citizenship: singleApplication.representative.citizenship || '',
               identificationNumber: singleApplication.representative.identificationNumber || null,
               documentType: singleApplication.representative.documentType || '',
@@ -552,10 +501,8 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         console.log('result', result);
         await fetchSingleApplication(id as string);
 
-        // Обновляем данные формы сразу после сохранения
         const updatedApp = useApplicationStore.getState().singleApplication;
         if (updatedApp) {
-          // Обновляем данные формы
           if (updatedApp.applicant) {
             form.setValue('applicant', {
               ...updatedApp.applicant,
@@ -602,35 +549,28 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
             form.setValue('contractLanguage', updatedApp.contractLanguage || '');
           }
         }
-
-        toast.success('Черновик сохранен успешно');
+        toast.success(c('success'));
       } else {
-        toast.error('Не удалось сохранить черновик');
+        toast.error(c('error'));
       }
     } catch (error) {
-      // console.error('Error in handleSaveDraftClick:', error);
-      toast.error('Не удалось сохранить черновик');
+      toast.error(c('error'));
+      throw new Error(error as string);
     }
   };
 
   const saveApplicantFormData = async (data: FormValues, isSubmit: boolean) => {
-    console.log(`Saving form data, isSubmit=${isSubmit}`, data);
     try {
       if (!id) {
         console.log('No ID provided, save canceled');
         return false;
       }
 
-      // Добавляем локальную блокировку повторных отправок
       if (form.formState.isSubmitting) {
-        // console.log(
-        //   'Form is already being submitted in saveApplicantFormData, canceling duplicate submission',
-        // );
         return false;
       }
 
       if (!data.applicant && singleApplication?.applicant) {
-        // console.log('No applicant data in form, using application data');
         data.applicant = {
           ...singleApplication.applicant,
           birthDate: singleApplication.applicant.birthDate
@@ -646,32 +586,24 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       }
 
       if (!data.applicant) {
-        // console.error('No applicant data available for saving');
         return false;
       }
 
       if (!isSubmit) {
-        // Для черновиков пропускаем валидацию
         form.clearErrors();
       } else {
-        // Для отправки проверяем документы
         const validationResult = validateForSubmission(
           data,
           useRequiredDocuments.getState().documents,
           useDocumentStore.getState().documents,
         );
-        // console.log('Validation result in saveApplicantFormData:', validationResult);
-
         if (!validationResult.success) {
           toast.error(validationResult.error);
-          // console.log('Document validation failed, submission canceled');
           return false;
         }
       }
 
       setHasUnsavedChanges(false);
-
-      // console.log('Preparing request data');
 
       const contractNumber = isSubmit
         ? generateContractNumber(
@@ -1817,13 +1749,13 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
                       type="button"
                       disabled={isReadOnly}
                       onClick={() => {
-                        console.log('Submit button clicked, opening confirmation dialog');
+                        // console.log('Submit button clicked, opening confirmation dialog');
                         const values = form.getValues();
                         form.trigger().then((isValid) => {
                           if (!isValid) {
-                            console.log('Form validation failed, errors:', form.formState.errors);
+                            // console.log('Form validation failed, errors:', form.formState.errors);
                             const errorFields = Object.keys(form.formState.errors);
-                            console.log('Invalid fields:', errorFields);
+                            // console.log('Invalid fields:', errorFields);
 
                             // Анализируем ошибки валидации
                             let errorMessages = errorFields

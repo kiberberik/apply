@@ -13,6 +13,7 @@ import React, { useState } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import ReactSelect from 'react-select';
 import countries from '@/data/countries.json';
+import { formatPhoneNumber } from '@/lib/formatPhoneNumber';
 
 // Типизация для страны из JSON
 interface Country {
@@ -439,9 +440,16 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
                   <FormControl>
                     <Input
                       {...field}
+                      type="tel"
                       value={field.value || ''}
-                      className={cn('', isFieldChanged('phone') ? 'border-yellow-500' : '')}
                       disabled={isSubmitted}
+                      onChange={(e) => {
+                        const formattedValue = formatPhoneNumber(e.target.value);
+                        field.onChange(formattedValue);
+                      }}
+                      placeholder="+XXXXXXXXXXXX"
+                      maxLength={15}
+                      className={cn('', isFieldChanged('phone') ? 'border-yellow-500' : '')}
                     />
                   </FormControl>
                   <FormMessage />

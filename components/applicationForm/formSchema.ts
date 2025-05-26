@@ -35,10 +35,6 @@ export const formSchema = z.object({
       .min(1, '')
       .nullable()
       .transform((v) => (v === null ? '' : v)),
-    // isCitizenshipKz: z
-    //   .boolean({ required_error: '' })
-    //   .nullable()
-    //   .transform((v) => (v === null ? false : v)),
     citizenship: z
       .string({ required_error: '' })
       .trim()
@@ -83,11 +79,6 @@ export const formSchema = z.object({
       .nullable()
       .transform((v) => (v === null ? '' : v)),
     documentFileLinks: z.string().nullable(),
-    // .string({ required_error: '' })
-    // .trim()
-    // .min(1, '')
-    // .nullable()
-    // .transform((v) => (v === null ? '' : v)),
     email: z
       .string()
       .email('')
@@ -125,7 +116,6 @@ export const formSchema = z.object({
       givennames: z.string().nullable().optional(),
       surname: z.string().nullable().optional(),
       patronymic: z.string().nullable().optional(),
-      // isCitizenshipKz: z.boolean().nullable().optional(),
       citizenship: z.string().nullable().optional(),
       identificationNumber: z.string().nullable().optional(),
       documentType: z.nativeEnum(IdentificationDocumentType).nullable().optional(),
@@ -140,7 +130,7 @@ export const formSchema = z.object({
       representativeDocumentIssuingAuthority: z.string().nullable().optional(),
       representativeDocumentFileLinks: z.string().nullable().optional(),
       relationshipDegree: z.nativeEnum(RelationshipDegree).nullable().optional(),
-      email: z.string().email().nullable().optional(),
+      email: z.string().nullable().optional(),
       phone: z.string().nullable().optional(),
       addressResidential: z.string().nullable().optional(),
       addressRegistration: z.string().nullable().optional(),
