@@ -10,6 +10,7 @@ interface CameraCaptureProps {
 export const CameraCapture = ({ onImagesAdd }: CameraCaptureProps) => {
   const webcamRef = useRef<Webcam>(null);
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
+
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
   const t = useTranslations('Common');
 
@@ -18,9 +19,11 @@ export const CameraCapture = ({ onImagesAdd }: CameraCaptureProps) => {
     height: 1080,
     facingMode: facingMode,
     aspectRatio: 16 / 9,
+    frameRate: { ideal: 30 },
   };
 
-  const capture = () => {
+  const capture = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     const imageSrc = webcamRef.current?.getScreenshot();
     if (imageSrc) {
       setCapturedImages((prev) => [...prev, imageSrc]);
@@ -34,7 +37,8 @@ export const CameraCapture = ({ onImagesAdd }: CameraCaptureProps) => {
     }
   }, [capturedImages, onImagesAdd]);
 
-  const toggleCamera = () => {
+  const toggleCamera = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'));
   };
 

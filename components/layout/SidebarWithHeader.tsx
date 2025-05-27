@@ -172,7 +172,7 @@ export default function NavigationHeader({ children }: { children: React.ReactNo
 
         {/* Основной контент */}
         <div className="flex flex-col">
-          <div className="sticky top-0 z-10 bg-[#0F0F0F] shadow">
+          <div className="sticky top-0 z-50 bg-[#0F0F0F] shadow">
             <div className="flex h-16 items-center justify-between px-4">
               <div className="flex items-center">
                 <button

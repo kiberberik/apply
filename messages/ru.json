@@ -400,7 +400,7 @@
     "identificationNumber": "ИИН"
   },
   "RequiredDocuments": {
-    "title": "Загрузка документов",
+    "title": "Документы",
     "loading": "Загрузка...",
     "addDocument": "Добавить документ",
     "editDocument": "Редактировать документ",

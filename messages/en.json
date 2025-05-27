@@ -400,7 +400,7 @@
     "identificationNumber": "IIN"
   },
   "RequiredDocuments": {
-    "title": "Upload Documents",
+    "title": "Documents",
     "loading": "Loading...",
     "addDocument": "Add Document",
     "editDocument": "Edit Document",

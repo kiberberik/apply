@@ -400,7 +400,7 @@
     "identificationNumber": "ЖСН"
   },
   "RequiredDocuments": {
-    "title": "Құжаттарды жүктеу",
+    "title": "Құжаттар",
     "loading": "Жүктелуде...",
     "addDocument": "Құжат қосу",
     "editDocument": "Құжатты өңдеу",

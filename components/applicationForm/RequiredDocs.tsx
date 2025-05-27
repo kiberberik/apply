@@ -19,6 +19,7 @@ import {
   DialogFooter,
   DialogDescription,
 } from '../ui/dialog';
+import RequiredDocUploader from './RequiredDocUploader';
 interface RequiredDocsProps {
   application: ExtendedApplication;
   isSubmitted?: boolean;
@@ -87,23 +88,23 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
   }, [requiredDocuments, watchIsCitizenshipKz, watchBirthDate, watchAcademicLevel, watchStudyType]);
 
   // При изменении данных в форме выводим отладочную информацию
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[DEBUG] Form values changed:', {
-        isCitizenshipKz: watchIsCitizenshipKz,
-        birthDate: watchBirthDate,
-        academicLevel: watchAcademicLevel,
-        studyType: watchStudyType,
-        filteredDocumentsCount: filteredDocuments.length,
-      });
-    }
-  }, [
-    watchIsCitizenshipKz,
-    watchBirthDate,
-    watchAcademicLevel,
-    watchStudyType,
-    filteredDocuments.length,
-  ]);
+  // useEffect(() => {
+  //   if (process.env.NODE_ENV === 'development') {
+  //     console.log('[DEBUG] Form values changed:', {
+  //       isCitizenshipKz: watchIsCitizenshipKz,
+  //       birthDate: watchBirthDate,
+  //       academicLevel: watchAcademicLevel,
+  //       studyType: watchStudyType,
+  //       filteredDocumentsCount: filteredDocuments.length,
+  //     });
+  //   }
+  // }, [
+  //   watchIsCitizenshipKz,
+  //   watchBirthDate,
+  //   watchAcademicLevel,
+  //   watchStudyType,
+  //   filteredDocuments.length,
+  // ]);
 
   const getDocumentByCode = (code: string): Document | undefined => {
     return uploadedDocuments.find((doc) => doc.code === code);
@@ -182,7 +183,7 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
           <CardTitle>{t('title')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 gap-10 py-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-10 py-4 md:grid-cols-1">
             {filteredDocuments.map((doc, index) => {
               const uploadedDocument = getDocumentByCode(doc.code || '');
               return (
@@ -305,11 +306,7 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                           )}
                         </div>
                       </FormControl>
-                      {/* {fieldState.error && (
-                        <div className="mt-1 text-sm text-red-500">
-                          {fieldState.error.message || 'Этот документ обязателен'}
-                        </div>
-                      )} */}
+                      <RequiredDocUploader />
                     </FormItem>
                   )}
                 />

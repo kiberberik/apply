@@ -32,7 +32,8 @@ export const OpenAIResponse = ({
     }
   }, []);
 
-  const analyzeImages = async () => {
+  const analyzeImages = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     if (images.length === 0) return;
     setError(null);
     setIsLoading(true);

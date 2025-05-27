@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { DocumentUpload } from '../docReader/DocumentUpload';
+import { OpenAIDocumentUpload } from '../docReader/OpenAIDocumentUpload';
 import { CameraCapture } from '../docReader/CameraCapture';
 import { OpenAIResponse } from '../docReader/OpenAIResponse';
 import { useTranslations } from 'next-intl';
@@ -309,7 +309,7 @@ const DocAnalizer = ({ id, activeTab, setActiveTab, isAdult, setFormValue }: Doc
         </h2>
         <p className="text-center text-sm text-gray-500">{c('uploadDocumentsDescription')}</p>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <DocumentUpload
+          <OpenAIDocumentUpload
             onImagesAdd={handleImageAdd}
             images={images}
             onDelete={handleImageDelete}
