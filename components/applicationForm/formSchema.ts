@@ -89,7 +89,7 @@ export const formSchema = z.object({
     phone: z
       .string()
       .trim()
-      .min(1)
+      .min(1, '')
       .nullable()
       .refine((val) => val !== null && val !== '', {
         message: '',
@@ -97,7 +97,7 @@ export const formSchema = z.object({
     addressResidential: z
       .string()
       .trim()
-      .min(1)
+      .min(1, '')
       .nullable()
       .refine((val) => val !== null && val !== '', {
         message: '',
@@ -105,7 +105,7 @@ export const formSchema = z.object({
     addressRegistration: z
       .string()
       .trim()
-      .min(1)
+      .min(1, '')
       .nullable()
       .refine((val) => val !== null && val !== '', {
         message: '',
