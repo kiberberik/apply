@@ -185,7 +185,17 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
               name="applicant.citizenship"
               render={({ field }) => (
                 <FormItem>
-                  <div className="text-sm font-medium">{t('citizenship')}</div>
+                  <div
+                    className={cn(
+                      'text-sm font-medium',
+                      form.formState.errors.applicant &&
+                        'citizenship' in form.formState.errors.applicant
+                        ? 'text-red-500'
+                        : '',
+                    )}
+                  >
+                    {t('citizenship')}
+                  </div>
                   <FormControl>
                     <ReactSelect
                       options={countryOptions}
@@ -209,16 +219,22 @@ function Applicant({ application, isSubmitted = false }: ApplicantProps) {
                       }}
                       isDisabled={isSubmitted}
                       placeholder={t('citizenship')}
-                      className={cn(
-                        '',
-                        isFieldChanged(
-                          'citizenship',
-                          application?.applicant?.citizenship,
-                          field.value,
-                        )
-                          ? 'border-yellow-500'
-                          : '',
-                      )}
+                      styles={{
+                        control: (base) => ({
+                          ...base,
+                          borderColor:
+                            form.formState.errors.applicant &&
+                            'citizenship' in form.formState.errors.applicant
+                              ? '#ef4444'
+                              : isFieldChanged(
+                                    'citizenship',
+                                    application?.applicant?.citizenship,
+                                    field.value,
+                                  )
+                                ? '#eab308'
+                                : base.borderColor,
+                        }),
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
