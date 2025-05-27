@@ -1,5 +1,6 @@
 import { PDFDocument } from 'pdf-lib';
 import { useState } from 'react';
+import { usePDF, PDFProvider } from './PDFContext';
 
 interface PDFGeneratorProps {
   images: string[];
@@ -10,8 +11,11 @@ const A4_WIDTH = 595.28; // 210 мм
 const A4_HEIGHT = 841.89; // 297 мм
 const PAGE_PADDING = 20; // Отступы по краям страницы
 
-export const PDFGenerator = ({ images }: PDFGeneratorProps) => {
+const PDFGeneratorContent = ({ images }: { images: string[] }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const { application, doc, form, field, setDocumentsLoaded, fetchDocumentsByApplication } =
+    usePDF();
+
   const generatePDF = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setIsLoading(true);
@@ -93,14 +97,51 @@ export const PDFGenerator = ({ images }: PDFGeneratorProps) => {
 
     const pdfBytes = await pdfDoc.save();
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
 
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'document.pdf';
-    a.click();
-    URL.revokeObjectURL(url);
-    setIsLoading(false);
+    // Создаем FormData для загрузки файла
+    const formData = new FormData();
+    const file = new File([blob], 'document.pdf', { type: 'application/pdf' });
+    formData.append('file', file);
+
+    if (application?.id) {
+      formData.append('applicationId', application.id);
+    }
+
+    if (application?.applicant?.id) {
+      formData.append('userId', application.applicant.id);
+    }
+
+    formData.append('documentCode', doc.code || '');
+
+    try {
+      const response = await fetch('/api/upload-required-document', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload file');
+      }
+
+      const data = await response.json();
+
+      field.onChange(data.document.id);
+
+      form.setValue(`documents.${doc.code}`, data.document.id, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+
+      if (application?.id) {
+        setDocumentsLoaded(false);
+        fetchDocumentsByApplication(application.id);
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (images.length === 0) return null;
@@ -112,8 +153,16 @@ export const PDFGenerator = ({ images }: PDFGeneratorProps) => {
         disabled={isLoading}
         className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
       >
-        {isLoading ? 'Скачивание...' : 'Сгенерировать PDF и загрузить'}
+        {isLoading ? 'Загрузка...' : 'Сгенерировать PDF и загрузить'}
       </button>
     </div>
+  );
+};
+
+export const PDFGenerator = ({ images }: PDFGeneratorProps) => {
+  return (
+    <PDFProvider value={usePDF()}>
+      <PDFGeneratorContent images={images} />
+    </PDFProvider>
   );
 };

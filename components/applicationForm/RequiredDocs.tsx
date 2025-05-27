@@ -3,7 +3,6 @@ import { useRequiredDocuments } from '@/store/useRequiredDocuments';
 import { useDocumentStore } from '@/store/useDocumentStore';
 import { ExtendedApplication } from '@/types/application';
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { differenceInYears } from 'date-fns';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -20,6 +19,22 @@ import {
   DialogDescription,
 } from '../ui/dialog';
 import RequiredDocUploader from './RequiredDocUploader';
+import { PDFProvider } from '../docReader/PDFContext';
+
+interface FormValues {
+  documents: {
+    [key: string]: string;
+  };
+  applicant: {
+    isCitizenshipKz: boolean;
+    birthDate: string;
+  };
+  details: {
+    academicLevel: string;
+    type: string;
+  };
+}
+
 interface RequiredDocsProps {
   application: ExtendedApplication;
   isSubmitted?: boolean;
@@ -42,7 +57,7 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
   const t = useTranslations('RequiredDocuments');
   const c = useTranslations('Common');
   const locale = useLocale();
-  const form = useFormContext();
+  const form = useFormContext<FormValues>();
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
@@ -241,72 +256,30 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                               </div>
                             </div>
                           ) : (
-                            <Input
-                              type="file"
-                              multiple={false}
-                              size={2000 * 5}
-                              accept=".pdf" // ,.jpg,.jpeg,.png,.PDF,.JPG,.JPEG,.PNG
-                              onChange={async (e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  setIsLoading((prev) => ({ ...prev, [doc.code || '']: true }));
-                                  const formData = new FormData();
-                                  formData.append('file', file);
-
-                                  if (application?.id) {
-                                    formData.append('applicationId', application.id);
-                                  }
-
-                                  if (application?.applicant?.id) {
-                                    formData.append('userId', application.applicant.id);
-                                  }
-
-                                  formData.append('documentCode', doc.code || '');
-                                  try {
-                                    const response = await fetch('/api/upload-required-document', {
-                                      method: 'POST',
-                                      body: formData,
-                                    });
-
-                                    if (!response.ok) {
-                                      throw new Error('Failed to upload file');
-                                    }
-
-                                    const data = await response.json();
-
-                                    updatePendingRef.current = true;
-
-                                    field.onChange(data.document.id);
-
-                                    form.setValue(`documents.${doc.code}`, data.document.id, {
-                                      shouldValidate: true,
-                                      shouldDirty: true,
-                                      shouldTouch: true,
-                                    });
-
-                                    if (application?.id) {
-                                      setDocumentsLoaded(false);
-                                      fetchDocumentsByApplication(application.id);
-                                    }
-
-                                    setTimeout(() => {
-                                      updatePendingRef.current = false;
-                                    }, 100);
-                                  } catch (error) {
-                                    console.error('Error uploading file:', error);
-                                  } finally {
-                                    setIsLoading((prev) => ({ ...prev, [doc.code || '']: false }));
-                                  }
-                                }
+                            <PDFProvider
+                              value={{
+                                application: {
+                                  id: application.id,
+                                  applicant: application.applicant
+                                    ? {
+                                        id: application.applicant.id,
+                                      }
+                                    : undefined,
+                                },
+                                doc: {
+                                  code: doc.code || '',
+                                },
+                                form,
+                                field,
+                                setDocumentsLoaded,
+                                fetchDocumentsByApplication,
                               }}
-                              disabled={
-                                (isSubmitted && doc.isScanRequired) || isLoading[doc.code || '']
-                              }
-                            />
+                            >
+                              <RequiredDocUploader />
+                            </PDFProvider>
                           )}
                         </div>
                       </FormControl>
-                      <RequiredDocUploader />
                     </FormItem>
                   )}
                 />

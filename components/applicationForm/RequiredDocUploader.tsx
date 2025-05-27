@@ -20,7 +20,7 @@ const RequiredDocUploader = () => {
       <DialogTrigger asChild>
         <Button variant="outline">Загрузить документы</Button>
       </DialogTrigger>
-      <DialogTitle>Загрузить документы</DialogTitle>
+      <DialogTitle></DialogTitle>
       <DialogContent className="max-w-7xl">
         <div className="mx-auto space-y-8">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
