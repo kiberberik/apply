@@ -1143,7 +1143,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
 
       // Отправляем в TrustMe
       const trustMeResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_TRUSTME_API_URL}/SendToSignBase64FileExt/pdf`,
+        `${process.env.NEXT_PUBLIC_TRUSTME_API_URL}/SendToSignBase64FileExt/pdf?auto_sign=1`,
         {
           method: 'POST',
           headers: headers,

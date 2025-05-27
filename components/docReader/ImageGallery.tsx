@@ -13,7 +13,7 @@ interface ImageGalleryProps {
 export const ImageGallery = ({ images, onDelete }: ImageGalleryProps) => {
   const t = useTranslations('Common');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  console.log(images);
+  // console.log(images);
   if (images.length === 0) return null;
 
   const isPdf = (url: string) => url.startsWith('pdf:');
