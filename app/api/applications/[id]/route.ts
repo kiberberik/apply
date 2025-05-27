@@ -424,6 +424,35 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         }
       }
 
+      // 6. Обрабатываем documentDetails
+      if (data.documentDetails) {
+        for (const [docCode, details] of Object.entries(data.documentDetails)) {
+          const document = await tx.document.findFirst({
+            where: {
+              applicationId: id,
+              code: docCode,
+            },
+          });
+
+          if (document) {
+            const typedDetails = details as {
+              diplomaSerialNumber?: string;
+              number?: string;
+              issueDate?: string;
+            };
+
+            await tx.document.update({
+              where: { id: document.id },
+              data: {
+                diplomaSerialNumber: typedDetails.diplomaSerialNumber || null,
+                number: typedDetails.number || null,
+                issueDate: typedDetails.issueDate ? new Date(typedDetails.issueDate) : null,
+              },
+            });
+          }
+        }
+      }
+
       // Возвращаем обновленное приложение
       return updatedApp;
     });

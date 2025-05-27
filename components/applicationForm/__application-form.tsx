@@ -868,38 +868,19 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           : null,
         representative: data.representative
           ? {
-              id: data.representative.id || undefined,
-              email: data.representative.email,
-              givennames: data.representative.givennames,
-              patronymic: data.representative.patronymic,
-              surname: data.representative.surname,
-              phone: data.representative.phone,
-              addressResidential: data.representative.addressResidential,
-              addressRegistration: data.representative.addressRegistration,
-              relationshipDegree: data.representative.relationshipDegree,
-              isCitizenshipKz: data.representative.isCitizenshipKz,
-              citizenship: data.representative.citizenship,
-              documentType: data.representative.documentType,
-              identificationNumber: data.representative.identificationNumber,
-              documentNumber: data.representative.documentNumber,
+              ...data.representative,
               documentIssueDate: dateUtils.formatToDatabaseDate(
                 data.representative.documentIssueDate,
               ),
               documentExpiryDate: dateUtils.formatToDatabaseDate(
                 data.representative.documentExpiryDate,
               ),
-              documentIssuingAuthority: data.representative.documentIssuingAuthority,
-              documentFileLinks: data.representative.documentFileLinks,
-              representativeDocumentNumber: data.representative.representativeDocumentNumber,
               representativeDocumentIssueDate: dateUtils.formatToDatabaseDate(
                 data.representative.representativeDocumentIssueDate,
               ),
               representativeDocumentExpiryDate: dateUtils.formatToDatabaseDate(
                 data.representative.representativeDocumentExpiryDate,
               ),
-              representativeDocumentIssuingAuthority:
-                data.representative.representativeDocumentIssuingAuthority,
-              representativeDocumentFileLinks: data.representative.representativeDocumentFileLinks,
             }
           : null,
         details: data.details
@@ -907,6 +888,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               ...data.details,
             }
           : null,
+        documentDetails: data.documentDetails || null,
         contractLanguage: data.contractLanguage || null,
         contractNumber: contractNumber,
         submittedAt: isSubmit ? new Date().toISOString() : null,

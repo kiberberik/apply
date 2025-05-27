@@ -20,10 +20,19 @@ import {
 } from '../ui/dialog';
 import RequiredDocUploader from './RequiredDocUploader';
 import { PDFProvider } from '../docReader/PDFContext';
+import { Input } from '../ui/input';
+import { format } from 'date-fns';
 
 interface FormValues {
   documents: {
     [key: string]: string;
+  };
+  documentDetails: {
+    [key: string]: {
+      diplomaSerialNumber?: string;
+      number?: string;
+      issueDate?: string;
+    };
   };
   applicant: {
     isCitizenshipKz: boolean;
@@ -163,10 +172,12 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
     }
   }, [fetchDocuments, fetchDocumentsByApplication, application?.id]);
 
+  // Инициализируем начальные значения для всех полей формы
   useEffect(() => {
     if (uploadedDocuments.length > 0 && !documentsLoaded && !updatePendingRef.current) {
       updatePendingRef.current = true;
 
+      // Инициализируем документы
       const documentsValues = uploadedDocuments.reduce(
         (acc, doc) => {
           if (doc.code) {
@@ -177,10 +188,32 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
         {} as Record<string, string>,
       );
 
-      form.setValue('documents', documentsValues, {
-        shouldValidate: true,
-        shouldDirty: false,
-        shouldTouch: false,
+      // Инициализируем documentDetails
+      const documentDetailsValues = uploadedDocuments.reduce(
+        (acc, doc) => {
+          if (doc.code === 'education_document') {
+            acc[doc.code] = {
+              diplomaSerialNumber: doc.diplomaSerialNumber || '',
+              number: doc.number || '',
+              issueDate: doc.issueDate ? format(new Date(doc.issueDate), 'yyyy-MM-dd') : '',
+            };
+          } else if (doc.code === 'ent_certificate' || doc.code === 'grant_certificate') {
+            acc[doc.code] = {
+              number: doc.number || '',
+            };
+          }
+          return acc;
+        },
+        {} as FormValues['documentDetails'],
+      );
+
+      // Устанавливаем значения формы
+      Object.entries(documentsValues).forEach(([key, value]) => {
+        form.setValue(`documents.${key}`, value, { shouldValidate: false });
+      });
+
+      Object.entries(documentDetailsValues).forEach(([key, value]) => {
+        form.setValue(`documentDetails.${key}`, value, { shouldValidate: false });
       });
 
       setDocumentsLoaded(true);
@@ -224,37 +257,113 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                         {doc.isScanRequired && <span className="ml-1 text-red-500">*</span>}
                       </FormLabel>
                       <FormControl>
-                        <div>
+                        <div className="space-y-4">
                           {uploadedDocument ? (
-                            <div
-                              className="flex flex-wrap items-center gap-4"
-                              id={`document-${doc.id}`}
-                            >
-                              <span className="max-w-[200px] truncate text-sm">
-                                {uploadedDocument.name}
-                              </span>
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() => handleViewDocument(uploadedDocument.link || '')}
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() =>
-                                    openDeleteConfirm(uploadedDocument.id || '', doc.code || '')
-                                  }
-                                  disabled={isSubmitted || isLoading[doc.code || '']}
-                                >
-                                  <Trash className="h-4 w-4" />
-                                </Button>
+                            <>
+                              <div
+                                className="flex flex-wrap items-center gap-4"
+                                id={`document-${doc.id}`}
+                              >
+                                <span className="max-w-[200px] truncate text-sm">
+                                  {uploadedDocument.name}
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => handleViewDocument(uploadedDocument.link || '')}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() =>
+                                      openDeleteConfirm(uploadedDocument.id || '', doc.code || '')
+                                    }
+                                    disabled={isSubmitted || isLoading[doc.code || '']}
+                                  >
+                                    <Trash className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </div>
-                            </div>
+                              {doc.code === 'education_document' && (
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                  <FormField
+                                    control={form.control}
+                                    name={`documentDetails.${doc.code}.diplomaSerialNumber`}
+                                    defaultValue=""
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Серийный номер диплома</FormLabel>
+                                        <FormControl>
+                                          <Input
+                                            {...field}
+                                            disabled={isSubmitted || isLoading[doc.code || '']}
+                                          />
+                                        </FormControl>
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField
+                                    control={form.control}
+                                    name={`documentDetails.${doc.code}.number`}
+                                    defaultValue=""
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Номер</FormLabel>
+                                        <FormControl>
+                                          <Input
+                                            {...field}
+                                            disabled={isSubmitted || isLoading[doc.code || '']}
+                                          />
+                                        </FormControl>
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField
+                                    control={form.control}
+                                    name={`documentDetails.${doc.code}.issueDate`}
+                                    defaultValue=""
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Дата выдачи</FormLabel>
+                                        <FormControl>
+                                          <Input
+                                            type="date"
+                                            {...field}
+                                            disabled={isSubmitted || isLoading[doc.code || '']}
+                                          />
+                                        </FormControl>
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
+                              )}
+                              {(doc.code === 'ent_certificate' ||
+                                doc.code === 'grant_certificate') && (
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-1">
+                                  <FormField
+                                    control={form.control}
+                                    name={`documentDetails.${doc.code}.number`}
+                                    defaultValue=""
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Номер</FormLabel>
+                                        <FormControl>
+                                          <Input
+                                            {...field}
+                                            disabled={isSubmitted || isLoading[doc.code || '']}
+                                          />
+                                        </FormControl>
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
+                              )}
+                            </>
                           ) : (
                             <PDFProvider
                               value={{

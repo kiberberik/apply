@@ -86,7 +86,7 @@ export default function NavigationHeader({ children }: { children: React.ReactNo
       <div>
         {/* Мобильное меню */}
         <Transition show={mobileMenuOpen} as={Fragment}>
-          <Dialog as="div" className="relative z-40 md:hidden" onClose={setMobileMenuOpen}>
+          <Dialog as="div" className="relative z-50 md:hidden" onClose={setMobileMenuOpen}>
             <TransitionChild
               as={Fragment}
               enter="transition-opacity ease-linear duration-300"

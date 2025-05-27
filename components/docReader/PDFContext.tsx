@@ -5,6 +5,13 @@ interface FormValues {
   documents: {
     [key: string]: string;
   };
+  documentDetails: {
+    [key: string]: {
+      diplomaSerialNumber?: string;
+      number?: string;
+      issueDate?: string;
+    };
+  };
   applicant: {
     isCitizenshipKz: boolean;
     birthDate: string;

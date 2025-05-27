@@ -49,6 +49,7 @@ export interface UpdateApplicationRequest {
     phone?: string | null;
     addressResidential?: string | null;
     addressRegistration?: string | null;
+    relationshipDegree?: RelationshipDegree | null;
     isCitizenshipKz?: boolean | null;
     citizenship?: string | null;
     documentType?: IdentificationDocumentType | null;
@@ -58,15 +59,12 @@ export interface UpdateApplicationRequest {
     documentIssueDate?: string | null;
     documentExpiryDate?: string | null;
     documentIssuingAuthority?: string | null;
-    documentFileLinks?: string | null; // JSON строка массива ссылок
-    // Поля документа представителя
+    documentFileLinks?: string | null;
     representativeDocumentNumber?: string | null;
     representativeDocumentIssueDate?: string | null;
     representativeDocumentExpiryDate?: string | null;
     representativeDocumentIssuingAuthority?: string | null;
-    representativeDocumentFileLinks?: string | null; // JSON строка массива ссылок
-    relationshipDegree?: RelationshipDegree | null;
-    applicantId?: string | null;
+    representativeDocumentFileLinks?: string | null;
   } | null;
   details?: {
     id?: string;
@@ -74,6 +72,13 @@ export interface UpdateApplicationRequest {
     academicLevel?: string | null;
     studyingLanguage?: string | null;
     educationalProgramId?: string | null;
+  } | null;
+  documentDetails?: {
+    [key: string]: {
+      diplomaSerialNumber?: string;
+      number?: string;
+      issueDate?: string;
+    };
   } | null;
   contractLanguage?: string | null;
   contractNumber?: string | null;

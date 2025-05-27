@@ -18,8 +18,9 @@ const PDFGeneratorContent = ({ images }: { images: string[] }) => {
 
   const generatePDF = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    setIsLoading(true);
     if (images.length === 0) return;
+
+    setIsLoading(true);
 
     const pdfDoc = await PDFDocument.create();
 
