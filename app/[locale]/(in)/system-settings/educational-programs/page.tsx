@@ -12,9 +12,12 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { useLocale, useTranslations } from 'next-intl';
-import { EducationalProgramGroup } from '@prisma/client';
+import { EducationalProgramGroup, Role } from '@prisma/client';
 import { useEducationalStore } from '@/store/useEducationalStore';
 import GroupForm from '@/components/educationalPrograms/GroupForm';
+import NoAccess from '@/components/layout/NoAccess';
+import { hasAccess } from '@/lib/hasAccess';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export default function Page() {
   const { groups, fetchGroups, deleteGroup } = useEducationalStore();
@@ -24,6 +27,7 @@ export default function Page() {
   const t = useTranslations('EducationalPrograms');
   const c = useTranslations('Common');
   const tAcademicLevel = useTranslations('AcademicLevel');
+  const { user } = useAuthStore();
 
   useEffect(() => {
     fetchGroups();
@@ -43,6 +47,10 @@ export default function Page() {
     setIsModalOpen(false);
     setGroupToEdit(null);
   };
+
+  if (user?.role && !hasAccess(user?.role, Role.ADMIN)) {
+    return <NoAccess />;
+  }
 
   return (
     <div className="p-6">

@@ -615,6 +615,34 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           )
         : null;
 
+      // Обновляем статус доставки документов
+      // if (data.documentDetails) {
+      //   const documents = useDocumentStore.getState().documents;
+      //   for (const [code, details] of Object.entries(data.documentDetails)) {
+      //     const document = documents.find((doc) => doc.code === code);
+      //     if (
+      //       document &&
+      //       typeof details === 'object' &&
+      //       details !== null &&
+      //       'isDelivered' in details
+      //     ) {
+      //       try {
+      //         await fetch(`/api/documents/${document.id}`, {
+      //           method: 'PATCH',
+      //           headers: {
+      //             'Content-Type': 'application/json',
+      //           },
+      //           body: JSON.stringify({
+      //             isDelivered: details.isDelivered,
+      //           }),
+      //         });
+      //       } catch (error) {
+      //         console.error('Error updating document delivery status:', error);
+      //       }
+      //     }
+      //   }
+      // }
+
       const requestData: UpdateApplicationRequest = {
         applicant: data.applicant
           ? {

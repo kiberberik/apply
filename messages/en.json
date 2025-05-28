@@ -432,7 +432,11 @@
     "selectStudyTypes": "Select Study Types",
     "selectAgeCategories": "Select Age Categories",
     "isNeedOriginal": "Original Required",
-    "isScanRequired": "Scan Required for Signature"
+    "isScanRequired": "Scan Required for Signature",
+    "isDelivered": "Document delivered",
+    "diplomaSerialNumber": "Diploma Serial Number",
+    "documentNumber": "Document Number",
+    "documentIssueDate": "Document Issue Date"
   },
   "AgeCategory": {
     "ADULT": "Adult",
@@ -507,5 +511,11 @@
     "ministryJustice": "Ministry of Justice of the RK",
     "ministryInternalAffairs": "The Ministry of Internal Affairs of the RK",
     "another": "Another authorized authority"
+  },
+  "NoAccess": {
+    "title": "Access Denied",
+    "description": "You don't have permission to access this page. Please contact the system administrator if you need access.",
+    "goBack": "Go Back",
+    "goHome": "Go to Home"
   }
 }

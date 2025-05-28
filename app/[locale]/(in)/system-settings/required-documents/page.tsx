@@ -32,8 +32,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useTranslations, useLocale } from 'next-intl';
 import { DocumentType, Country, AcademicLevel, StudyType, AgeCategory } from '@prisma/client';
 import { ExtendedRequiredDocument, useRequiredDocuments } from '@/store/useRequiredDocuments';
+import NoAccess from '@/components/layout/NoAccess';
+import { useAuthStore } from '@/store/useAuthStore';
+import { hasAccess } from '@/lib/hasAccess';
+import { Role } from '@prisma/client';
 
 export default function RequiredDocumentsPage() {
+  const { user } = useAuthStore();
   const t = useTranslations('RequiredDocuments');
   const c = useTranslations('Common');
   const tDocumentType = useTranslations('DocumentType');
@@ -136,6 +141,10 @@ export default function RequiredDocumentsPage() {
 
   if (loading) return <Loading />;
   if (error) return <Error />;
+
+  if (user?.role && !hasAccess(user?.role, Role.ADMIN)) {
+    return <NoAccess />;
+  }
 
   return (
     <div className="container mx-auto py-10">

@@ -10,6 +10,7 @@ interface DocumentStore {
   fetchDocumentsByApplication: (applicationId: string) => Promise<void>;
   createDocument: (documentData: Partial<Document>) => Promise<Document | null>;
   updateDocument: (id: string, documentData: Partial<Document>) => Promise<Document | null>;
+  updateDocumentDeliveryStatus: (id: string, isDelivered: boolean) => Promise<Document | null>;
   deleteDocument: (id: string) => Promise<boolean>;
   resetDocument: () => void;
   resetDocuments: () => void;
@@ -94,6 +95,35 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
 
       if (!response.ok) {
         throw new Error('Failed to update document');
+      }
+
+      const updatedDocument = await response.json();
+      set((state) => ({
+        documents: state.documents.map((doc) => (doc.id === id ? updatedDocument : doc)),
+        document: get().document?.id === id ? updatedDocument : get().document,
+        isLoading: false,
+      }));
+
+      return updatedDocument;
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Unknown error', isLoading: false });
+      return null;
+    }
+  },
+
+  updateDocumentDeliveryStatus: async (id: string, isDelivered: boolean) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await fetch(`/api/documents/${id}/delivery-status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ isDelivered }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update document delivery status');
       }
 
       const updatedDocument = await response.json();

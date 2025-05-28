@@ -7,7 +7,7 @@ import { differenceInYears } from 'date-fns';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useLocale, useTranslations } from 'next-intl';
-import { Document } from '@prisma/client';
+import { Document, Role } from '@prisma/client';
 import { Button } from '../ui/button';
 import { Eye, Trash } from 'lucide-react';
 import {
@@ -22,6 +22,8 @@ import RequiredDocUploader from './RequiredDocUploader';
 import { PDFProvider } from '../docReader/PDFContext';
 import { Input } from '../ui/input';
 import { format } from 'date-fns';
+import { Checkbox } from '../ui/checkbox';
+import { useAuthStore } from '@/store/useAuthStore';
 
 interface FormValues {
   documents: {
@@ -32,6 +34,7 @@ interface FormValues {
       diplomaSerialNumber?: string;
       number?: string;
       issueDate?: string;
+      isDelivered?: boolean;
     };
   };
   applicant: {
@@ -55,6 +58,7 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
     documents: uploadedDocuments,
     fetchDocumentsByApplication,
     deleteDocument,
+    updateDocumentDeliveryStatus,
   } = useDocumentStore();
   const [isLoading, setIsLoading] = useState<Record<string, boolean>>({});
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -67,6 +71,8 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
   const c = useTranslations('Common');
   const locale = useLocale();
   const form = useFormContext<FormValues>();
+  const { user } = useAuthStore();
+  const isConsultant = user?.role === Role.CONSULTANT;
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
@@ -165,12 +171,41 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
     }
   };
 
+  const handleDeliveryStatusChange = async (doc: Document, isDelivered: boolean) => {
+    try {
+      setIsLoading((prev) => ({ ...prev, [doc.code || '']: true }));
+      await updateDocumentDeliveryStatus(doc.id, isDelivered);
+    } catch (error) {
+      console.error('Error updating document delivery status:', error);
+    } finally {
+      setIsLoading((prev) => ({ ...prev, [doc.code || '']: false }));
+    }
+  };
+
   useEffect(() => {
     fetchDocuments();
     if (application?.id) {
       fetchDocumentsByApplication(application.id);
     }
   }, [fetchDocuments, fetchDocumentsByApplication, application?.id]);
+
+  useEffect(() => {
+    if (uploadedDocuments.length > 0) {
+      // Синхронизируем значения isDelivered из uploadedDocuments с формой
+      uploadedDocuments.forEach((doc) => {
+        if (doc.code && doc.isDelivered !== undefined && doc.isDelivered !== null) {
+          const currentValue = form.getValues(`documentDetails.${doc.code}.isDelivered`);
+          if (currentValue !== Boolean(doc.isDelivered)) {
+            form.setValue(`documentDetails.${doc.code}.isDelivered`, Boolean(doc.isDelivered), {
+              shouldValidate: false,
+              shouldDirty: false,
+              shouldTouch: false,
+            });
+          }
+        }
+      });
+    }
+  }, [uploadedDocuments, form]);
 
   // Инициализируем начальные значения для всех полей формы
   useEffect(() => {
@@ -182,6 +217,9 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
         (acc, doc) => {
           if (doc.code) {
             acc[doc.code] = doc.id;
+            if (doc.isDelivered !== undefined && doc.isDelivered !== null) {
+              form.setValue(`documentDetails.${doc.code}.isDelivered`, Boolean(doc.isDelivered));
+            }
           }
           return acc;
         },
@@ -222,6 +260,8 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
         updatePendingRef.current = false;
       }, 100);
     }
+
+    console.log(form.getValues('documentDetails'));
   }, [uploadedDocuments, form, documentsLoaded]);
 
   return (
@@ -246,16 +286,45 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                     <FormItem
                       className={fieldState.error ? 'rounded border border-red-500 p-2' : ''}
                     >
-                      <FormLabel htmlFor={`document-${doc.id}`}>
-                        {index + 1}
-                        {'. '}
-                        {locale === 'ru'
-                          ? doc.name_rus
-                          : locale === 'en'
-                            ? doc.name_eng
-                            : doc.name_kaz}
-                        {doc.isScanRequired && <span className="ml-1 text-red-500">*</span>}
-                      </FormLabel>
+                      <div className="flex items-center justify-between">
+                        <FormLabel htmlFor={`document-${doc.id}`}>
+                          {index + 1}
+                          {'. '}
+                          {locale === 'ru'
+                            ? doc.name_rus
+                            : locale === 'en'
+                              ? doc.name_eng
+                              : doc.name_kaz}
+                          {doc.isScanRequired && <span className="ml-1 text-red-500">*</span>}
+                        </FormLabel>
+                        {isConsultant && !isSubmitted && uploadedDocument && (
+                          <FormField
+                            control={form.control}
+                            name={`documentDetails.${doc.code}.isDelivered`}
+                            render={() => (
+                              <FormItem className="flex items-center gap-2">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={uploadedDocument?.isDelivered ?? false}
+                                    onCheckedChange={(checked) => {
+                                      if (uploadedDocument) {
+                                        handleDeliveryStatusChange(
+                                          uploadedDocument,
+                                          checked as boolean,
+                                        );
+                                      }
+                                    }}
+                                    disabled={isLoading[doc.code || '']}
+                                  />
+                                </FormControl>
+                                <FormLabel className="text-sm font-normal">
+                                  {t('isDelivered')}
+                                </FormLabel>
+                              </FormItem>
+                            )}
+                          />
+                        )}
+                      </div>
                       <FormControl>
                         <div className="space-y-4">
                           {uploadedDocument ? (
@@ -297,7 +366,7 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                                     defaultValue=""
                                     render={({ field }) => (
                                       <FormItem>
-                                        <FormLabel>Серийный номер диплома</FormLabel>
+                                        <FormLabel>{t('diplomaSerialNumber')}</FormLabel>
                                         <FormControl>
                                           <Input
                                             {...field}
@@ -313,7 +382,7 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                                     defaultValue=""
                                     render={({ field }) => (
                                       <FormItem>
-                                        <FormLabel>Номер</FormLabel>
+                                        <FormLabel>{t('documentNumber')}</FormLabel>
                                         <FormControl>
                                           <Input
                                             {...field}
@@ -329,7 +398,7 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                                     defaultValue=""
                                     render={({ field }) => (
                                       <FormItem>
-                                        <FormLabel>Дата выдачи</FormLabel>
+                                        <FormLabel>{t('documentIssueDate')}</FormLabel>
                                         <FormControl>
                                           <Input
                                             type="date"
@@ -351,7 +420,7 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                                     defaultValue=""
                                     render={({ field }) => (
                                       <FormItem>
-                                        <FormLabel>Номер</FormLabel>
+                                        <FormLabel>{t('documentNumber')}</FormLabel>
                                         <FormControl>
                                           <Input
                                             {...field}

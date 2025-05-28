@@ -1,11 +1,22 @@
+'use client';
 import { Button } from '@/components/ui/button';
 import { File, BookOpen } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
-import { getTranslations } from 'next-intl/server';
 import React from 'react';
+import NoAccess from '@/components/layout/NoAccess';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useTranslations } from 'next-intl';
+import { hasAccess } from '@/lib/hasAccess';
+import { Role } from '@prisma/client';
 
-export default async function Page() {
-  const t = await getTranslations('SystemSettings');
+export default function Page() {
+  const { user } = useAuthStore();
+  const t = useTranslations('SystemSettings');
+
+  if (user?.role && !hasAccess(user?.role, Role.ADMIN)) {
+    return <NoAccess />;
+  }
+
   return (
     <div>
       <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>

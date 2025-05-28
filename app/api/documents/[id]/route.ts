@@ -54,3 +54,19 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     return NextResponse.json({ error: 'Failed to delete document' }, { status: 500 });
   }
 }
+
+// export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+//   try {
+//     const { isDelivered } = await request.json();
+
+//     const document = await prisma.document.update({
+//       where: { id: params.id },
+//       data: { isDelivered },
+//     });
+
+//     return NextResponse.json(document);
+//   } catch (error) {
+//     console.error('Error updating document:', error);
+//     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+//   }
+// }
