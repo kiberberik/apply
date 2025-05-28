@@ -17,7 +17,13 @@ import { ExtendedApplication } from '@/types/application';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UpdateApplicationRequest, useApplicationStore } from '@/store/useApplicationStore';
 import { useLogStore } from '@/store/useLogStore';
-import { StudyType, AcademicLevel, Role, ApplicationStatus } from '@prisma/client';
+import {
+  StudyType,
+  AcademicLevel,
+  Role,
+  ApplicationStatus,
+  ContractSignType,
+} from '@prisma/client';
 import { toast } from 'react-toastify';
 import dateUtils from '@/lib/dateUtils';
 import { Loader2 } from 'lucide-react';
@@ -171,6 +177,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   });
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const { user } = useAuthStore();
+  const isManager = user?.role === Role.MANAGER;
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [formValuesForSubmit, setFormValuesForSubmit] = useState<FormValues | null>(null);
@@ -470,7 +477,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   };
 
   const handleSaveDraftClick = async () => {
-    if (isReadOnly) return;
+    if (isReadOnly && !isManager) return;
     try {
       const values = form.getValues();
       if (values.applicant) {
@@ -1013,6 +1020,10 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     }
   };
 
+  const handleNeedDocument = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+  };
+
   const formKey = `application-form-${id || 'new'}`;
 
   // Выводим в консоль статус загрузки
@@ -1180,6 +1191,8 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         },
       );
 
+      console.log('TrustMe response:', trustMeResponse);
+
       const responseText = await trustMeResponse.text();
       console.log('TrustMe raw response:', responseText);
 
@@ -1188,14 +1201,8 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         throw new Error(`Ошибка при отправке в TrustMe: ${responseText}`);
       }
 
-      let result;
-      try {
-        result = JSON.parse(responseText);
-        console.log('TrustMe parsed response:', result);
-      } catch (parseError) {
-        console.error('Ошибка при парсинге ответа:', parseError);
-        throw new Error('Неверный формат ответа от TrustMe');
-      }
+      const result = JSON.parse(responseText) || {};
+      console.log('TrustMe parsed response:', result);
 
       if (!result.data) {
         toast.error('Не удалось отправить контракт на подписание');
@@ -1204,11 +1211,27 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
 
       // Создаем лог о отправке в TrustMe
       if (id && user?.id) {
+        const trustMeData = result?.data;
+        console.log('TrustMe data:', trustMeData);
+        const trustMeId = trustMeData?.id;
+        const trustMeUrl = trustMeData?.url;
+        const trustMeFileName = trustMeData?.filename;
+
+        // Обновляем данные заявки с информацией о TrustMe
+        await updateSingleApplication(id, {
+          trustMeId,
+          trustMeUrl,
+          trustMeFileName,
+          contractSignType: ContractSignType.TRUSTME,
+        });
+
+        // Создаем лог
         await createLog({
           applicationId: id,
           createdById: user.id,
           statusId: 'NEED_SIGNATURE',
-          description: `TrustMe: ${JSON.stringify(result?.data, null, 2)}`,
+          description: `TrustMe: ${JSON.stringify(trustMeUrl, null, 2)}`,
+          // description: `TrustMe: ${JSON.stringify(result?.data, null, 2)}`,
         });
         toast.success('Контракт успешно отправлен на подписание');
       }
@@ -1295,12 +1318,14 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
     if (e.target.files && e.target.files[0]) {
       setSignedContractFile(e.target.files[0]);
     }
   };
 
-  const handleUploadSignedContract = async () => {
+  const handleUploadSignedContract = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     if (signedContractFile && user?.id) {
       try {
         const formData = new FormData();
@@ -1336,8 +1361,10 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     }
   };
 
-  const handleCheckSignatureTrustMe = async () => {
+  const handleCheckStatusTrustMe = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     setIsLoading(true);
+    await fetchSingleApplication(id as string);
     try {
       // Получаем последний лог заявки
       const latestLog = getLatestLogByApplicationId(id as string);
@@ -1345,26 +1372,24 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         throw new Error('Не найден лог заявки');
       }
 
-      // Извлекаем document_id из описания лога
-      const description = latestLog.description || '';
-      const documentIdMatch = description.match(/"id":\s*"([^"]+)"/);
-      if (!documentIdMatch) {
-        throw new Error('Не найден ID документа в логах');
+      // Получаем trustMeId из объекта заявки
+      const trustMeId = singleApplication?.trustMeId;
+      if (!trustMeId) {
+        throw new Error('Не найден ID документа TrustMe');
       }
-      const documentId = documentIdMatch[1].trim();
 
-      console.log('Извлеченный ID документа:', documentId);
+      console.log('ID документа TrustMe:', trustMeId);
 
       // Создаем заголовки
       const headers = new Headers();
       headers.append('Authorization', process.env.NEXT_PUBLIC_TRUSTME_API_TOKEN || '');
       headers.append('Content-Type', 'application/json');
 
-      console.log('Проверяем статус документа:', documentId);
+      console.log('Проверяем статус документа:', trustMeId);
 
       // Отправляем запрос на проверку статуса
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_TRUSTME_API_URL}/ContractStatus/${documentId.trim()}`,
+        `${process.env.NEXT_PUBLIC_TRUSTME_API_URL}/ContractStatus/${trustMeId.trim()}`,
         {
           method: 'GET',
           headers: headers,
@@ -1416,11 +1441,11 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           break;
         case 4:
           statusText = tTrustMeStatus('revokedCompany');
-          newStatusId = 'REJECTED';
+          newStatusId = 'RE_PROCESSING';
           break;
         case 5:
           statusText = tTrustMeStatus('companyInitiatedTermination');
-          newStatusId = 'RE_PROCESSING';
+          newStatusId = 'NEED_SIGNATURE_TERMINATE_CONTRACT';
           break;
         case 6:
           statusText = tTrustMeStatus('clientInitiatedTermination');
@@ -1428,15 +1453,15 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           break;
         case 7:
           statusText = tTrustMeStatus('clientRefusedTermination');
-          newStatusId = 'RE_PROCESSING';
+          newStatusId = 'CHECK_DOCS';
           break;
         case 8:
           statusText = tTrustMeStatus('terminated');
-          newStatusId = 'REFUSED_TO_ENROLL';
+          newStatusId = 'RE_PROCESSING';
           break;
         case 9:
           statusText = tTrustMeStatus('clientRefusedSignature');
-          newStatusId = 'REFUSED_TO_SIGN';
+          newStatusId = 'RE_PROCESSING'; // REFUSED_TO_SIGN
           break;
         default:
           statusText = tTrustMeStatus('unknownStatus');
@@ -1477,30 +1502,18 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   const handleRevokeTrustMe = async () => {
     setIsLoading(true);
     try {
-      // Получаем последний лог заявки
-      const latestLog = getLatestLogByApplicationId(id as string);
-      if (!latestLog) {
-        throw new Error('Не найден лог заявки');
+      const trustMeId = singleApplication?.trustMeId;
+      if (!trustMeId) {
+        toast.error('Не найден ID документа TrustMe');
+        throw new Error('Не найден ID документа TrustMe');
       }
 
-      // Извлекаем document_id из описания лога
-      const description = latestLog.description || '';
-      const documentIdMatch = description.match(/"id":\s*"([^"]+)"/);
-      if (!documentIdMatch) {
-        throw new Error('Не найден ID документа в логах');
-      }
-      const documentId = documentIdMatch[1].trim();
-
-      console.log('Отзываем документ:', documentId);
-
-      // Создаем заголовки
       const headers = new Headers();
       headers.append('Authorization', process.env.NEXT_PUBLIC_TRUSTME_API_TOKEN || '');
       headers.append('Content-Type', 'application/json');
 
-      // Отправляем запрос на отзыв/расторжение
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_TRUSTME_API_URL}/RevokeContract/${documentId}`,
+        `${process.env.NEXT_PUBLIC_TRUSTME_API_URL}/RevokeContract/${trustMeId}`,
         {
           method: 'GET',
           headers: headers,
@@ -1509,37 +1522,35 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       );
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Ошибка TrustMe API:', {
-          status: response.status,
-          statusText: response.statusText,
-          errorText,
-        });
+        // const errorText = await response.text();
+        // console.error('Ошибка TrustMe API:', {
+        //   status: response.status,
+        //   statusText: response.statusText,
+        //   errorText,
+        // });
         throw new Error(`Ошибка при отзыве контракта: ${response.status} ${response.statusText}`);
       }
 
       const result = await response.json();
-      console.log('Результат отзыва:', result);
+      // console.log('Результат отзыва:', result);
 
-      // Определяем статус и создаем соответствующий лог
       let statusText = '';
       let newStatusId: ApplicationStatus;
 
-      // Проверяем статус из ответа API
       const status = result?.data?.status || result?.status;
-      console.log('Статус отзыва:', status);
+      // console.log('Статус отзыва:', status);
 
       switch (status) {
         case 4:
-          statusText = 'Контракт отозван';
+          statusText = tTrustMeStatus('revokedCompany');
           newStatusId = 'RE_PROCESSING';
           break;
         case 5:
-          statusText = 'Инициировано расторжение контракта';
-          newStatusId = 'RE_PROCESSING';
+          statusText = tTrustMeStatus('companyInitiatedTermination');
+          newStatusId = 'NEED_SIGNATURE_TERMINATE_CONTRACT';
           break;
         default:
-          statusText = 'Неизвестный статус';
+          statusText = tTrustMeStatus('unknown');
           newStatusId = 'RE_PROCESSING';
       }
 
@@ -1559,33 +1570,48 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       await fetchSingleApplication(id as string);
       await fetchLogsByApplicationId(id as string);
     } catch (error) {
-      console.error('Ошибка при отзыве контракта:', error);
-      toast.error('Произошла ошибка при отзыве контракта');
+      // console.error('Ошибка при отзыве контракта:', error);
+      toast.error(c('error'));
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleViewContract = async () => {
+  const handleViewContract = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+
     if (!id || !user?.role) return;
 
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/contracts`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ role: user.role, id }),
-      });
+      console.log('ContractSignType.TRUSTME:', ContractSignType.TRUSTME);
+      console.log('singleApplication?.contractSignType:', singleApplication?.contractSignType);
+      console.log('Are equal?', singleApplication?.contractSignType === ContractSignType.TRUSTME);
+      console.log('Type of ContractSignType.TRUSTME:', typeof ContractSignType.TRUSTME);
+      console.log('Type of contractSignType:', typeof singleApplication?.contractSignType);
 
-      if (!response.ok) {
-        throw new Error('Ошибка при получении контракта');
+      if (singleApplication?.contractSignType === ContractSignType.OFFLINE) {
+        const response = await fetch(`/api/contracts`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ role: user.role, id }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Ошибка при получении контракта');
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+      } else if (singleApplication?.contractSignType === ContractSignType.TRUSTME) {
+        console.log('here');
+        console.log('singleApplication?.trustMeUrl', singleApplication?.trustMeUrl);
+        window.open(`https://${singleApplication?.trustMeUrl as string}`, '_blank');
       }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      window.open(url, '_blank');
     } catch (error) {
       console.error('Ошибка при открытии контракта:', error);
       toast.error('Не удалось открыть контракт');
@@ -1729,7 +1755,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
                   type="button"
                   onClick={handleSaveDraftClick}
                   variant="outline"
-                  disabled={isReadOnly}
+                  disabled={isReadOnly && !isManager}
                 >
                   {c('saveDraft')}
                 </Button>
@@ -1790,6 +1816,11 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
                       {c('submitApplication')}
                     </Button>
                   ))}
+                {isManager && latestLog?.statusId === 'CHECK_DOCS' && (
+                  <Button type="button" onClick={handleNeedDocument}>
+                    needDocs
+                  </Button>
+                )}
               </div>
             </div>
           )}
@@ -1860,17 +1891,30 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
 
           {singleApplication?.submittedAt &&
             user?.role !== Role.USER &&
-            latestLog?.statusId === 'NEED_SIGNATURE' && (
+            (latestLog?.statusId === 'NEED_SIGNATURE' ||
+              latestLog?.statusId === 'NEED_SIGNATURE_TERMINATE_CONTRACT' ||
+              (singleApplication?.contractSignType === 'TRUSTME' &&
+                (latestLog?.statusId === 'NEED_DOCS' ||
+                  latestLog?.statusId === 'CHECK_DOCS' ||
+                  latestLog?.statusId === 'ENROLLED'))) && (
               <div className="my-12 flex w-full flex-col gap-6 rounded-lg p-4">
                 <div className="flex flex-row flex-wrap justify-end gap-4">
                   <Button
-                    onClick={handleCheckSignatureTrustMe}
+                    onClick={handleCheckStatusTrustMe}
                     disabled={isLoading}
                     className="bg-blue-500"
                   >
                     {c('checkSignatureTrustMe')}
                   </Button>
+                </div>
+              </div>
+            )}
 
+          {singleApplication?.submittedAt &&
+            (user?.role === Role.MANAGER || user?.role === Role.ADMIN) &&
+            latestLog?.statusId === 'NEED_SIGNATURE' && (
+              <div className="my-12 flex w-full flex-col gap-6 rounded-lg p-4">
+                <div className="flex flex-row flex-wrap justify-end gap-4">
                   <Button
                     onClick={(e) => {
                       e.preventDefault();

@@ -7,7 +7,7 @@ import { differenceInYears } from 'date-fns';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useLocale, useTranslations } from 'next-intl';
-import { Document, Role } from '@prisma/client';
+import { ApplicationStatus, Document, Role } from '@prisma/client';
 import { Button } from '../ui/button';
 import { Eye, Trash } from 'lucide-react';
 import {
@@ -24,6 +24,7 @@ import { Input } from '../ui/input';
 import { format } from 'date-fns';
 import { Checkbox } from '../ui/checkbox';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useLogStore } from '@/store/useLogStore';
 
 interface FormValues {
   documents: {
@@ -73,6 +74,7 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
   const form = useFormContext<FormValues>();
   const { user } = useAuthStore();
   const isConsultant = user?.role === Role.CONSULTANT;
+  const isManager = user?.role === Role.MANAGER;
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
@@ -135,6 +137,8 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
   //   watchStudyType,
   //   filteredDocuments.length,
   // ]);
+  const { getLatestLogByApplicationId } = useLogStore();
+  const latestLog = application?.id ? getLatestLogByApplicationId(application.id) : null;
 
   const getDocumentByCode = (code: string): Document | undefined => {
     return uploadedDocuments.find((doc) => doc.code === code);
@@ -297,33 +301,35 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                               : doc.name_kaz}
                           {doc.isScanRequired && <span className="ml-1 text-red-500">*</span>}
                         </FormLabel>
-                        {isConsultant && !isSubmitted && uploadedDocument && (
-                          <FormField
-                            control={form.control}
-                            name={`documentDetails.${doc.code}.isDelivered`}
-                            render={() => (
-                              <FormItem className="flex items-center gap-2">
-                                <FormControl>
-                                  <Checkbox
-                                    checked={uploadedDocument?.isDelivered ?? false}
-                                    onCheckedChange={(checked) => {
-                                      if (uploadedDocument) {
-                                        handleDeliveryStatusChange(
-                                          uploadedDocument,
-                                          checked as boolean,
-                                        );
-                                      }
-                                    }}
-                                    disabled={isLoading[doc.code || '']}
-                                  />
-                                </FormControl>
-                                <FormLabel className="text-sm font-normal">
-                                  {t('isDelivered')}
-                                </FormLabel>
-                              </FormItem>
-                            )}
-                          />
-                        )}
+                        {isConsultant &&
+                          (latestLog?.statusId === ApplicationStatus.PROCESSING ||
+                            latestLog?.statusId === ApplicationStatus.RE_PROCESSING) && (
+                            <FormField
+                              control={form.control}
+                              name={`documentDetails.${doc.code}.isDelivered`}
+                              render={() => (
+                                <FormItem className="flex items-center gap-2">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={uploadedDocument?.isDelivered ?? false}
+                                      onCheckedChange={(checked) => {
+                                        if (uploadedDocument) {
+                                          handleDeliveryStatusChange(
+                                            uploadedDocument,
+                                            checked as boolean,
+                                          );
+                                        }
+                                      }}
+                                      disabled={isLoading[doc.code || '']}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="text-sm font-normal">
+                                    {t('isDelivered')}
+                                  </FormLabel>
+                                </FormItem>
+                              )}
+                            />
+                          )}
                       </div>
                       <FormControl>
                         <div className="space-y-4">
@@ -352,7 +358,9 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                                     onClick={() =>
                                       openDeleteConfirm(uploadedDocument.id || '', doc.code || '')
                                     }
-                                    disabled={isSubmitted || isLoading[doc.code || '']}
+                                    disabled={
+                                      (isSubmitted && !isManager) || isLoading[doc.code || '']
+                                    }
                                   >
                                     <Trash className="h-4 w-4" />
                                   </Button>

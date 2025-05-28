@@ -46,15 +46,9 @@ export interface UpdateApplicationRequest {
     givennames?: string | null;
     patronymic?: string | null;
     surname?: string | null;
-    phone?: string | null;
-    addressResidential?: string | null;
-    addressRegistration?: string | null;
-    relationshipDegree?: RelationshipDegree | null;
-    isCitizenshipKz?: boolean | null;
     citizenship?: string | null;
     documentType?: IdentificationDocumentType | null;
     identificationNumber?: string | null;
-    // Поля документа удостоверения личности
     documentNumber?: string | null;
     documentIssueDate?: string | null;
     documentExpiryDate?: string | null;
@@ -65,6 +59,11 @@ export interface UpdateApplicationRequest {
     representativeDocumentExpiryDate?: string | null;
     representativeDocumentIssuingAuthority?: string | null;
     representativeDocumentFileLinks?: string | null;
+    relationshipDegree?: RelationshipDegree | null;
+    phone?: string | null;
+    addressResidential?: string | null;
+    addressRegistration?: string | null;
+    applicantId?: string | null;
   } | null;
   details?: {
     id?: string;
@@ -86,6 +85,10 @@ export interface UpdateApplicationRequest {
   statusId?: string;
   submittedAt?: string | null;
   consultantId?: string | null;
+  trustMeId?: string | null;
+  trustMeUrl?: string | null;
+  trustMeFileName?: string | null;
+  contractSignType?: 'TRUSTME' | 'OFFLINE' | 'NOT_SIGNED';
 }
 
 interface ExtendedLog extends Log {
