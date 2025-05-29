@@ -16,6 +16,7 @@ const publicApiPaths = [
   '/api/logout',
   '/api/verification-email/send',
   '/api/verification-email/verify',
+  '/api/webhook/notification',
 ];
 
 const intlMiddleware = createIntlMiddleware({

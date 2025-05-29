@@ -22,7 +22,12 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     // Здесь должна быть логика обработки уведомления
-    console.log('Received webhook notification:', body);
+    console.log('Received webhook notification:', {
+      body,
+      headers: request.headers,
+      method: request.method,
+      url: request.url,
+    });
 
     return NextResponse.json({
       status: 'Ok',
