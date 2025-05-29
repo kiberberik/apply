@@ -1344,6 +1344,9 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         const data = await response.json();
         toast.success('Подписанный контракт успешно загружен');
 
+        await updateSingleApplication(id as string, {
+          contractSignType: ContractSignType.OFFLINE,
+        });
         // Создаем лог через useLogStore
         await createLog({
           applicationId: id as string,

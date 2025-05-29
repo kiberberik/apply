@@ -79,7 +79,6 @@ export async function POST(request: Request) {
       where: { id: applicationId },
       data: {
         contractFileLinks: JSON.stringify(contractLinks),
-        contractSignType: 'OFFLINE',
       },
     });
 

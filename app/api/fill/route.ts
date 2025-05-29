@@ -68,7 +68,7 @@ export async function POST(req: Request) {
     edu_group_name: data.details.educationalProgram.group as string,
     edu_program_name: data.details.educationalProgram.name as string,
     edu_program_code: data.details.educationalProgram.code as string,
-    edu_program_duration: data.details.educationalProgram.duration as string,
+    years: data.details.educationalProgram.duration as string,
     edu_program_price: data.details.educationalProgram.costPerCredit as string,
     studying_language: (await tStudyingLanguage)(data.details.studyingLanguage as string) as string,
   };
