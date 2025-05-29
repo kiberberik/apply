@@ -1215,7 +1215,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         console.log('TrustMe data:', trustMeData);
         const trustMeId = trustMeData?.id;
         const trustMeUrl = trustMeData?.url;
-        const trustMeFileName = trustMeData?.filename;
+        const trustMeFileName = trustMeData?.fileName;
 
         // Обновляем данные заявки с информацией о TrustMe
         await updateSingleApplication(id, {

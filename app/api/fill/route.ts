@@ -123,7 +123,7 @@ export async function POST(req: Request) {
       break;
   }
 
-  currentTemplate = 'public/template-docs/test4.pdf';
+  currentTemplate = 'public/template-docs/test5.pdf';
 
   const templatePath = path.join(
     process.cwd(),
