@@ -1,26 +1,26 @@
 import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
+// import { headers } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { ApplicationStatus } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
 
 export async function POST(request: Request) {
   try {
-    const headersList = await headers();
-    const authorization = headersList.get('Authorization');
-    const expectedToken = process.env.NEXT_PUBLIC_APP_WEBHOOK_TOKEN;
+    // const headersList = await headers();
+    // const authorization = headersList.get('Authorization');
+    // const expectedToken = process.env.NEXT_PUBLIC_APP_WEBHOOK_TOKEN;
 
     // Проверка токена
-    if (!authorization || authorization !== expectedToken) {
-      return NextResponse.json(
-        {
-          status: 'Error',
-          errorText: 'Unauthorized',
-          data: '',
-        },
-        { status: 401 },
-      );
-    }
+    // if (!authorization || authorization !== expectedToken) {
+    //   return NextResponse.json(
+    //     {
+    //       status: 'Error',
+    //       errorText: 'Unauthorized',
+    //       data: '',
+    //     },
+    //     { status: 401 },
+    //   );
+    // }
 
     const body = await request.json();
     console.log('Received webhook notification:', {
