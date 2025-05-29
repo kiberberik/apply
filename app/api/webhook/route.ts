@@ -8,7 +8,7 @@ export async function GET() {
     return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
   }
   try {
-    const URL = process.env.NEXT_PUBLIC_APP_URL;
+    const URL = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhook/notification`;
     const Token = process.env.NEXT_PUBLIC_APP_WEBHOOK_TOKEN;
     const TrustMeToken = process.env.NEXT_PUBLIC_TRUSTME_API_TOKEN;
 
