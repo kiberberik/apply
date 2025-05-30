@@ -383,6 +383,7 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
     }
 
     console.log(form.getValues('documentDetails'));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uploadedDocuments, form, documentsLoaded, documentDetails]);
 
   // Добавляем эффект для отслеживания изменений в форме
