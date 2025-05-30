@@ -70,7 +70,7 @@
     "saveSignedContract": "Сохранить подписанный контракт",
     "checkSignatureTrustMe": "Проверить подписание (TrustMe)",
     "viewContract": "Посмотреть контракт",
-    "revokeTrustMe": "Отозвать контракт (TrustMe)",
+    "revokeTrustMe": "Отозвать/расторгнуть контракт (TrustMe)",
     "confirmRevokeTitle": "Подтверждение отозвания/расторжения контракта",
     "confirmRevokeDescription": "Вы уверены, что хотите отозвать/расторгнуть контракт через TrustMe? Это действие нельзя отменить."
   },

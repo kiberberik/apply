@@ -454,7 +454,18 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
                       disabled={isSubmitted}
                       onChange={(e) => {
                         const formattedValue = formatPhoneNumber(e.target.value);
-                        field.onChange(formattedValue);
+                        const applicantPhone = form.getValues('applicant.phone');
+
+                        if (formattedValue === applicantPhone) {
+                          form.setError('representative.phone', {
+                            type: 'manual',
+                            message: '',
+                          });
+                          field.onChange('');
+                        } else {
+                          form.clearErrors('representative.phone');
+                          field.onChange(formattedValue);
+                        }
                       }}
                       placeholder="+XXXXXXXXXXXX"
                       maxLength={15}

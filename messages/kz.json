@@ -70,7 +70,7 @@
     "saveSignedContract": "Қол қойылған келісім-шартты сақтау",
     "checkSignatureTrustMe": "Қол қойылуын тексеру (TrustMe)",
     "viewContract": "Келісім-шартты көру",
-    "revokeTrustMe": "Келісім-шартты қайтару (TrustMe)",
+    "revokeTrustMe": "Келісім-шартты қайтару/бұзу (TrustMe)",
     "confirmRevokeTitle": "Келісім-шартты қайтаруды/бұзуды растау",
     "confirmRevokeDescription": "TrustMe арқылы келісім-шартты қайтаруға/бұзуға сенімдісіз бе? Бұл әрекетті кері қайтаруға болмайды."
   },

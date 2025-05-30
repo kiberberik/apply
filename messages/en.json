@@ -70,7 +70,7 @@
     "saveSignedContract": "Save Signed Contract",
     "checkSignatureTrustMe": "Check Signature (TrustMe)",
     "viewContract": "View Contract",
-    "revokeTrustMe": "Revoke Contract (TrustMe)",
+    "revokeTrustMe": "Revoke/Terminate Contract (TrustMe)",
     "confirmRevokeTitle": "Confirm Revocation/Termination of Contract",
     "confirmRevokeDescription": "Are you sure you want to revoke/terminate the contract through TrustMe? This action cannot be undone."
   },

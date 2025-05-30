@@ -67,6 +67,7 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
     null,
   );
   const [documentsLoaded, setDocumentsLoaded] = useState(false);
+  const [documentDetails, setDocumentDetails] = useState<FormValues['documentDetails']>({});
   const updatePendingRef = useRef(false);
   const t = useTranslations('RequiredDocuments');
   const c = useTranslations('Common');
@@ -235,19 +236,25 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
         (acc, doc) => {
           if (doc.code === 'education_document') {
             acc[doc.code] = {
-              diplomaSerialNumber: doc.diplomaSerialNumber || '',
-              number: doc.number || '',
-              issueDate: doc.issueDate ? format(new Date(doc.issueDate), 'yyyy-MM-dd') : '',
+              diplomaSerialNumber:
+                doc.diplomaSerialNumber || documentDetails[doc.code]?.diplomaSerialNumber || '',
+              number: doc.number || documentDetails[doc.code]?.number || '',
+              issueDate: doc.issueDate
+                ? format(new Date(doc.issueDate), 'yyyy-MM-dd')
+                : documentDetails[doc.code]?.issueDate || '',
             };
           } else if (doc.code === 'ent_certificate' || doc.code === 'grant_certificate') {
             acc[doc.code] = {
-              number: doc.number || '',
+              number: doc.number || documentDetails[doc.code]?.number || '',
             };
           }
           return acc;
         },
         {} as FormValues['documentDetails'],
       );
+
+      // Сохраняем детали в локальное состояние
+      setDocumentDetails(documentDetailsValues);
 
       // Устанавливаем значения формы
       Object.entries(documentsValues).forEach(([key, value]) => {
@@ -266,7 +273,27 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
     }
 
     console.log(form.getValues('documentDetails'));
-  }, [uploadedDocuments, form, documentsLoaded]);
+  }, [uploadedDocuments, form, documentsLoaded, documentDetails]);
+
+  // Добавляем эффект для отслеживания изменений в форме
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name?.startsWith('documentDetails.')) {
+        const [, code, field] = name.split('.');
+        if (code && field) {
+          setDocumentDetails((prev) => ({
+            ...prev,
+            [code]: {
+              ...prev[code],
+              [field]: value.documentDetails?.[code]?.[field as keyof (typeof prev)[typeof code]],
+            },
+          }));
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   return (
     <>

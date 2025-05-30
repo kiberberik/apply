@@ -109,6 +109,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           consultantId:
             data.consultantId !== undefined ? data.consultantId : application.consultantId,
           updatedAt: new Date(),
+          contractSignType: data.contractSignType ?? application.contractSignType,
           trustMeId: data.trustMeId ?? application.trustMeId,
           trustMeUrl: data.trustMeUrl ?? application.trustMeUrl,
           trustMeFileName: data.trustMeFileName ?? application.trustMeFileName,

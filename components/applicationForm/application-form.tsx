@@ -622,34 +622,6 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           )
         : null;
 
-      // Обновляем статус доставки документов
-      // if (data.documentDetails) {
-      //   const documents = useDocumentStore.getState().documents;
-      //   for (const [code, details] of Object.entries(data.documentDetails)) {
-      //     const document = documents.find((doc) => doc.code === code);
-      //     if (
-      //       document &&
-      //       typeof details === 'object' &&
-      //       details !== null &&
-      //       'isDelivered' in details
-      //     ) {
-      //       try {
-      //         await fetch(`/api/documents/${document.id}`, {
-      //           method: 'PATCH',
-      //           headers: {
-      //             'Content-Type': 'application/json',
-      //           },
-      //           body: JSON.stringify({
-      //             isDelivered: details.isDelivered,
-      //           }),
-      //         });
-      //       } catch (error) {
-      //         console.error('Error updating document delivery status:', error);
-      //       }
-      //     }
-      //   }
-      // }
-
       const requestData: UpdateApplicationRequest = {
         applicant: data.applicant
           ? {
@@ -727,59 +699,70 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       // Получаем консультанта с наименьшей нагрузкой при отправке заявления
       if (isSubmit && !singleApplication?.consultantId) {
         try {
-          // Получаем список консультантов из API
-          const consultantsResponse = await fetch('/api/users?role=CONSULTANT');
-
-          if (!consultantsResponse.ok) {
-            // console.error('Не удалось получить список консультантов');
+          // Если текущий пользователь - консультант, используем его данные
+          if (user?.role === Role.CONSULTANT) {
+            selectedConsultant = {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+            };
           } else {
-            const consultants = await consultantsResponse.json();
+            // Получаем список консультантов из API
+            const consultantsResponse = await fetch('/api/users?role=CONSULTANT');
 
-            // Если есть консультанты
-            if (consultants && consultants.length > 0) {
-              // Получаем заявки в статусе PROCESSING для каждого консультанта
-              const consultantsWithProcessingCount = await Promise.all(
-                consultants.map(async (consultant: any) => {
-                  // Логика подсчета заявок в обработке для каждого консультанта
-                  const processingApplications =
-                    consultant.consultedApplications?.filter((app: any) => {
-                      // Проверяем, что у заявки последний лог имеет статус PROCESSING
-                      const latestLog = app.Log?.[0];
-                      return latestLog && latestLog.statusId === 'PROCESSING';
-                    }) || [];
+            if (!consultantsResponse.ok) {
+              console.error('Не удалось получить список консультантов');
+            } else {
+              const consultants = await consultantsResponse.json();
 
-                  return {
-                    id: consultant.id,
-                    name: consultant.name,
-                    email: consultant.email,
-                    processingCount: processingApplications.length,
-                  };
-                }),
-              );
+              // Если есть консультанты
+              if (consultants && consultants.length > 0) {
+                // Получаем заявки в статусе PROCESSING для каждого консультанта
+                const consultantsWithProcessingCount = await Promise.all(
+                  consultants.map(async (consultant: any) => {
+                    // Логика подсчета заявок в обработке для каждого консультанта
+                    const processingApplications =
+                      consultant.consultedApplications?.filter((app: any) => {
+                        // Проверяем, что у заявки последний лог имеет статус PROCESSING
+                        const latestLog = app.Log?.[0];
+                        return latestLog && latestLog.statusId === 'PROCESSING';
+                      }) || [];
 
-              // Найдем консультанта с минимальным количеством заявок в обработке
-              if (consultantsWithProcessingCount.length > 0) {
-                const minProcessingCount = Math.min(
-                  ...consultantsWithProcessingCount.map((c) => c.processingCount),
+                    return {
+                      id: consultant.id,
+                      name: consultant.name,
+                      email: consultant.email,
+                      processingCount: processingApplications.length,
+                    };
+                  }),
                 );
 
-                // Фильтруем консультантов с минимальным количеством заявок
-                const consultantsWithMinProcessing = consultantsWithProcessingCount.filter(
-                  (c) => c.processingCount === minProcessingCount,
-                );
+                // Найдем консультанта с минимальным количеством заявок в обработке
+                if (consultantsWithProcessingCount.length > 0) {
+                  const minProcessingCount = Math.min(
+                    ...consultantsWithProcessingCount.map((c) => c.processingCount),
+                  );
 
-                // Выбираем случайного консультанта из списка с минимальной нагрузкой
-                selectedConsultant =
-                  consultantsWithMinProcessing[
-                    Math.floor(Math.random() * consultantsWithMinProcessing.length)
-                  ];
+                  // Фильтруем консультантов с минимальным количеством заявок
+                  const consultantsWithMinProcessing = consultantsWithProcessingCount.filter(
+                    (c) => c.processingCount === minProcessingCount,
+                  );
 
-                console.log('Выбран консультант:', selectedConsultant);
+                  // Выбираем случайного консультанта из списка с минимальной нагрузкой
+                  selectedConsultant =
+                    consultantsWithMinProcessing[
+                      Math.floor(Math.random() * consultantsWithMinProcessing.length)
+                    ];
 
-                // Добавляем ID консультанта к данным заявки
-                requestData.consultantId = selectedConsultant.id;
+                  console.log('Выбран консультант:', selectedConsultant);
+                }
               }
             }
+          }
+
+          // Добавляем ID консультанта к данным заявки
+          if (selectedConsultant) {
+            requestData.consultantId = selectedConsultant.id;
           }
         } catch (error) {
           console.error('Ошибка при выборе консультанта:', error);
@@ -807,11 +790,22 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         // Создаем лог при отправке заявления
         if (isSubmit) {
           try {
+            // Если консультант не был выбран ранее, используем данные из заявки
+            if (!selectedConsultant && singleApplication?.consultant) {
+              selectedConsultant = {
+                id: singleApplication.consultant.id,
+                name: singleApplication.consultant.name,
+                email: singleApplication.consultant.email,
+              };
+            }
+
             await createLog({
               applicationId: id,
               statusId: 'PROCESSING',
               createdById: user?.id,
-              description: `Consultant: ${selectedConsultant.name || ''} - ${selectedConsultant.email || ''}`,
+              description: selectedConsultant
+                ? `Consultant: ${selectedConsultant.name || ''} - ${selectedConsultant.email || ''}`
+                : 'Consultant not assigned',
             });
           } catch (logError) {
             console.warn('Failed to create log, but application was saved:', logError);
@@ -1914,8 +1908,12 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
             )}
 
           {singleApplication?.submittedAt &&
+            singleApplication?.contractSignType === 'TRUSTME' &&
             (user?.role === Role.MANAGER || user?.role === Role.ADMIN) &&
-            latestLog?.statusId === 'NEED_SIGNATURE' && (
+            (latestLog?.statusId === 'NEED_SIGNATURE' ||
+              latestLog?.statusId === 'NEED_DOCS' ||
+              latestLog?.statusId === 'CHECK_DOCS' ||
+              latestLog?.statusId === 'ENROLLED') && (
               <div className="my-12 flex w-full flex-col gap-6 rounded-lg p-4">
                 <div className="flex flex-row flex-wrap justify-end gap-4">
                   <Button
