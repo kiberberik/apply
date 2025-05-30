@@ -72,7 +72,10 @@
     "viewContract": "View Contract",
     "revokeTrustMe": "Revoke/Terminate Contract (TrustMe)",
     "confirmRevokeTitle": "Confirm Revocation/Termination of Contract",
-    "confirmRevokeDescription": "Are you sure you want to revoke/terminate the contract through TrustMe? This action cannot be undone."
+    "confirmRevokeDescription": "Are you sure you want to revoke/terminate the contract through TrustMe? This action cannot be undone.",
+    "maxImagesExceeded": "The maximum number of files has been exceeded",
+    "uploadAndAnalyzeDocuments": "Upload document and extract data",
+    "aiProcessingWarning": "Warning: Documents are processed using artificial intelligence"
   },
   "Roles": {
     "USER": "User",
@@ -245,7 +248,8 @@
   "SupportLanguages": {
     "KAZ": "Kazakh",
     "RUS": "Russian",
-    "ENG": "English"
+    "ENG": "English",
+    "POLY": "Multilingual"
   },
   "Applications": {
     "title": "Applications",

@@ -10,6 +10,9 @@ import { formatToDatabaseDate } from '@/lib/dateUtils';
 import { toast } from 'react-toastify';
 import { useLogStore } from '@/store/useLogStore';
 import countries from '@/data/countries.json';
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { TriangleAlert } from 'lucide-react';
 
 interface DocAnalizerProps {
   id: string;
@@ -66,7 +69,6 @@ const DocAnalizer = ({ id, activeTab, setActiveTab, isAdult, setFormValue }: Doc
   const [processingData, setProcessingData] = useState(false);
   const { getLatestLogByApplicationId } = useLogStore();
   const latestLog = getLatestLogByApplicationId(id);
-
   const handleOpenAIResponse = async (response: string | object, tabName?: string) => {
     try {
       setProcessingData(true);
@@ -278,6 +280,11 @@ const DocAnalizer = ({ id, activeTab, setActiveTab, isAdult, setFormValue }: Doc
   };
 
   const handleImageAdd = (newImages: string[]) => {
+    const totalImages = images.length + newImages.length;
+    if (totalImages > 10) {
+      toast.error(c('maxImagesExceeded'));
+      return;
+    }
     setImages((prev) => [...prev, ...newImages]);
   };
 
@@ -302,35 +309,57 @@ const DocAnalizer = ({ id, activeTab, setActiveTab, isAdult, setFormValue }: Doc
   }
 
   return (
-    <div className="rounded-md bg-gray-100 p-2 md:p-8">
-      <div className="mx-auto max-w-6xl space-y-4">
-        <h2 className="text-center text-lg font-bold">
-          {c(activeTab === 'applicant' ? 'applicant' : 'representative')}
-        </h2>
-        <p className="text-center text-sm text-gray-500">{c('uploadDocumentsDescription')}</p>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <OpenAIDocumentUpload
-            onImagesAdd={handleImageAdd}
-            images={images}
-            onDelete={handleImageDelete}
-          />
-          <CameraCapture onImagesAdd={handleImageAdd} />
-        </div>
-        <OpenAIResponse
-          images={images}
-          onResponse={(response) => handleOpenAIResponse(response, activeTab)}
-          applicationId={id}
-          activeTab={activeTab}
-          isProcessing={processingData}
-        />
-
-        {openAIResponse && typeof openAIResponse === 'object' && 'error' in openAIResponse && (
-          <div className="mt-4 flex justify-center">
-            <p className="text-2xl text-red-500">{c('criteriaError')}</p>
+    <Dialog>
+      <DialogTrigger asChild>
+        <div className="relative flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-8 py-4 shadow-sm transition-colors hover:border-gray-300">
+          <div className="flex w-full items-center justify-center gap-2">
+            <Button
+              variant="ghost"
+              className="w-full px-3 text-left whitespace-normal hover:bg-transparent"
+            >
+              {c('uploadAndAnalyzeDocuments')}
+            </Button>
           </div>
-        )}
-      </div>
-    </div>
+          <p className="block text-xs text-gray-500 md:hidden">{c('aiProcessingWarning')}</p>
+        </div>
+      </DialogTrigger>
+      <DialogTitle></DialogTitle>
+      <DialogContent className="max-w-7xl">
+        <div className="rounded-md bg-gray-100 p-2 md:p-8">
+          <div className="mx-auto max-w-6xl space-y-4">
+            <h2 className="text-center text-lg font-bold">
+              {c(activeTab === 'applicant' ? 'applicant' : 'representative')}
+            </h2>
+            <p className="text-center text-sm text-gray-500">{c('uploadDocumentsDescription')}</p>
+            <p className="flex items-center justify-start gap-2 text-center text-sm text-gray-500">
+              <TriangleAlert className="h-4 w-4 shrink-0 cursor-help text-gray-500 transition-colors hover:text-gray-700" />
+              {c('aiProcessingWarning')}
+            </p>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <OpenAIDocumentUpload
+                onImagesAdd={handleImageAdd}
+                images={images}
+                onDelete={handleImageDelete}
+              />
+              <CameraCapture onImagesAdd={handleImageAdd} images={images} />
+            </div>
+            <OpenAIResponse
+              images={images}
+              onResponse={(response) => handleOpenAIResponse(response, activeTab)}
+              applicationId={id}
+              activeTab={activeTab}
+              isProcessing={processingData}
+            />
+
+            {openAIResponse && typeof openAIResponse === 'object' && 'error' in openAIResponse && (
+              <div className="mt-4 flex justify-center">
+                <p className="text-2xl text-red-500">{c('criteriaError')}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

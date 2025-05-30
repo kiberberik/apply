@@ -84,6 +84,18 @@ function Details({ application, isSubmitted = false }: DetailsProps) {
   const educationalProgramId = form.watch('details.educationalProgramId');
 
   useEffect(() => {
+    if (application?.details?.educationalProgramId) {
+      const fetchProgramDetails = async () => {
+        const program = await getEducationalProgramDetails(
+          application?.details?.educationalProgramId as string,
+        );
+        setSelectedProgram(program);
+      };
+      fetchProgramDetails();
+    }
+  }, [application?.details?.educationalProgramId, getEducationalProgramDetails]);
+
+  useEffect(() => {
     if (educationalProgramId) {
       const fetchProgramDetails = async () => {
         const program = await getEducationalProgramDetails(educationalProgramId);
@@ -214,6 +226,7 @@ function Details({ application, isSubmitted = false }: DetailsProps) {
                       <SelectItem value="RUS">{tSupportLanguages('RUS')}</SelectItem>
                       <SelectItem value="KAZ">{tSupportLanguages('KAZ')}</SelectItem>
                       <SelectItem value="ENG">{tSupportLanguages('ENG')}</SelectItem>
+                      <SelectItem value="POLY">{tSupportLanguages('POLY')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

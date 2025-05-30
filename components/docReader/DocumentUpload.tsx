@@ -3,6 +3,7 @@ import { PDFDocument } from 'pdf-lib';
 import { ImageGallery } from './ImageGallery';
 import { useTranslations } from 'next-intl';
 import { PDFGenerator } from './PDFGenerator';
+import { toast } from 'react-toastify';
 
 interface DocumentUploadProps {
   onImagesAdd: (images: string[]) => void;
@@ -22,6 +23,16 @@ export const DocumentUpload = ({ onImagesAdd, images, onDelete }: DocumentUpload
 
     setIsProcessing(true);
     const newImages: string[] = [];
+
+    const totalImages = images.length + files.length;
+    if (totalImages > 10) {
+      toast.error(t('maxImagesExceeded'));
+      setIsProcessing(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      return;
+    }
 
     for (const file of Array.from(files)) {
       if (file.type === 'application/pdf') {

@@ -25,6 +25,7 @@ import { format } from 'date-fns';
 import { Checkbox } from '../ui/checkbox';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLogStore } from '@/store/useLogStore';
+import { PDFDocument } from 'pdf-lib';
 
 interface FormValues {
   documents: {
@@ -52,6 +53,11 @@ interface RequiredDocsProps {
   application: ExtendedApplication;
   isSubmitted?: boolean;
 }
+
+// Размеры A4 в пунктах (1 пункт = 1/72 дюйма)
+const A4_WIDTH = 595.28; // 210 мм
+const A4_HEIGHT = 841.89; // 297 мм
+const PAGE_PADDING = 20; // Отступы по краям страницы
 
 export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsProps) {
   const { documents: requiredDocuments, fetchDocuments } = useRequiredDocuments();
@@ -212,10 +218,114 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
     }
   }, [uploadedDocuments, form]);
 
-  // Инициализируем начальные значения для всех полей формы
+  const generatePDFFromImages = async (imageUrls: string[]) => {
+    const pdfDoc = await PDFDocument.create();
+
+    for (const imageUrl of imageUrls) {
+      try {
+        const response = await fetch(imageUrl);
+        const fileBytes = await response.arrayBuffer();
+
+        // Обработка изображений
+        let image;
+        if (imageUrl.toLowerCase().endsWith('.png')) {
+          image = await pdfDoc.embedPng(fileBytes);
+        } else {
+          try {
+            image = await pdfDoc.embedJpg(fileBytes);
+          } catch {
+            // Если не удалось загрузить как JPG, пробуем как PNG
+            image = await pdfDoc.embedPng(fileBytes);
+          }
+        }
+
+        // Создаем страницу A4
+        const page = pdfDoc.addPage([A4_WIDTH, A4_HEIGHT]);
+
+        // Вычисляем масштаб для изображения
+        const scale = Math.min(
+          (A4_WIDTH - PAGE_PADDING * 2) / image.width,
+          (A4_HEIGHT - PAGE_PADDING * 2) / image.height,
+        );
+
+        // Центрируем изображение на странице
+        const scaledWidth = image.width * scale;
+        const scaledHeight = image.height * scale;
+        const x = (A4_WIDTH - scaledWidth) / 2;
+        const y = (A4_HEIGHT - scaledHeight) / 2;
+
+        page.drawImage(image, {
+          x,
+          y,
+          width: scaledWidth,
+          height: scaledHeight,
+        });
+      } catch (error) {
+        console.error(`Ошибка при обработке файла ${imageUrl}:`, error);
+        continue;
+      }
+    }
+
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    return blob;
+  };
+
   useEffect(() => {
     if (uploadedDocuments.length > 0 && !documentsLoaded && !updatePendingRef.current) {
       updatePendingRef.current = true;
+
+      // Проверяем наличие identity_document в application.Applicant.documentFileLinks
+      if (
+        application?.applicant?.documentFileLinks &&
+        application.applicant.documentFileLinks.length > 0
+      ) {
+        const identityDoc = requiredDocuments.find((doc) => doc.code === 'identity_document');
+        if (identityDoc && identityDoc.code) {
+          // Проверяем, не был ли уже создан документ удостоверения личности
+          const existingIdentityDoc = uploadedDocuments.find(
+            (doc) => doc.code === 'identity_document',
+          );
+          if (!existingIdentityDoc) {
+            const fileLinks = JSON.parse(application.applicant.documentFileLinks) as string[];
+            if (fileLinks.length > 0) {
+              // Создаем PDF из изображений
+              generatePDFFromImages(fileLinks).then(async (pdfBlob) => {
+                // Создаем FormData для загрузки файла
+                const formData = new FormData();
+                const file = new File([pdfBlob], 'identity_document.pdf', {
+                  type: 'application/pdf',
+                });
+                formData.append('file', file);
+                formData.append('applicationId', application.id);
+                if (application.applicant?.id) {
+                  formData.append('userId', application.applicant.id);
+                }
+                if (identityDoc.code) {
+                  formData.append('documentCode', identityDoc.code);
+                }
+
+                try {
+                  const response = await fetch('/api/upload-required-document', {
+                    method: 'POST',
+                    body: formData,
+                  });
+
+                  if (!response.ok) {
+                    throw new Error('Failed to upload file');
+                  }
+
+                  await response.json();
+                  // Обновляем список документов
+                  fetchDocumentsByApplication(application.id);
+                } catch (error) {
+                  console.error('Error uploading file:', error);
+                }
+              });
+            }
+          }
+        }
+      }
 
       // Инициализируем документы
       const documentsValues = uploadedDocuments.reduce(

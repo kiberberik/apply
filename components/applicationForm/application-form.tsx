@@ -39,6 +39,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import { useEducationalStore } from '@/store/useEducationalStore';
 import { Input } from '../ui/input';
@@ -311,17 +312,29 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       user?.role === Role.CONSULTANT &&
       (latestLog?.statusId === 'NEED_SIGNATURE' ||
         latestLog?.statusId === 'CHECK_DOCS' ||
-        latestLog?.statusId === 'NEED_DOCS')) ||
+        latestLog?.statusId === 'NEED_DOCS' ||
+        latestLog?.statusId === 'NEED_SIGNATURE_TERMINATE_CONTRACT' ||
+        latestLog?.statusId === 'REFUSED_TO_ENROLL' ||
+        latestLog?.statusId === 'EARLY_REFUSED_TO_ENROLL' ||
+        latestLog?.statusId === 'REJECTED')) ||
     (isSubmitted &&
       user?.role === Role.MANAGER &&
       (latestLog?.statusId === 'NEED_SIGNATURE' ||
         latestLog?.statusId === 'CHECK_DOCS' ||
-        latestLog?.statusId === 'NEED_DOCS')) ||
+        latestLog?.statusId === 'NEED_DOCS' ||
+        latestLog?.statusId === 'NEED_SIGNATURE_TERMINATE_CONTRACT' ||
+        latestLog?.statusId === 'REFUSED_TO_ENROLL' ||
+        latestLog?.statusId === 'EARLY_REFUSED_TO_ENROLL' ||
+        latestLog?.statusId === 'REJECTED')) ||
     (isSubmitted &&
       user?.role === Role.ADMIN &&
       (latestLog?.statusId === 'NEED_SIGNATURE' ||
         latestLog?.statusId === 'CHECK_DOCS' ||
-        latestLog?.statusId === 'NEED_DOCS'));
+        latestLog?.statusId === 'NEED_DOCS' ||
+        latestLog?.statusId === 'NEED_SIGNATURE_TERMINATE_CONTRACT' ||
+        latestLog?.statusId === 'REFUSED_TO_ENROLL' ||
+        latestLog?.statusId === 'EARLY_REFUSED_TO_ENROLL' ||
+        latestLog?.statusId === 'REJECTED'));
 
   // Мемоизация isApplicantAdult для предотвращения лишних рендеров
   const isApplicantAdult = useCallback(() => {
@@ -557,7 +570,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
             form.setValue('contractLanguage', updatedApp.contractLanguage || '');
           }
         }
-        toast.success(c('success'));
+        // toast.success(c('success'));
       } else {
         toast.error(c('error'));
       }
@@ -1763,7 +1776,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
                       onClick={(e) => {
                         // Предотвращаем отправку формы
                         e.preventDefault();
-
+                        handleSaveDraftClick();
                         // Логика переключения на следующий таб
                         if (activeTab === 'applicant') {
                           // Если взрослый, переходим на details, иначе на representative

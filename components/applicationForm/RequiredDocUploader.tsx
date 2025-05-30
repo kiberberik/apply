@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 
 const RequiredDocUploader = () => {
   const [images, setImages] = useState<string[]>([]);
-
   const handleImageAdd = (newImages: string[]) => {
     setImages((prev) => [...prev, ...newImages]);
   };
@@ -22,7 +21,7 @@ const RequiredDocUploader = () => {
       </DialogTrigger>
       <DialogTitle></DialogTitle>
       <DialogContent className="max-w-7xl">
-        <div className="mx-auto space-y-8">
+        <div className="mx-auto w-full space-y-8">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             <DocumentUpload
               onImagesAdd={handleImageAdd}
@@ -30,7 +29,7 @@ const RequiredDocUploader = () => {
               onDelete={handleImageDelete}
             />
             <div className="hidden md:block">
-              <CameraCapture onImagesAdd={handleImageAdd} />
+              <CameraCapture onImagesAdd={handleImageAdd} images={images} />
             </div>
           </div>
         </div>

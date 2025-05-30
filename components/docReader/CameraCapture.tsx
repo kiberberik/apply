@@ -2,12 +2,14 @@ import { useState, useRef, useEffect } from 'react';
 import Webcam from 'react-webcam';
 import { Button } from '../ui/button';
 import { useTranslations } from 'next-intl';
+import { toast } from 'react-toastify';
 
 interface CameraCaptureProps {
   onImagesAdd: (images: string[]) => void;
+  images: string[];
 }
 
-export const CameraCapture = ({ onImagesAdd }: CameraCaptureProps) => {
+export const CameraCapture = ({ onImagesAdd, images }: CameraCaptureProps) => {
   const webcamRef = useRef<Webcam>(null);
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
 
@@ -15,15 +17,25 @@ export const CameraCapture = ({ onImagesAdd }: CameraCaptureProps) => {
   const t = useTranslations('Common');
 
   const videoConstraints = {
-    width: 1920,
-    height: 1080,
+    // width: 3840,
+    // height: 2160,
     facingMode: facingMode,
-    aspectRatio: 16 / 9,
-    frameRate: { ideal: 30 },
+    // aspectRatio: 16 / 9,
+    // frameRate: { ideal: 30 },
+    focusMode: 'continuous',
+    exposureMode: 'continuous',
+    whiteBalanceMode: 'continuous',
   };
 
   const capture = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
+
+    const totalImages = images.length + capturedImages.length;
+    if (totalImages >= 10) {
+      toast.error(t('maxImagesExceeded'));
+      return;
+    }
+
     const imageSrc = webcamRef.current?.getScreenshot();
     if (imageSrc) {
       setCapturedImages((prev) => [...prev, imageSrc]);
@@ -50,10 +62,13 @@ export const CameraCapture = ({ onImagesAdd }: CameraCaptureProps) => {
         <Webcam
           ref={webcamRef}
           screenshotFormat="image/jpeg"
-          className="aspect-video h-auto w-full rounded-lg"
+          className="rounded-lg"
           videoConstraints={videoConstraints}
           audio={false}
           screenshotQuality={1}
+          imageSmoothing={true}
+          forceScreenshotSourceSize={true}
+          disablePictureInPicture={true}
         />
       </div>
 

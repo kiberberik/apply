@@ -59,6 +59,15 @@ async function main() {
     },
   });
 
+  await prisma.language.create({
+    data: {
+      code: SupportLanguages.POLY,
+      name_rus: 'Полиязычный',
+      name_kaz: 'Көптілді',
+      name_eng: 'Multilingual',
+    },
+  });
+
   // Создаем администратора
   const admin = await prisma.user.create({
     data: {

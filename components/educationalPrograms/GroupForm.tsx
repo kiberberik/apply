@@ -298,6 +298,7 @@ const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
                                             if (lang === 'KAZ') return l('KAZ');
                                             if (lang === 'RUS') return l('RUS');
                                             if (lang === 'ENG') return l('ENG');
+                                            if (lang === 'POLY') return l('POLY');
                                             return lang;
                                           })
                                           .join(', ');
@@ -313,6 +314,7 @@ const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
                                             if (lang === 'KAZ') return l('KAZ');
                                             if (lang === 'RUS') return l('RUS');
                                             if (lang === 'ENG') return l('ENG');
+                                            if (lang === 'POLY') return l('POLY');
                                             return lang;
                                           })
                                           .join(', ');
@@ -325,6 +327,7 @@ const GroupForm: React.FC<GroupFormProps> = ({ groupToEdit, onClose }) => {
                                           if (lang.language.code === 'KAZ') return l('KAZ');
                                           if (lang.language.code === 'RUS') return l('RUS');
                                           if (lang.language.code === 'ENG') return l('ENG');
+                                          if (lang.language.code === 'POLY') return l('POLY');
                                           return lang.language.code;
                                         })
                                         .join(', ');
