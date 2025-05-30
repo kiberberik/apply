@@ -69,6 +69,8 @@ const DocAnalizer = ({ id, activeTab, setActiveTab, isAdult, setFormValue }: Doc
   const [processingData, setProcessingData] = useState(false);
   const { getLatestLogByApplicationId } = useLogStore();
   const latestLog = getLatestLogByApplicationId(id);
+  const [isOpen, setIsOpen] = useState(false);
+
   const handleOpenAIResponse = async (response: string | object, tabName?: string) => {
     try {
       setProcessingData(true);
@@ -110,6 +112,7 @@ const DocAnalizer = ({ id, activeTab, setActiveTab, isAdult, setFormValue }: Doc
       if (success) {
         setOpenAIResponse(parsedData);
         toast.success(c('dataProcessedSuccessfully'));
+        setIsOpen(false);
       } else {
         setOpenAIResponse(typeof response === 'string' ? response : JSON.stringify(response));
         toast.error(c('dataProcessingError'));
@@ -309,23 +312,22 @@ const DocAnalizer = ({ id, activeTab, setActiveTab, isAdult, setFormValue }: Doc
   }
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <div className="relative flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-8 py-4 shadow-sm transition-colors hover:border-gray-300">
           <div className="flex w-full items-center justify-center gap-2">
             <Button
               variant="ghost"
-              className="w-full px-3 text-left whitespace-normal hover:bg-transparent"
+              className="w-full px-3 text-center whitespace-normal hover:bg-transparent"
             >
               {c('uploadAndAnalyzeDocuments')}
             </Button>
           </div>
-          <p className="block text-xs text-gray-500 md:hidden">{c('aiProcessingWarning')}</p>
         </div>
       </DialogTrigger>
       <DialogTitle></DialogTitle>
-      <DialogContent className="max-w-7xl">
-        <div className="rounded-md bg-gray-100 p-2 md:p-8">
+      <DialogContent className="h-screen max-w-7xl overflow-y-auto p-0 md:h-auto">
+        <div className="rounded-md bg-gray-100 p-4 md:p-8">
           <div className="mx-auto max-w-6xl space-y-4">
             <h2 className="text-center text-lg font-bold">
               {c(activeTab === 'applicant' ? 'applicant' : 'representative')}
@@ -335,7 +337,8 @@ const DocAnalizer = ({ id, activeTab, setActiveTab, isAdult, setFormValue }: Doc
               <TriangleAlert className="h-4 w-4 shrink-0 cursor-help text-gray-500 transition-colors hover:text-gray-700" />
               {c('aiProcessingWarning')}
             </p>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 [&>*:first-child]:order-2 md:[&>*:first-child]:order-1 [&>*:last-child]:order-1 md:[&>*:last-child]:order-2">
               <OpenAIDocumentUpload
                 onImagesAdd={handleImageAdd}
                 images={images}
