@@ -77,6 +77,8 @@ export interface UpdateApplicationRequest {
       diplomaSerialNumber?: string;
       number?: string;
       issueDate?: string;
+      expirationDate?: string;
+      issuingAuthority?: string;
     };
   } | null;
   contractLanguage?: string | null;

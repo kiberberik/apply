@@ -2,7 +2,7 @@
 import { fillPdfPlaceholders } from '@/lib/pdfFill';
 import path from 'path';
 import { NextResponse } from 'next/server';
-import { Role, StudyType } from '@prisma/client';
+import { Role, StudyType, Document } from '@prisma/client';
 import dateUtils from '@/lib/dateUtils';
 import { checkServerAccess } from '@/lib/serverAuth';
 import countries from '@/data/countries.json';
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
   const body = await req.json();
   const { data } = body;
-  console.log('data', data);
+  // console.log('data', data);
   const convertedData = {
     contract_number: data.contractNumber as string,
     created_at: dateUtils.formatDateForDisplay(data.submittedAt as string),
@@ -54,10 +54,17 @@ export async function POST(req: Request) {
       : '',
     representative_identification_number: data.representative?.identificationNumber || '',
     representative_doc_type: data.representative?.documentType || '',
-    representative_doc_number: data.representative?.documentNumber || '',
-    representative_doc_issue_date: data.representative?.documentIssueDate || '',
-    representative_doc_expiry_date: data.representative?.documentExpiryDate || '',
-    representative_doc_issuing_authority: data.representative?.documentIssuingAuthority || '',
+    representative_doc_number:
+      data.documents?.find((doc: Document) => doc.code === 'representative_document')?.number || '',
+    representative_doc_issuing_authority:
+      data.documents?.find((doc: Document) => doc.code === 'representative_document')
+        ?.issuingAuthority || '',
+    representative_doc_issue_date:
+      data.documents?.find((doc: Document) => doc.code === 'representative_document')?.issueDate ||
+      '',
+    representative_doc_expiry_date:
+      data.documents?.find((doc: Document) => doc.code === 'representative_document')
+        ?.expirationDate || '',
     representative_relationship_degree: data.representative?.relationshipDegree || '',
     representative_email: data.representative?.email || '',
     representative_phone: data.representative?.phone || '',
@@ -71,7 +78,80 @@ export async function POST(req: Request) {
     years: data.details.educationalProgram.duration as string,
     edu_program_price: data.details.educationalProgram.costPerCredit as string,
     studying_language: (await tStudyingLanguage)(data.details.studyingLanguage as string) as string,
+    application_check: '+',
+    admission_fee_check: data.documents?.find((doc: Document) => doc.code === 'admission_fee')
+      ?.isDelivered
+      ? '+'
+      : '-',
+    photo_check: data.documents?.find((doc: Document) => doc.code === 'photo')?.isDelivered
+      ? '+'
+      : '-',
+    medical_certificate_check: data.documents?.find(
+      (doc: Document) => doc.code === 'medical_certificate_075u',
+    )?.isDelivered
+      ? '+'
+      : '-',
+    vaccination_check: data.documents?.find((doc: Document) => doc.code === 'vaccination')
+      ?.isDelivered
+      ? '+'
+      : '-',
+    diploma_check: data.documents?.find((doc: Document) => doc.code === 'education_document')
+      ?.isDelivered
+      ? '+'
+      : '-',
+    diploma_series:
+      data.documents?.find((doc: Document) => doc.code === 'education_document')
+        ?.diplomaSerialNumber || '',
+    diploma_number:
+      data.documents?.find((doc: Document) => doc.code === 'education_document')?.number || '',
+    diploma_issue_date: dateUtils.formatDateForDisplay(
+      data.documents?.find((doc: Document) => doc.code === 'education_document')?.issueDate || '',
+    ),
+    ent_number:
+      data.documents?.find((doc: Document) => doc.code === 'ent_certificate')?.number || '',
+    ent_check:
+      data.documents?.find((doc: Document) => doc.code === 'ent_certificate')
+        ?.unifiedNationalTestingNumber || '',
+    grant_number:
+      data.documents?.find((doc: Document) => doc.code === 'grant_certificate')?.number || '',
+    grant_check: data.documents?.find((doc: Document) => doc.code === 'grant_certificate')
+      ?.isDelivered
+      ? '+'
+      : '-',
+    id_card_check: data.documents?.find((doc: Document) => doc.code === 'identity_document')
+      ?.isDelivered
+      ? '+'
+      : '-',
+    preferential_doc_check: data.documents?.find(
+      (doc: Document) => doc.code === 'preferential_document',
+    )?.isDelivered
+      ? '+'
+      : '-',
+    ielts_check: data.documents?.find(
+      (doc: Document) => doc.code === 'international_language_certificate',
+    )?.isDelivered
+      ? '+'
+      : '-',
+    motivation_letter_check: data.documents?.find(
+      (doc: Document) => doc.code === 'motivation_letter',
+    )?.isDelivered
+      ? '+'
+      : '-',
+    qaztest_check: data.documents?.find((doc: Document) => doc.code === 'kaztest_certificate')
+      ?.isDelivered
+      ? '+'
+      : '-',
+    recommendational_check: data.documents?.find(
+      (doc: Document) => doc.code === 'recommendation_letter',
+    )?.isDelivered
+      ? '+'
+      : '-',
+    military_check: data.documents?.find((doc: Document) => doc.code === 'military')?.isDelivered
+      ? '+'
+      : '-',
   };
+
+  console.log('convertedData', convertedData);
 
   const paid_adult = 'public/template-docs/paid_adult_application_for_accession.pdf';
   const paid_minor = 'public/template-docs/paid_minor_application_for_accession.pdf';
@@ -123,7 +203,7 @@ export async function POST(req: Request) {
       break;
   }
 
-  currentTemplate = 'public/template-docs/test5.pdf';
+  // currentTemplate = 'public/template-docs/test6.pdf';
 
   const templatePath = path.join(
     process.cwd(),

@@ -9,8 +9,7 @@ import { ExtendedApplication } from '@/types/application';
 import { cn } from '@/lib/utils';
 import dateUtils from '@/lib/dateUtils';
 import { DocumentPreview } from '../ui/document-preview';
-import React, { useState } from 'react';
-import { useAuthStore } from '@/store/useAuthStore';
+import React from 'react';
 import ReactSelect from 'react-select';
 import countries from '@/data/countries.json';
 import { formatPhoneNumber } from '@/lib/formatPhoneNumber';
@@ -41,9 +40,9 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
   const tDocument = useTranslations('Document');
   const locale = useLocale() as 'ru' | 'kz' | 'en';
   const form = useFormContext();
-  const [localRepresentativeDocumentFileLinks, setLocalRepresentativeDocumentFileLinks] =
-    useState<string>('');
-  const { user } = useAuthStore();
+  // const [localRepresentativeDocumentFileLinks, setLocalRepresentativeDocumentFileLinks] =
+  //   useState<string>('');
+  // const { user } = useAuthStore();
 
   // Преобразуем страны в опции для селекта с учетом текущего языка
   const countryOptions: CountryOption[] = React.useMemo(() => {
@@ -123,7 +122,7 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
     return value !== defaultValue;
   };
 
-  const representativeDocumentSection = form.watch('representative.relationshipDegree');
+  // const representativeDocumentSection = form.watch('representative.relationshipDegree');
 
   return (
     <Card>
@@ -558,7 +557,7 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
             />
           </div>
 
-          {representativeDocumentSection && (
+          {/* {representativeDocumentSection && (
             <div className="space-y-4">
               <Divider />
               <h3 className="text-xl font-bold">{t('representativeDoc')}</h3>
@@ -819,7 +818,7 @@ function Representative({ application, isSubmitted = false }: RepresentativeProp
                 />
               </div>
             </div>
-          )}
+          )} */}
           {/* </> */}
           {/* )} */}
         </div>

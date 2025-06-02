@@ -10,14 +10,6 @@ import { useLocale, useTranslations } from 'next-intl';
 import { ApplicationStatus, Document, Role } from '@prisma/client';
 import { Button } from '../ui/button';
 import { Eye, Trash } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from '../ui/dialog';
 import RequiredDocUploader from './RequiredDocUploader';
 import { PDFProvider } from '../docReader/PDFContext';
 import { Input } from '../ui/input';
@@ -25,7 +17,8 @@ import { format } from 'date-fns';
 import { Checkbox } from '../ui/checkbox';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLogStore } from '@/store/useLogStore';
-import { PDFDocument } from 'pdf-lib';
+import DocDeleteDialog from '../docReader/DocDeleteDialog';
+import { generatePDFFromImages } from '@/lib/generatePDFFromImages';
 
 interface FormValues {
   documents: {
@@ -35,7 +28,9 @@ interface FormValues {
     [key: string]: {
       diplomaSerialNumber?: string;
       number?: string;
+      issuingAuthority?: string;
       issueDate?: string;
+      expirationDate?: string;
       isDelivered?: boolean;
     };
   };
@@ -54,11 +49,6 @@ interface RequiredDocsProps {
   isSubmitted?: boolean;
 }
 
-// Размеры A4 в пунктах (1 пункт = 1/72 дюйма)
-const A4_WIDTH = 595.28; // 210 мм
-const A4_HEIGHT = 841.89; // 297 мм
-const PAGE_PADDING = 20; // Отступы по краям страницы
-
 export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsProps) {
   const { documents: requiredDocuments, fetchDocuments } = useRequiredDocuments();
   const {
@@ -76,18 +66,17 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
   const [documentDetails, setDocumentDetails] = useState<FormValues['documentDetails']>({});
   const updatePendingRef = useRef(false);
   const t = useTranslations('RequiredDocuments');
-  const c = useTranslations('Common');
   const locale = useLocale();
   const form = useFormContext<FormValues>();
   const { user } = useAuthStore();
   const isConsultant = user?.role === Role.CONSULTANT;
   const isManager = user?.role === Role.MANAGER;
 
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[DEBUG] Form or documents changed');
-    }
-  }, [form, uploadedDocuments]);
+  // useEffect(() => {
+  //   if (process.env.NODE_ENV === 'development') {
+  //     console.log('[DEBUG] Form or documents changed');
+  //   }
+  // }, [form, uploadedDocuments]);
 
   // Отслеживаем изменения в форме
   const watchIsCitizenshipKz = form.watch('applicant.isCitizenshipKz');
@@ -218,59 +207,6 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
     }
   }, [uploadedDocuments, form]);
 
-  const generatePDFFromImages = async (imageUrls: string[]) => {
-    const pdfDoc = await PDFDocument.create();
-
-    for (const imageUrl of imageUrls) {
-      try {
-        const response = await fetch(imageUrl);
-        const fileBytes = await response.arrayBuffer();
-
-        // Обработка изображений
-        let image;
-        if (imageUrl.toLowerCase().endsWith('.png')) {
-          image = await pdfDoc.embedPng(fileBytes);
-        } else {
-          try {
-            image = await pdfDoc.embedJpg(fileBytes);
-          } catch {
-            // Если не удалось загрузить как JPG, пробуем как PNG
-            image = await pdfDoc.embedPng(fileBytes);
-          }
-        }
-
-        // Создаем страницу A4
-        const page = pdfDoc.addPage([A4_WIDTH, A4_HEIGHT]);
-
-        // Вычисляем масштаб для изображения
-        const scale = Math.min(
-          (A4_WIDTH - PAGE_PADDING * 2) / image.width,
-          (A4_HEIGHT - PAGE_PADDING * 2) / image.height,
-        );
-
-        // Центрируем изображение на странице
-        const scaledWidth = image.width * scale;
-        const scaledHeight = image.height * scale;
-        const x = (A4_WIDTH - scaledWidth) / 2;
-        const y = (A4_HEIGHT - scaledHeight) / 2;
-
-        page.drawImage(image, {
-          x,
-          y,
-          width: scaledWidth,
-          height: scaledHeight,
-        });
-      } catch (error) {
-        console.error(`Ошибка при обработке файла ${imageUrl}:`, error);
-        continue;
-      }
-    }
-
-    const pdfBytes = await pdfDoc.save();
-    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    return blob;
-  };
-
   useEffect(() => {
     if (uploadedDocuments.length > 0 && !documentsLoaded && !updatePendingRef.current) {
       updatePendingRef.current = true;
@@ -357,6 +293,18 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
             acc[doc.code] = {
               number: doc.number || documentDetails[doc.code]?.number || '',
             };
+          } else if (doc.code === 'representative_document') {
+            acc[doc.code] = {
+              number: doc.number || documentDetails[doc.code]?.number || '',
+              issuingAuthority:
+                doc.issuingAuthority || documentDetails[doc.code]?.issuingAuthority || '',
+              issueDate: doc.issueDate
+                ? format(new Date(doc.issueDate), 'yyyy-MM-dd')
+                : documentDetails[doc.code]?.issueDate || '',
+              expirationDate: doc.expirationDate
+                ? format(new Date(doc.expirationDate), 'yyyy-MM-dd')
+                : documentDetails[doc.code]?.expirationDate || '',
+            };
           }
           return acc;
         },
@@ -382,7 +330,7 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
       }, 100);
     }
 
-    console.log(form.getValues('documentDetails'));
+    // console.log(form.getValues('documentDetails'));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uploadedDocuments, form, documentsLoaded, documentDetails]);
 
@@ -421,9 +369,9 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                   key={doc.id}
                   control={form.control}
                   name={`documents.${doc.code}`}
-                  rules={{
-                    required: doc.isScanRequired ? 'Этот документ обязателен' : false,
-                  }}
+                  // rules={{
+                  //   required: doc.isScanRequired == true ? true : false,
+                  // }}
                   render={({ field, fieldState }) => (
                     <FormItem
                       className={fieldState.error ? 'rounded border border-red-500 p-2' : ''}
@@ -578,6 +526,76 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                                   />
                                 </div>
                               )}
+                              {doc.code === 'representative_document' && (
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                  <FormField
+                                    control={form.control}
+                                    name={`documentDetails.${doc.code}.number`}
+                                    defaultValue=""
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>{t('documentNumber')}</FormLabel>
+                                        <FormControl>
+                                          <Input
+                                            {...field}
+                                            disabled={isSubmitted || isLoading[doc.code || '']}
+                                          />
+                                        </FormControl>
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField
+                                    control={form.control}
+                                    name={`documentDetails.${doc.code}.issuingAuthority`}
+                                    defaultValue=""
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>{t('documentIssuingAuthority')}</FormLabel>
+                                        <FormControl>
+                                          <Input
+                                            {...field}
+                                            disabled={isSubmitted || isLoading[doc.code || '']}
+                                          />
+                                        </FormControl>
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField
+                                    control={form.control}
+                                    name={`documentDetails.${doc.code}.issueDate`}
+                                    defaultValue=""
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>{t('documentIssueDate')}</FormLabel>
+                                        <FormControl>
+                                          <Input
+                                            type="date"
+                                            {...field}
+                                            disabled={isSubmitted || isLoading[doc.code || '']}
+                                          />
+                                        </FormControl>
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField
+                                    control={form.control}
+                                    name={`documentDetails.${doc.code}.expirationDate`}
+                                    defaultValue=""
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>{t('documentExpirationDate')}</FormLabel>
+                                        <FormControl>
+                                          <Input
+                                            type="date"
+                                            {...field}
+                                            disabled={isSubmitted || isLoading[doc.code || '']}
+                                          />
+                                        </FormControl>
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
+                              )}
                             </>
                           ) : (
                             <PDFProvider
@@ -613,26 +631,13 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
         </CardContent>
       </Card>
 
-      <Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle>{c('deleteConfirmTitle')}</DialogTitle>
-            <DialogDescription>{c('deleteConfirmDescription')}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmDeleteOpen(false)}>
-              {c('cancel')}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteDocument}
-              disabled={isLoading[documentToDelete?.code || '']}
-            >
-              {isLoading[documentToDelete?.code || ''] ? c('deleting') : c('delete')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DocDeleteDialog
+        confirmDeleteOpen={confirmDeleteOpen}
+        setConfirmDeleteOpen={setConfirmDeleteOpen}
+        handleDeleteDocument={handleDeleteDocument}
+        isLoading={isLoading}
+        documentToDelete={documentToDelete || { code: '' }}
+      />
     </>
   );
 }

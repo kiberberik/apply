@@ -55,6 +55,27 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   }
 }
 
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const id = (await params).id;
+    const data = await request.json();
+
+    const updatedDocument = await prisma.document.update({
+      where: { id },
+      data: {
+        ...data,
+        issueDate: data.issueDate ? new Date(data.issueDate) : undefined,
+        expirationDate: data.expirationDate ? new Date(data.expirationDate) : undefined,
+      },
+    });
+
+    return NextResponse.json(updatedDocument);
+  } catch (error) {
+    console.error('Error updating document:', error);
+    return NextResponse.json({ error: 'Failed to update document' }, { status: 500 });
+  }
+}
+
 // export async function PATCH(request: Request, { params }: { params: { id: string } }) {
 //   try {
 //     const { isDelivered } = await request.json();

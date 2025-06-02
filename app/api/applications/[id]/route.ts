@@ -443,6 +443,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
               diplomaSerialNumber?: string;
               number?: string;
               issueDate?: string;
+              expirationDate?: string;
+              issuingAuthority?: string;
             };
 
             await tx.document.update({
@@ -451,6 +453,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
                 diplomaSerialNumber: typedDetails.diplomaSerialNumber || null,
                 number: typedDetails.number || null,
                 issueDate: typedDetails.issueDate ? new Date(typedDetails.issueDate) : null,
+                expirationDate: typedDetails.expirationDate
+                  ? new Date(typedDetails.expirationDate)
+                  : null,
+                issuingAuthority: typedDetails.issuingAuthority || null,
               },
             });
           }

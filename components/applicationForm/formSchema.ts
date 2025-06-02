@@ -169,5 +169,5 @@ export const formSchema = z.object({
     .nativeEnum(SupportLanguages, { required_error: '' })
     .nullable()
     .transform((v) => (v === null ? ('RUS' as SupportLanguages) : v)),
-  documents: z.record(z.string(), z.string()).nullable().optional(),
+  documents: z.record(z.string(), z.string().optional()).nullable().optional(),
 });

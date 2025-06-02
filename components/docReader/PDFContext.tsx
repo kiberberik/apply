@@ -10,6 +10,8 @@ interface FormValues {
       diplomaSerialNumber?: string;
       number?: string;
       issueDate?: string;
+      expirationDate?: string;
+      issuingAuthority?: string;
     };
   };
   applicant: {

@@ -1,46 +1,22 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { sendEmail } from '@/lib/email';
-import crypto from 'crypto';
 import { getTranslations } from 'next-intl/server';
+import { checkServerAccess } from '@/lib/serverAuth';
+import { Role } from '@prisma/client';
 
 export async function POST(request: Request) {
-  const { email, locale } = await request.json();
-  const t = await getTranslations({ locale, namespace: 'passwordReset' });
+  const { email, locale, applicant, consultant } = await request.json();
+  const t = await getTranslations({ locale, namespace: 'EmailSubmit' });
   const c = await getTranslations({ locale, namespace: 'Common' });
-
+  const hasAccess = await checkServerAccess(Role.USER);
+  if (!hasAccess) {
+    return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
+  }
   try {
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: t('notFound') }, { status: 404 });
-    }
-
-    // Создаем токен для сброса пароля
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 часа
-
-    // Сохраняем токен в базе
-    await prisma.verificationToken.create({
-      data: {
-        identifier: email,
-        token: resetToken,
-        expires: resetTokenExpiry,
-      },
-    });
-
-    // console.log("Locale:", locale);
-    // console.log("APP_URL:", process.env.NEXT_PUBLIC_APP_URL);
-    // console.log("Reset Token:", resetToken);
-    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/${locale}/reset-password/${resetToken}`;
-    // console.log("Reset URL:", resetUrl);
-
     // Отправляем email
     await sendEmail({
       to: email,
-      subject: t('emailSubject'),
+      subject: t('subject'),
       html: `
         <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; background-color: #eef2fa; height: 800px;">
           <tr>
@@ -64,16 +40,17 @@ export async function POST(request: Request) {
                 </tr>
                 <tr>
                   <td style="padding: 20px;">
-                    <h1 style="font-size: 24px; margin: 0; padding-bottom: 10px;">${c('greeting')}!</h1>
-                    <p style="font-size: 16px; margin: 0; padding-bottom: 10px;">${t('emailDescription')}</p>
-                    <p style="font-size: 16px; margin: 0; padding-bottom: 10px;">${t('emailInstruction')}</p>
-                    <p style="margin: 0; padding-bottom: 10px;">
-                      <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background-color: #0070f3; color: white; text-decoration: none; border-radius: 5px; font-size: 16px;">
-                        ${t('resetButton')}
-                      </a>
-                    </p>
-                    <p style="font-size: 16px; margin: 0; padding-bottom: 10px;">${t('validityPeriod')}</p>
-                    <p style="font-size: 16px; margin: 0; padding-bottom: 10px;">${t('ignoreMessage')}</p>
+                    <h1 style="font-size: 24px; margin: 0; padding-bottom: 10px;">${t('greeting', {
+                      applicant,
+                    })}!</h1>
+                    <p style="font-size: 16px; margin: 0; padding-bottom: 10px;">${t(
+                      'description',
+                      {
+                        consultant,
+                      },
+                    )}</p>
+                    <p style="font-size: 16px; margin: 0; padding-bottom: 10px;">${t('instruction')}</p>
+                    <p style="font-size: 16px; margin: 0; padding-bottom: 10px;">${t('footer')}</p>
                     <div style="width: 100%; border-top: solid 1px #EBEBEB; padding-top: 10px; margin-top: 10px;">
                       <p style="font-size: 12px; font-weight: 300; color: #666666; margin: 0;">
                         ${c('emailDescription')} <span style="font-weight: 700;">apply@mnu.kz</span>
@@ -89,10 +66,10 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({
-      message: t('successMessage'),
+      message: c('successMessage'),
     });
   } catch (error) {
     console.error('Password reset error:', error);
-    return NextResponse.json({ error: t('error') }, { status: 500 });
+    return NextResponse.json({ error: c('error') }, { status: 500 });
   }
 }

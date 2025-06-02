@@ -27,8 +27,18 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const { applicationId, userId, code, link, name, diplomaSerialNumber, number, issueDate } =
-      body;
+    const {
+      applicationId,
+      userId,
+      code,
+      link,
+      name,
+      diplomaSerialNumber,
+      number,
+      issueDate,
+      issuingAuthority,
+      expirationDate,
+    } = body;
 
     if (!applicationId || !userId || !code || !link) {
       return NextResponse.json(
@@ -45,11 +55,11 @@ export async function POST(request: Request) {
         code,
         link,
         name,
-        ...(code === 'education_document' && {
-          diplomaSerialNumber,
-          number,
-          issueDate: issueDate ? new Date(issueDate) : null,
-        }),
+        diplomaSerialNumber,
+        number,
+        issueDate: issueDate ? new Date(issueDate) : null,
+        expirationDate: expirationDate ? new Date(expirationDate) : null,
+        issuingAuthority,
       },
     });
 

@@ -75,7 +75,10 @@
     "confirmRevokeDescription": "Are you sure you want to revoke/terminate the contract through TrustMe? This action cannot be undone.",
     "maxImagesExceeded": "The maximum number of files has been exceeded",
     "uploadAndAnalyzeDocuments": "Upload document and extract data",
-    "aiProcessingWarning": "Warning: Documents are processed using artificial intelligence"
+    "aiProcessingWarning": "Warning: Documents are processed using artificial intelligence",
+    "emailDescription": "If you have any technical issues, please contact us via email",
+    "greeting": "Hello",
+    "successMessage": "OK"
   },
   "Roles": {
     "USER": "User",
@@ -440,7 +443,9 @@
     "isDelivered": "Document delivered",
     "diplomaSerialNumber": "Diploma Serial Number",
     "documentNumber": "Document Number",
-    "documentIssueDate": "Document Issue Date"
+    "documentIssueDate": "Document Issue Date",
+    "documentExpirationDate": "Document Expiration Date",
+    "documentIssuingAuthority": "Issued By"
   },
   "AgeCategory": {
     "ADULT": "Adult",
@@ -521,5 +526,12 @@
     "description": "You don't have permission to access this page. Please contact the system administrator if you need access.",
     "goBack": "Go Back",
     "goHome": "Go to Home"
+  },
+  "EmailSubmit": {
+    "subject": "Ваша заявка успешно отправлена",
+    "greeting": "Dear {applicant}",
+    "description": "Your application has been successfully submitted and is currently under review by {consultant}, your assigned admissions consultant.",
+    "instruction": "Please, track the status of your application in the Personal Account section on apply.mnu.kz.",
+    "footer": "Thank you for your interest in Maqsut Narikbayev University!"
   }
 }

@@ -1,10 +1,13 @@
+'use client';
 import React, { useState } from 'react';
 import { DocumentUpload } from '../docReader/DocumentUpload';
 import { CameraCapture } from '../docReader/CameraCapture';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { useTranslations } from 'next-intl';
 
 const RequiredDocUploader = () => {
+  const c = useTranslations('Common');
   const [images, setImages] = useState<string[]>([]);
   const handleImageAdd = (newImages: string[]) => {
     setImages((prev) => [...prev, ...newImages]);
@@ -17,7 +20,7 @@ const RequiredDocUploader = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">Загрузить документы</Button>
+        <Button variant="outline">{c('uploadDocuments')}</Button>
       </DialogTrigger>
       <DialogTitle></DialogTitle>
       <DialogContent className="max-w-7xl">

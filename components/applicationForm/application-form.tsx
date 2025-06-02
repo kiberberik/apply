@@ -5,7 +5,7 @@ import Details from './Details';
 import DocAnalizer from './DocAnalizer';
 import ApplicantForm from './Applicant';
 import { Form } from '@/components/ui/form';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { RequiredDocs } from './RequiredDocs';
 import { Button } from '@/components/ui/button';
 import { useForm, Path, PathValue } from 'react-hook-form';
@@ -32,15 +32,6 @@ import LogHistory from './LogHistory';
 import Info from './Info';
 import { useRequiredDocuments } from '@/store/useRequiredDocuments';
 import { useDocumentStore } from '@/store/useDocumentStore';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 import { useEducationalStore } from '@/store/useEducationalStore';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -68,6 +59,7 @@ const validateForSubmission = (
   requiredDocuments: any[] | undefined,
   uploadedDocuments: any[] | undefined,
 ) => {
+  // console.log('uploadedDocuments', uploadedDocuments);
   if (!data.applicant) {
     return { success: false, error: 'Не заполнены данные о заявителе' };
   }
@@ -120,15 +112,19 @@ const validateForSubmission = (
       return matchesCountry && matchesAgeCategory && matchesAcademicLevel && matchesStudyType;
     });
 
+    // Проверяем только документы с isScanRequired: true
     const requiredDocCodes = filteredRequiredDocuments
-      .filter((doc) => doc.isScanRequired)
+      .filter((doc) => doc.isScanRequired == true)
       .map((doc) => doc.code);
+
+    console.log('requiredDocCodes', requiredDocCodes);
 
     if (requiredDocCodes.length > 0) {
       const documentValues = data.documents || {};
 
       const missingDocs = requiredDocCodes.filter((code) => {
-        return !documentValues[code] || documentValues[code] === '';
+        const doc = uploadedDocuments.find((d) => d.code === code);
+        return !doc || !doc.link;
       });
 
       if (missingDocs.length > 0) {
@@ -162,6 +158,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   const tDocuments = useTranslations('Documents');
   const tApplications = useTranslations('Applications');
   const tTrustMeStatus = useTranslations('TrustMeStatus');
+  const locale = useLocale();
 
   const latestLog = singleApplication?.id
     ? getLatestLogByApplicationId(singleApplication.id)
@@ -583,7 +580,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   const saveApplicantFormData = async (data: FormValues, isSubmit: boolean) => {
     try {
       if (!id) {
-        console.log('No ID provided, save canceled');
+        // console.log('No ID provided, save canceled');
         return false;
       }
 
@@ -613,6 +610,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       if (!isSubmit) {
         form.clearErrors();
       } else {
+        console.log('here');
         const validationResult = validateForSubmission(
           data,
           useRequiredDocuments.getState().documents,
@@ -985,6 +983,73 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       return;
     }
 
+    // Проверяем обязательные документы
+    const requiredDocuments = useRequiredDocuments.getState().documents;
+    const uploadedDocuments = useDocumentStore.getState().documents;
+
+    if (requiredDocuments && uploadedDocuments) {
+      const applicantData = data.applicant;
+      const isKzCitizen = applicantData?.citizenship === 113;
+      const birthDate = applicantData?.birthDate;
+      let isAdult = true;
+
+      if (birthDate) {
+        try {
+          const birthDateObj = new Date(birthDate);
+          const today = new Date();
+          let age = today.getFullYear() - birthDateObj.getFullYear();
+          const monthDiff = today.getMonth() - birthDateObj.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDateObj.getDate())) {
+            age--;
+          }
+          isAdult = age >= 18;
+        } catch (e) {
+          throw new Error(e as string);
+        }
+      }
+
+      const filteredRequiredDocuments = requiredDocuments.filter((doc) => {
+        const matchesCountry =
+          doc.countries &&
+          doc.countries.some((country: any) => country === (isKzCitizen ? 'KAZAKHSTAN' : 'OTHER'));
+
+        const matchesAgeCategory =
+          doc.ageCategories &&
+          doc.ageCategories.some((category: any) => category === (isAdult ? 'ADULT' : 'MINOR'));
+
+        const matchesAcademicLevel =
+          doc.academicLevels &&
+          doc.academicLevels.some((level: any) => level === data.details?.academicLevel);
+
+        const matchesStudyType =
+          doc.studyTypes && doc.studyTypes.some((type: any) => type === data.details?.type);
+
+        return matchesCountry && matchesAgeCategory && matchesAcademicLevel && matchesStudyType;
+      });
+
+      const requiredDocCodes = filteredRequiredDocuments
+        .filter((doc) => doc.isScanRequired === true)
+        .map((doc) => doc.code);
+
+      if (requiredDocCodes.length > 0) {
+        const documentValues = data.documents || {};
+        const missingDocs = requiredDocCodes.filter((code) => {
+          const doc = uploadedDocuments.find((d) => d.code === code);
+          return !doc || !doc.link;
+        });
+
+        if (missingDocs.length > 0) {
+          const missingDocNames = missingDocs.map((code) => {
+            const doc = filteredRequiredDocuments.find((d) => d.code === code);
+            return doc?.name_rus || doc?.name_eng || doc?.name_kaz || code;
+          });
+
+          toast.error(`Не загружены обязательные документы`);
+          return;
+        }
+      }
+    }
+
     // Создаем переменную для отслеживания статуса отправки
     let isSubmitting: boolean = false;
 
@@ -1007,11 +1072,32 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       // Сохраняем данные с флагом isSubmit = true
       console.log('Saving form data with isSubmit=true');
       const result = await saveApplicantFormData(data, true);
-      console.log('Save result:', result);
 
       if (result) {
         // Добавляем успешное сообщение
         toast.success('Заявление успешно отправлено!');
+
+        // Отправляем письмо о успешной подаче заявки
+        try {
+          const emailResponse = await fetch('/api/email/success-submit', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: data.applicant.email,
+              locale: locale, // Используем русский язык по умолчанию
+              applicant: `${data.applicant.givennames}`,
+              consultant: singleApplication?.consultant?.name || 'Консультант',
+            }),
+          });
+
+          if (!emailResponse.ok) {
+            console.error('Ошибка при отправке письма');
+          }
+        } catch (error) {
+          console.error('Ошибка при отправке письма:', error);
+        }
       } else {
         toast.error('Не удалось отправить заявление. Пожалуйста, попробуйте позже.');
       }
@@ -1034,9 +1120,9 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   const formKey = `application-form-${id || 'new'}`;
 
   // Выводим в консоль статус загрузки
-  useEffect(() => {
-    console.log('Application loading status:', isLoadingSingleApp);
-  }, [isLoadingSingleApp]);
+  // useEffect(() => {
+  //   console.log('Application loading status:', isLoadingSingleApp);
+  // }, [isLoadingSingleApp]);
 
   // Функция для открытия диалога подтверждения
   const openConfirmDialog = (values: FormValues) => {
@@ -1595,11 +1681,11 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
 
     setIsLoading(true);
     try {
-      console.log('ContractSignType.TRUSTME:', ContractSignType.TRUSTME);
-      console.log('singleApplication?.contractSignType:', singleApplication?.contractSignType);
-      console.log('Are equal?', singleApplication?.contractSignType === ContractSignType.TRUSTME);
-      console.log('Type of ContractSignType.TRUSTME:', typeof ContractSignType.TRUSTME);
-      console.log('Type of contractSignType:', typeof singleApplication?.contractSignType);
+      // console.log('ContractSignType.TRUSTME:', ContractSignType.TRUSTME);
+      // console.log('singleApplication?.contractSignType:', singleApplication?.contractSignType);
+      // console.log('Are equal?', singleApplication?.contractSignType === ContractSignType.TRUSTME);
+      // console.log('Type of ContractSignType.TRUSTME:', typeof ContractSignType.TRUSTME);
+      // console.log('Type of contractSignType:', typeof singleApplication?.contractSignType);
 
       if (singleApplication?.contractSignType === ContractSignType.OFFLINE) {
         const response = await fetch(`/api/contracts`, {
@@ -1618,8 +1704,8 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         const url = window.URL.createObjectURL(blob);
         window.open(url, '_blank');
       } else if (singleApplication?.contractSignType === ContractSignType.TRUSTME) {
-        console.log('here');
-        console.log('singleApplication?.trustMeUrl', singleApplication?.trustMeUrl);
+        // console.log('here');
+        // console.log('singleApplication?.trustMeUrl', singleApplication?.trustMeUrl);
         window.open(`https://${singleApplication?.trustMeUrl as string}`, '_blank');
       }
     } catch (error) {

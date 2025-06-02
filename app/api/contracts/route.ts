@@ -6,7 +6,7 @@ import { Role } from '@prisma/client';
 import { checkServerAccess } from '@/lib/serverAuth';
 
 export async function POST(request: Request) {
-  const hasAccess = await checkServerAccess(Role.CONSULTANT);
+  const hasAccess = await checkServerAccess(Role.USER);
   if (!hasAccess) {
     return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
   }
