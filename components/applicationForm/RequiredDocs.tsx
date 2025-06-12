@@ -617,7 +617,7 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                                 fetchDocumentsByApplication,
                               }}
                             >
-                              <RequiredDocUploader />
+                              <RequiredDocUploader documentCode={doc.code || ''} />
                             </PDFProvider>
                           )}
                         </div>

@@ -180,6 +180,8 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [formValuesForSubmit, setFormValuesForSubmit] = useState<FormValues | null>(null);
   const [revokeDialogOpen, setRevokeDialogOpen] = useState(false);
+  const [terminateDialogOpen, setTerminateDialogOpen] = useState(false);
+  const [terminateContractFile, setTerminateContractFile] = useState<File | null>(null);
 
   const { getEducationalProgramDetails } = useEducationalStore();
 
@@ -1417,6 +1419,13 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     }
   };
 
+  const handleTerminateContractFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    if (e.target.files && e.target.files[0]) {
+      setTerminateContractFile(e.target.files[0]);
+    }
+  };
+
   const handleUploadSignedContract = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     if (signedContractFile && user?.id) {
@@ -1683,6 +1692,27 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleTerminateContract = async () => {
+    setIsLoading(true);
+
+    setIsLoading(false);
+  };
+
+  const handleGenerateTerminateContract = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    toast.info('Генерация контракта расторжения...');
+
+    setIsLoading(false);
+  };
+
+  const handleUploadTerminateContract = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    toast.info('Загрузка контракта расторжения...');
+    setIsLoading(false);
   };
 
   const handleViewContract = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -2041,6 +2071,52 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
             )}
 
           {singleApplication?.submittedAt &&
+            singleApplication?.contractSignType === 'OFFLINE' &&
+            (user?.role === Role.MANAGER || user?.role === Role.ADMIN) &&
+            (latestLog?.statusId === 'NEED_DOCS' ||
+              latestLog?.statusId === 'CHECK_DOCS' ||
+              latestLog?.statusId === 'ENROLLED') && (
+              <div className="my-12 flex w-full flex-col gap-6 rounded-lg p-4">
+                <div className="flex flex-row flex-wrap justify-end gap-4">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex flex-wrap items-center justify-start gap-12">
+                      <Button onClick={handleGenerateTerminateContract}>
+                        {c('generateTerminateContract')}
+                      </Button>
+
+                      <div className="flex flex-col gap-2">
+                        <Label>{c('uploadSignedContract')}</Label>
+                        <Input
+                          type="file"
+                          accept=".pdf"
+                          onChange={handleTerminateContractFileChange}
+                        />
+                        <Button
+                          onClick={handleUploadTerminateContract}
+                          disabled={!terminateContractFile || isLoading}
+                        >
+                          {c('saveTerminateContract')}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  {terminateContractFile && (
+                    <Button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setTerminateDialogOpen(true);
+                      }}
+                      disabled={isLoading}
+                      className="w-full bg-red-700"
+                    >
+                      {c('terminateContract')}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+
+          {singleApplication?.submittedAt &&
             user?.role !== Role.USER &&
             (latestLog?.statusId === 'CHECK_DOCS' || latestLog?.statusId === 'NEED_DOCS') && (
               <div className="my-12 flex w-full flex-col gap-6 rounded-lg border bg-white p-4">
@@ -2073,6 +2149,19 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         closeDialog={() => setRevokeDialogOpen(false)}
         titleKey="confirmRevokeTitle"
         descriptionKey="confirmRevokeDescription"
+        confirmButtonClassName="bg-red-700"
+      />
+
+      <ConfirmDialog
+        dialogOpen={terminateDialogOpen}
+        setDialogOpen={setTerminateDialogOpen}
+        onClick={() => {
+          setTerminateDialogOpen(false);
+          handleTerminateContract();
+        }}
+        closeDialog={() => setTerminateDialogOpen(false)}
+        titleKey="confirmTerminateTitle"
+        descriptionKey="confirmTerminateDescription"
         confirmButtonClassName="bg-red-700"
       />
 

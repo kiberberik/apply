@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/
 import { Button } from '@/components/ui/button';
 import { useTranslations } from 'next-intl';
 
-const RequiredDocUploader = () => {
+const RequiredDocUploader = ({ documentCode }: { documentCode: string }) => {
   const c = useTranslations('Common');
   const [images, setImages] = useState<string[]>([]);
   const handleImageAdd = (newImages: string[]) => {
@@ -30,6 +30,7 @@ const RequiredDocUploader = () => {
               onImagesAdd={handleImageAdd}
               images={images}
               onDelete={handleImageDelete}
+              documentCode={documentCode}
             />
             <div className="hidden md:block">
               <CameraCapture onImagesAdd={handleImageAdd} images={images} />

@@ -78,7 +78,12 @@
     "aiProcessingWarning": "Внимание: Документы обрабатываются с помощью искусственного интеллекта",
     "emailDescription": "Если возникли технические проблемы, пожалуйста, свяжитесь с нами по электронной почте",
     "greeting": "Здравствуйте",
-    "successMessage": "OK"
+    "successMessage": "OK",
+    "terminateContract": "Расторгнуть договор",
+    "confirmTerminateTitle": "Подтверждение расторжения договора",
+    "confirmTerminateDescription": "Вы уверены, что хотите расторгнуть договор? Это действие нельзя отменить.",
+    "generateTerminateContract": "Сгенерировать контракт расторжения",
+    "saveTerminateContract": "Сохранить контракт расторжения"
   },
   "Roles": {
     "USER": "Пользователь",

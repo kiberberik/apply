@@ -78,7 +78,12 @@
     "aiProcessingWarning": "Warning: Documents are processed using artificial intelligence",
     "emailDescription": "If you have any technical issues, please contact us via email",
     "greeting": "Hello",
-    "successMessage": "OK"
+    "successMessage": "OK",
+    "terminateContract": "Terminate Contract",
+    "confirmTerminateTitle": "Confirm Termination of Contract",
+    "confirmTerminateDescription": "Are you sure you want to terminate the contract? This action cannot be undone.",
+    "generateTerminateContract": "Generate Terminate Contract",
+    "saveTerminateContract": "Save Terminate Contract"
   },
   "Roles": {
     "USER": "User",

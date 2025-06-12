@@ -78,7 +78,12 @@
     "aiProcessingWarning": "Назар аударыңыз: Құжаттар жасанды интеллект көмегімен өңделеді",
     "emailDescription": "Егер техникалық мәселелер пайда болса, келесі электрондық пошта арқылы бізбен хабарласуыңызды сұраймыз",
     "greeting": "Сәлеметсіз бе",
-    "successMessage": "OK"
+    "successMessage": "OK",
+    "terminateContract": "Келісім-шартты бұзу",
+    "confirmTerminateTitle": "Келісім-шартты бұзуды растау",
+    "confirmTerminateDescription": "Сіз келісім-шартты бұзуға сенімдісіз бе? Бұл әрекетті кері қайтаруға болмайды.",
+    "generateTerminateContract": "Келісім-шартты бұзу құжатын жасау",
+    "saveTerminateContract": "Келісім-шартты бұзу құжатын сақтау"
   },
   "Roles": {
     "USER": "Пайдаланушы",

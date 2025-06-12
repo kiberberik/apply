@@ -9,9 +9,15 @@ interface DocumentUploadProps {
   onImagesAdd: (images: string[]) => void;
   images: string[];
   onDelete: (index: number) => void;
+  documentCode?: string;
 }
 
-export const DocumentUpload = ({ onImagesAdd, images, onDelete }: DocumentUploadProps) => {
+export const DocumentUpload = ({
+  onImagesAdd,
+  images,
+  onDelete,
+  documentCode,
+}: DocumentUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const t = useTranslations('Common');
@@ -93,7 +99,7 @@ export const DocumentUpload = ({ onImagesAdd, images, onDelete }: DocumentUpload
       />
       {isProcessing && <p className="mt-2 text-sm text-gray-500">{t('processingFiles')}</p>}
       <ImageGallery images={images} onDelete={onDelete} />
-      <PDFGenerator images={images} />
+      <PDFGenerator images={images} documentCode={documentCode} />
     </div>
   );
 };

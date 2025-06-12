@@ -4,6 +4,7 @@ import { usePDF, PDFProvider } from './PDFContext';
 
 interface PDFGeneratorProps {
   images: string[];
+  documentCode?: string;
 }
 
 // Размеры A4 в пунктах (1 пункт = 1/72 дюйма)
@@ -11,7 +12,7 @@ const A4_WIDTH = 595.28; // 210 мм
 const A4_HEIGHT = 841.89; // 297 мм
 const PAGE_PADDING = 20; // Отступы по краям страницы
 
-const PDFGeneratorContent = ({ images }: { images: string[] }) => {
+const PDFGeneratorContent = ({ images, documentCode }: PDFGeneratorProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const { application, doc, form, field, setDocumentsLoaded, fetchDocumentsByApplication } =
     usePDF();
@@ -101,7 +102,9 @@ const PDFGeneratorContent = ({ images }: { images: string[] }) => {
 
     // Создаем FormData для загрузки файла
     const formData = new FormData();
-    const file = new File([blob], 'document.pdf', { type: 'application/pdf' });
+    const file = new File([blob], `${documentCode ? documentCode : 'document'}.pdf`, {
+      type: 'application/pdf',
+    });
     formData.append('file', file);
 
     if (application?.id) {
@@ -160,10 +163,10 @@ const PDFGeneratorContent = ({ images }: { images: string[] }) => {
   );
 };
 
-export const PDFGenerator = ({ images }: PDFGeneratorProps) => {
+export const PDFGenerator = ({ images, documentCode }: PDFGeneratorProps) => {
   return (
     <PDFProvider value={usePDF()}>
-      <PDFGeneratorContent images={images} />
+      <PDFGeneratorContent images={images} documentCode={documentCode} />
     </PDFProvider>
   );
 };
