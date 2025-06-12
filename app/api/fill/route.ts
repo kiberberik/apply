@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
   const body = await req.json();
   const { data } = body;
-  // console.log('data', data);
+  console.log('data', data);
   const convertedData = {
     contract_number: data.contractNumber as string,
     created_at: dateUtils.formatDateForDisplay(data.submittedAt as string),
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
     representative_phone: data.representative?.phone || '',
     representative_address_residential: data.representative?.addressResidential || '',
     representative_address_registration: data.representative?.addressRegistration || '',
-    is_dorm_needs: Boolean(data.details.isDormsNeed) ? 'Нуждаюсь' : 'Не нуждаюсь',
+    is_dorm_needs: Boolean(data.details.isDormNeeds) == true ? 'Нуждаюсь' : 'Не нуждаюсь',
     academic_level: (await tAcademicLevel)(data.details.academicLevel as string) as string,
     edu_group_name: data.details.educationalProgram.group as string,
     edu_program_name: data.details.educationalProgram.name as string,
