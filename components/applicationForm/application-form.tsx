@@ -1394,6 +1394,10 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       if (!response.ok) {
         throw new Error('Ошибка при генерации контракта');
       }
+      await updateSingleApplication(id as string, {
+        contractSignType: ContractSignType.OFFLINE,
+        contractNumber: contractNumber,
+      });
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -1409,6 +1413,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       toast.error('Произошла ошибка при генерации контракта');
     } finally {
       setIsLoading(false);
+      await fetchSingleApplication(id as string);
     }
   };
 
@@ -1704,6 +1709,61 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     e.preventDefault();
     setIsLoading(true);
     toast.info('Генерация контракта расторжения...');
+    try {
+      const educationalProgramId = singleApplication?.details?.educationalProgramId;
+      if (!educationalProgramId) {
+        throw new Error('Не выбран образовательный курс');
+      }
+
+      const program = await getEducationalProgramDetails(educationalProgramId);
+      // console.log('Полученные данные программы:', program);
+
+      if (!program) {
+        throw new Error('Не удалось получить данные образовательного курса');
+      }
+
+      const response = await fetch('/api/fill/termination_offline', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          data: {
+            ...singleApplication,
+            details: {
+              ...singleApplication?.details,
+              educationalProgram: {
+                // group: program.group?.name_rus || '',
+                name: program.name_rus || '',
+                code: program.code || '',
+                // duration: String(program.duration) || '',
+                // costPerCredit: program.costPerCredit || '',
+                // studyingLanguage: singleApplication?.details?.studyingLanguage || '',
+              },
+            },
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Ошибка при генерации контракта');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `termination_offline.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Ошибка:', error);
+      toast.error('Произошла ошибка при генерации контракта');
+    } finally {
+      setIsLoading(false);
+    }
 
     setIsLoading(false);
   };
@@ -1712,6 +1772,47 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     e.preventDefault();
     setIsLoading(true);
     toast.info('Загрузка контракта расторжения...');
+    if (terminateContractFile && user?.id) {
+      try {
+        const formData = new FormData();
+        formData.append('file', terminateContractFile);
+        formData.append('applicationId', id as string);
+        formData.append('userId', user.id);
+        formData.append('uploadedById', user.id);
+
+        const response = await fetch('/api/upload-terminate-contract', {
+          method: 'POST',
+          body: formData,
+        });
+        if (!response.ok) {
+          throw new Error('Ошибка при загрузке контракта');
+        }
+        const data = await response.json();
+        console.log('data', data);
+        toast.success('Контракт расторжения успешно загружен');
+
+        await updateSingleApplication(id as string, {
+          contractSignType: ContractSignType.NOT_SIGNED,
+          submittedAt: new Date().toISOString(),
+          contractNumber: new Date().toISOString(),
+          trustMeId: null,
+          trustMeUrl: null,
+          trustMeFileName: null,
+        });
+        // Создаем лог через useLogStore
+        await createLog({
+          applicationId: id as string,
+          createdById: user.id,
+          statusId: 'RE_PROCESSING',
+        });
+      } catch (error) {
+        toast.error('Ошибка при загрузке контракта');
+      } finally {
+        setSignedContractFile(null);
+        await fetchSingleApplication(id as string);
+        await fetchLogsByApplicationId(id as string);
+      }
+    }
     setIsLoading(false);
   };
 
@@ -2100,7 +2201,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
                       </div>
                     </div>
                   </div>
-                  {terminateContractFile && (
+                  {/* {terminateContractFile && (
                     <Button
                       onClick={(e) => {
                         e.preventDefault();
@@ -2111,7 +2212,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
                     >
                       {c('terminateContract')}
                     </Button>
-                  )}
+                  )} */}
                 </div>
               </div>
             )}

@@ -151,33 +151,34 @@ enum ContractSignType {
 }
 
 model Application {
-    id                String            @id @default(cuid())
-    createdBy         User?             @relation("CreatedApplications", fields: [createdById], references: [id])
-    createdById       String?
-    consultant        User?             @relation("ConsultedApplications", fields: [consultantId], references: [id])
-    consultantId      String?
-    applicant         Applicant?        @relation(fields: [applicantId], references: [id], onDelete: Cascade)
-    applicantId       String?
-    representative    Representative?   @relation(fields: [representativeId], references: [id], onDelete: Cascade)
-    representativeId  String?
-    documents         Document[]
-    details           Details?          @relation(fields: [detailsId], references: [id], onDelete: Cascade)
-    detailsId         String?           @unique
-    createdAt         DateTime          @default(now())
-    updatedAt         DateTime          @updatedAt
-    submittedAt       DateTime?
-    terminatedAt      DateTime?
-    Log               Log[]
-    User              User?             @relation(fields: [userId], references: [id])
-    userId            String?
-    isDeleted         Boolean?          @default(false)
-    contractSignType  ContractSignType? @default(NOT_SIGNED)
-    contractLanguage  SupportLanguages? @default(RUS)
-    contractFileLinks String?           @db.Text
-    contractNumber    String?
-    trustMeId         String?
-    trustMeUrl        String?
-    trustMeFileName   String?
+    id                         String            @id @default(cuid())
+    createdBy                  User?             @relation("CreatedApplications", fields: [createdById], references: [id])
+    createdById                String?
+    consultant                 User?             @relation("ConsultedApplications", fields: [consultantId], references: [id])
+    consultantId               String?
+    applicant                  Applicant?        @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+    applicantId                String?
+    representative             Representative?   @relation(fields: [representativeId], references: [id], onDelete: Cascade)
+    representativeId           String?
+    documents                  Document[]
+    details                    Details?          @relation(fields: [detailsId], references: [id], onDelete: Cascade)
+    detailsId                  String?           @unique
+    createdAt                  DateTime          @default(now())
+    updatedAt                  DateTime          @updatedAt
+    submittedAt                DateTime?
+    terminatedAt               DateTime?
+    terminateContractFileLinks String?           @db.Text
+    Log                        Log[]
+    User                       User?             @relation(fields: [userId], references: [id])
+    userId                     String?
+    isDeleted                  Boolean?          @default(false)
+    contractSignType           ContractSignType? @default(NOT_SIGNED)
+    contractLanguage           SupportLanguages? @default(RUS)
+    contractFileLinks          String?           @db.Text
+    contractNumber             String?
+    trustMeId                  String?
+    trustMeUrl                 String?
+    trustMeFileName            String?
 }
 
 model Details {

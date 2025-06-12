@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
   const body = await req.json();
   const { data } = body;
-  console.log('data', data);
+  // console.log('data', data);
   const convertedData = {
     contract_number: data.contractNumber as string,
     created_at: dateUtils.formatDateForDisplay(data.submittedAt as string),

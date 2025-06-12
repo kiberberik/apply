@@ -49,5 +49,6 @@ public/upload-docs/*
 public/generated-docs/*
 
 private/contracts/*
+private/terminations/*
 
 public/template-docs/_main
