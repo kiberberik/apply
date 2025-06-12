@@ -47,6 +47,7 @@ export async function POST(req: Request) {
       ? (countries.find((country) => country.id == data.applicant.citizenship)?.ru as string)
       : '',
     phone: data.applicant.phone as string,
+    email: data.applicant.email as string,
     address_residential: data.applicant.addressResidential as string,
     address_registration: data.applicant.addressRegistration as string,
     representative_fullname: data.representative
@@ -70,15 +71,16 @@ export async function POST(req: Request) {
     representative_phone: data.representative?.phone || '',
     representative_address_residential: data.representative?.addressResidential || '',
     representative_address_registration: data.representative?.addressRegistration || '',
-    is_dorm_needs: data.details.isDormsNeed ? 'Нуждаюсь' : 'Не нуждаюсь',
+    is_dorm_needs: Boolean(data.details.isDormsNeed) ? 'Нуждаюсь' : 'Не нуждаюсь',
     academic_level: (await tAcademicLevel)(data.details.academicLevel as string) as string,
     edu_group_name: data.details.educationalProgram.group as string,
     edu_program_name: data.details.educationalProgram.name as string,
     edu_program_code: data.details.educationalProgram.code as string,
-    years: data.details.educationalProgram.duration as string,
+    edu_program_duration: data.details.educationalProgram.duration as string,
     edu_program_price: data.details.educationalProgram.costPerCredit as string,
     studying_language: (await tStudyingLanguage)(data.details.studyingLanguage as string) as string,
     application_check: '+',
+    identity_document: '+',
     admission_fee_check: data.documents?.find((doc: Document) => doc.code === 'admission_fee')
       ?.isDelivered
       ? '+'
