@@ -47,7 +47,6 @@ export async function POST(req: Request) {
       ? (countries.find((country) => country.id == data.applicant.citizenship)?.ru as string)
       : '',
     phone: data.applicant.phone as string,
-    email: data.applicant.email as string,
     address_residential: data.applicant.addressResidential as string,
     address_registration: data.applicant.addressRegistration as string,
     representative_fullname: data.representative
@@ -120,10 +119,11 @@ export async function POST(req: Request) {
       ?.isDelivered
       ? '+'
       : '-',
-    id_card_check: data.documents?.find((doc: Document) => doc.code === 'identity_document')
-      ?.isDelivered
-      ? '+'
-      : '-',
+    id_card_check: '+',
+    // data.documents?.find((doc: Document) => doc.code === 'identity_document')
+    //   ?.isDelivered
+    //   ? '+'
+    //   : '-',
     preferential_doc_check: data.documents?.find(
       (doc: Document) => doc.code === 'preferential_document',
     )?.isDelivered
