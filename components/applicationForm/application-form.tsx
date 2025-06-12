@@ -1284,10 +1284,10 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         },
       );
 
-      console.log('TrustMe response:', trustMeResponse);
+      // console.log('TrustMe response:', trustMeResponse);
 
       const responseText = await trustMeResponse.text();
-      console.log('TrustMe raw response:', responseText);
+      // console.log('TrustMe raw response:', responseText);
 
       if (!trustMeResponse.ok) {
         toast.error('Не удалось отправить контракт на подписание');
@@ -1295,7 +1295,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       }
 
       const result = JSON.parse(responseText) || {};
-      console.log('TrustMe parsed response:', result);
+      // console.log('TrustMe parsed response:', result);
 
       if (!result.data) {
         toast.error('Не удалось отправить контракт на подписание');
@@ -1305,7 +1305,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       // Создаем лог о отправке в TrustMe
       if (id && user?.id) {
         const trustMeData = result?.data;
-        console.log('TrustMe data:', trustMeData);
+        // console.log('TrustMe data:', trustMeData);
         const trustMeId = trustMeData?.id;
         const trustMeUrl = trustMeData?.url;
         const trustMeFileName = trustMeData?.fileName;
@@ -1350,7 +1350,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       }
 
       const program = await getEducationalProgramDetails(educationalProgramId);
-      console.log('Полученные данные программы:', program);
+      // console.log('Полученные данные программы:', program);
 
       if (!program) {
         throw new Error('Не удалось получить данные образовательного курса');
@@ -1474,14 +1474,14 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         throw new Error('Не найден ID документа TrustMe');
       }
 
-      console.log('ID документа TrustMe:', trustMeId);
+      // console.log('ID документа TrustMe:', trustMeId);
 
       // Создаем заголовки
       const headers = new Headers();
       headers.append('Authorization', process.env.NEXT_PUBLIC_TRUSTME_API_TOKEN || '');
       headers.append('Content-Type', 'application/json');
 
-      console.log('Проверяем статус документа:', trustMeId);
+      // console.log('Проверяем статус документа:', trustMeId);
 
       // Отправляем запрос на проверку статуса
       const response = await fetch(
@@ -1493,11 +1493,11 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         },
       );
 
-      console.log('Ответ от TrustMe:', {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries()),
-      });
+      // console.log('Ответ от TrustMe:', {
+      //   status: response.status,
+      //   statusText: response.statusText,
+      //   headers: Object.fromEntries(response.headers.entries()),
+      // });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -1512,7 +1512,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       }
 
       const result = await response.json();
-      console.log('Статус подписания:', result);
+      // console.log('Статус подписания:', result);
 
       // Определяем статус подписания
       let statusText = '';
@@ -1578,6 +1578,17 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           toast.success(`${statusText}`);
         } else {
           toast.info(`${statusText}`);
+        }
+
+        if (newStatusId === 'RE_PROCESSING') {
+          await updateSingleApplication(id as string, {
+            submittedAt: new Date().toISOString(),
+            contractNumber: null,
+            trustMeId: null,
+            trustMeUrl: null,
+            trustMeFileName: null,
+            contractSignType: ContractSignType.NOT_SIGNED,
+          });
         }
       } else {
         // Если статус не изменился, просто показываем текущий статус

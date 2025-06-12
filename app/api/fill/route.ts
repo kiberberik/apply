@@ -109,9 +109,9 @@ export async function POST(req: Request) {
     ),
     ent_number:
       data.documents?.find((doc: Document) => doc.code === 'ent_certificate')?.number || '',
-    ent_check:
-      data.documents?.find((doc: Document) => doc.code === 'ent_certificate')
-        ?.unifiedNationalTestingNumber || '',
+    ent_check: data.documents?.find((doc: Document) => doc.code === 'ent_certificate')?.isDelivered
+      ? '+'
+      : '-',
     grant_number:
       data.documents?.find((doc: Document) => doc.code === 'grant_certificate')?.number || '',
     grant_check: data.documents?.find((doc: Document) => doc.code === 'grant_certificate')
@@ -151,7 +151,7 @@ export async function POST(req: Request) {
       : '-',
   };
 
-  console.log('convertedData', convertedData);
+  // console.log('convertedData', convertedData);
 
   const paid_adult = 'public/template-docs/paid_adult_application_for_accession.pdf';
   const paid_minor = 'public/template-docs/paid_minor_application_for_accession.pdf';
