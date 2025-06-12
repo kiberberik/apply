@@ -47,6 +47,7 @@ export async function POST(req: Request) {
       ? (countries.find((country) => country.id == data.applicant.citizenship)?.ru as string)
       : '',
     phone: data.applicant.phone as string,
+    email: data.applicant.email as string,
     address_residential: data.applicant.addressResidential as string,
     address_registration: data.applicant.addressRegistration as string,
     representative_fullname: data.representative
