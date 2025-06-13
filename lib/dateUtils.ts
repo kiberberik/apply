@@ -173,8 +173,9 @@ export const formatDateForDisplay = (date: Date | string | null | undefined): st
 
   try {
     const d = new Date(date);
-    // Устанавливаем время на полдень для предотвращения проблем с часовым поясом
-    d.setHours(12, 0, 0, 0);
+
+    // d.setHours(12, 0, 0, 0);
+    d.setHours(d.getHours() + 6);
     const day = d.getDate().toString().padStart(2, '0');
     const month = (d.getMonth() + 1).toString().padStart(2, '0');
     const year = d.getFullYear();
