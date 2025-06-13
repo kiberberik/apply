@@ -178,6 +178,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   const isManager = user?.role === Role.MANAGER;
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [refusedToEnrollDialogOpen, setRefusedToEnrollDialogOpen] = useState(false);
   const [formValuesForSubmit, setFormValuesForSubmit] = useState<FormValues | null>(null);
   const [revokeDialogOpen, setRevokeDialogOpen] = useState(false);
   const [terminateDialogOpen, setTerminateDialogOpen] = useState(false);
@@ -1614,7 +1615,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       await fetchLogsByApplicationId(id as string);
     } catch (error) {
       console.error('Ошибка при проверке статуса подписания:', error);
-      toast.error('Произошла ошибка при проверке статуса подписания');
+      // toast.error('Произошла ошибка при проверке статуса подписания');
     } finally {
       setIsLoading(false);
     }
@@ -1699,11 +1700,11 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     }
   };
 
-  const handleTerminateContract = async () => {
-    setIsLoading(true);
+  // const handleTerminateContract = async () => {
+  //   setIsLoading(true);
 
-    setIsLoading(false);
-  };
+  //   setIsLoading(false);
+  // };
 
   const handleGenerateTerminateContract = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -1771,7 +1772,6 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   const handleUploadTerminateContract = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    toast.info('Загрузка контракта расторжения...');
     if (terminateContractFile && user?.id) {
       try {
         const formData = new FormData();
@@ -1789,12 +1789,12 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         }
         const data = await response.json();
         console.log('data', data);
-        toast.success('Контракт расторжения успешно загружен');
+        // toast.success('Контракт расторжения успешно загружен');
 
         await updateSingleApplication(id as string, {
           contractSignType: ContractSignType.NOT_SIGNED,
           submittedAt: new Date().toISOString(),
-          contractNumber: new Date().toISOString(),
+          contractNumber: null,
           trustMeId: null,
           trustMeUrl: null,
           trustMeFileName: null,
@@ -1804,9 +1804,11 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           applicationId: id as string,
           createdById: user.id,
           statusId: 'RE_PROCESSING',
+          description: `Termination of contract: ${data?.filename}`,
         });
       } catch (error) {
-        toast.error('Ошибка при загрузке контракта');
+        // toast.error('Ошибка при загрузке контракта');
+        console.error(error);
       } finally {
         setSignedContractFile(null);
         await fetchSingleApplication(id as string);
@@ -1850,6 +1852,70 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         // console.log('singleApplication?.trustMeUrl', singleApplication?.trustMeUrl);
         window.open(`https://${singleApplication?.trustMeUrl as string}`, '_blank');
       }
+    } catch (error) {
+      console.error('Ошибка при открытии контракта:', error);
+      toast.error('Не удалось открыть контракт');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRefusedToEnroll = async () => {
+    setIsLoading(true);
+    try {
+      if (id && user?.id) {
+        if (latestLog?.statusId === 'PROCESSING') {
+          await createLog({
+            applicationId: id,
+            createdById: user.id,
+            statusId: 'EARLY_REFUSED_TO_ENROLL',
+          });
+        } else if (latestLog?.statusId === 'RE_PROCESSING') {
+          await createLog({
+            applicationId: id,
+            createdById: user.id,
+            statusId: 'REFUSED_TO_ENROLL',
+          });
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      await fetchSingleApplication(id as string);
+      await fetchLogsByApplicationId(id as string);
+      setIsLoading(false);
+    }
+  };
+
+  const handleViewTerminateContract = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+
+    if (!id || !user?.role) return;
+
+    setIsLoading(true);
+    try {
+      // if (singleApplication?.contractSignType === ContractSignType.OFFLINE) {
+      const response = await fetch(`/api/contracts/terminate-contracts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ role: user.role, id }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Ошибка при получении контракта');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      // }
+      // else if (singleApplication?.contractSignType === ContractSignType.TRUSTME) {
+      //   // console.log('here');
+      //   // console.log('singleApplication?.trustMeUrl', singleApplication?.trustMeUrl);
+      //   window.open(`https://${singleApplication?.trustMeUrl as string}`, '_blank');
+      // }
     } catch (error) {
       console.error('Ошибка при открытии контракта:', error);
       toast.error('Не удалось открыть контракт');
@@ -2172,11 +2238,15 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
             )}
 
           {singleApplication?.submittedAt &&
-            singleApplication?.contractSignType === 'OFFLINE' &&
-            (user?.role === Role.MANAGER || user?.role === Role.ADMIN) &&
-            (latestLog?.statusId === 'NEED_DOCS' ||
-              latestLog?.statusId === 'CHECK_DOCS' ||
-              latestLog?.statusId === 'ENROLLED') && (
+            ((singleApplication?.contractSignType === 'OFFLINE' &&
+              (latestLog?.statusId === 'NEED_DOCS' ||
+                latestLog?.statusId === 'CHECK_DOCS' ||
+                latestLog?.statusId === 'ENROLLED')) ||
+              ((singleApplication?.contractSignType === 'TRUSTME' ||
+                singleApplication?.contractSignType === 'NOT_SIGNED') &&
+                (latestLog?.statusId === 'PROCESSING' ||
+                  latestLog?.statusId === 'RE_PROCESSING'))) &&
+            (user?.role === Role.MANAGER || user?.role === Role.ADMIN) && (
               <div className="my-12 flex w-full flex-col gap-6 rounded-lg p-4">
                 <div className="flex flex-row flex-wrap justify-end gap-4">
                   <div className="flex flex-col gap-4">
@@ -2228,6 +2298,44 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
                 </div>
               </div>
             )}
+
+          {singleApplication?.submittedAt &&
+            user?.role !== Role.USER &&
+            (latestLog?.statusId === 'PROCESSING' ||
+              latestLog?.statusId === 'RE_PROCESSING' ||
+              latestLog?.statusId === 'EARLY_REFUSED_TO_ENROLL' ||
+              latestLog?.statusId === 'REFUSED_TO_ENROLL') &&
+            singleApplication?.terminateContractFileLinks &&
+            singleApplication?.terminateContractFileLinks.length > 0 && (
+              <div className="my-12 flex w-full flex-col gap-6 rounded-lg border bg-white p-4">
+                <div className="flex flex-col gap-4">
+                  <Button onClick={handleViewTerminateContract} disabled={isLoading}>
+                    {c('viewTerminateContract')}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+          {singleApplication?.submittedAt &&
+            user?.role !== Role.USER &&
+            singleApplication?.terminateContractFileLinks &&
+            singleApplication?.terminateContractFileLinks.length !== 0 &&
+            (latestLog?.statusId === 'PROCESSING' || latestLog?.statusId === 'RE_PROCESSING') && (
+              <div className="my-12 flex w-full flex-col gap-6 rounded-lg border bg-white p-4">
+                <div className="flex flex-col gap-4">
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setRefusedToEnrollDialogOpen(true);
+                    }}
+                    disabled={isLoading}
+                    className="bg-red-700"
+                  >
+                    {c('refusedToEnroll')}
+                  </Button>
+                </div>
+              </div>
+            )}
         </form>
       </Form>
 
@@ -2254,15 +2362,15 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
       />
 
       <ConfirmDialog
-        dialogOpen={terminateDialogOpen}
-        setDialogOpen={setTerminateDialogOpen}
+        dialogOpen={refusedToEnrollDialogOpen}
+        setDialogOpen={setRefusedToEnrollDialogOpen}
         onClick={() => {
-          setTerminateDialogOpen(false);
-          handleTerminateContract();
+          setRefusedToEnrollDialogOpen(false);
+          handleRefusedToEnroll();
         }}
-        closeDialog={() => setTerminateDialogOpen(false)}
-        titleKey="confirmTerminateTitle"
-        descriptionKey="confirmTerminateDescription"
+        closeDialog={() => setRefusedToEnrollDialogOpen(false)}
+        titleKey="confirmRefusedToEnrollTitle"
+        descriptionKey="confirmRefusedToEnrollDescription"
         confirmButtonClassName="bg-red-700"
       />
 

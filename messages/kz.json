@@ -83,7 +83,11 @@
     "confirmTerminateTitle": "Келісім-шартты бұзуды растау",
     "confirmTerminateDescription": "Сіз келісім-шартты бұзуға сенімдісіз бе? Бұл әрекетті кері қайтаруға болмайды.",
     "generateTerminateContract": "Келісім-шартты бұзу құжатын жасау",
-    "saveTerminateContract": "Келісім-шартты бұзу құжатын сақтау"
+    "saveTerminateContract": "Келісім-шартты бұзу құжатын сақтау",
+    "refusedToEnroll": "Қабылдаудан бас тартты",
+    "confirmRefusedToEnrollTitle": "Қабылдаудан бас тартуды растау",
+    "confirmRefusedToEnrollDescription": "Сіз қабылдаудан бас тарту туралы шешімді қабылдағаныңызға сенімдісіз бе? Бұл әрекетті кері қайтаруға болмайды.",
+    "viewTerminateContract": "Келісім-шартты бұзу құжатын көру"
   },
   "Roles": {
     "USER": "Пайдаланушы",

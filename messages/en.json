@@ -83,7 +83,11 @@
     "confirmTerminateTitle": "Confirm Termination of Contract",
     "confirmTerminateDescription": "Are you sure you want to terminate the contract? This action cannot be undone.",
     "generateTerminateContract": "Generate Terminate Contract",
-    "saveTerminateContract": "Save Terminate Contract"
+    "saveTerminateContract": "Save Terminate Contract",
+    "refusedToEnroll": "Refused to Enroll",
+    "confirmRefusedToEnrollTitle": "Confirm Refusal to Enroll",
+    "confirmRefusedToEnrollDescription": "Are you sure about the decision to refuse to enroll? This action cannot be undone.",
+    "viewTerminateContract": "View Terminate Contract"
   },
   "Roles": {
     "USER": "User",

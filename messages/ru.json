@@ -83,7 +83,11 @@
     "confirmTerminateTitle": "Подтверждение расторжения договора",
     "confirmTerminateDescription": "Вы уверены, что хотите расторгнуть договор? Это действие нельзя отменить.",
     "generateTerminateContract": "Сгенерировать контракт расторжения",
-    "saveTerminateContract": "Сохранить контракт расторжения"
+    "saveTerminateContract": "Сохранить контракт расторжения",
+    "refusedToEnroll": "Отказался от зачисления",
+    "confirmRefusedToEnrollTitle": "Подтверждение отказа от зачисления",
+    "confirmRefusedToEnrollDescription": "Вы уверены об отказе от зачисления? Это действие нельзя отменить.",
+    "viewTerminateContract": "Посмотреть контракт расторжения"
   },
   "Roles": {
     "USER": "Пользователь",
