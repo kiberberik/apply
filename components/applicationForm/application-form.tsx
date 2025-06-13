@@ -2241,7 +2241,8 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
             ((singleApplication?.contractSignType === 'OFFLINE' &&
               (latestLog?.statusId === 'NEED_DOCS' ||
                 latestLog?.statusId === 'CHECK_DOCS' ||
-                latestLog?.statusId === 'ENROLLED')) ||
+                latestLog?.statusId === 'ENROLLED' ||
+                latestLog?.statusId === 'RE_PROCESSING')) ||
               ((singleApplication?.contractSignType === 'TRUSTME' ||
                 singleApplication?.contractSignType === 'NOT_SIGNED') &&
                 (latestLog?.statusId === 'PROCESSING' ||
