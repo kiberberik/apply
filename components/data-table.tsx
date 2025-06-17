@@ -28,7 +28,7 @@ import { Button } from '@/components/ui/button';
 import { useTranslations } from 'next-intl';
 import { ExtendedApplication, useApplicationStore } from '@/store/useApplicationStore';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Trash2 } from 'lucide-react';
+import { AlertCircle, IdCard, Trash2 } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import {
   Dialog,
@@ -41,6 +41,9 @@ import {
 import { toast } from 'react-toastify';
 import { useAuthStore } from '@/store/useAuthStore';
 import Loading from './layout/Loading';
+import { useDocumentStore } from '@/store/useDocumentStore';
+import { Document } from '@prisma/client';
+import { useEducationalStore } from '@/store/useEducationalStore';
 
 interface DataTableProps {
   columns: ColumnDef<ExtendedApplication, unknown>[];
@@ -279,7 +282,10 @@ export const RemoveCell = ({ row }: { row: Row<ExtendedApplication> }) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { deleteApplication } = useApplicationStore();
+  const { documents, fetchDocumentsByApplication, resetDocuments } = useDocumentStore();
   const { user } = useAuthStore();
+  const { getEducationalProgramDetails } = useEducationalStore();
+
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
@@ -291,6 +297,58 @@ export const RemoveCell = ({ row }: { row: Row<ExtendedApplication> }) => {
       toast.error(c('errorDelete'));
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleGenerateIdCard = async () => {
+    try {
+      resetDocuments(); // Очищаем предыдущие документы
+      await fetchDocumentsByApplication(application.id);
+      const photoDoc = documents?.find((doc: Document) => doc.code === 'photo');
+      const photoUrl = photoDoc ? `${process.env.NEXT_PUBLIC_APP_URL}${photoDoc.link}` : null;
+
+      const educationalProgramId = application?.details?.educationalProgramId;
+      if (!educationalProgramId) {
+        throw new Error('Не выбран образовательный курс');
+      }
+      const program = await getEducationalProgramDetails(educationalProgramId);
+
+      if (!program) {
+        throw new Error('Не удалось получить данные образовательного курса');
+      }
+
+      // Расчет даты окончания
+      const submittedDate = new Date(application?.submittedAt || '');
+      const endYear = submittedDate.getFullYear() + Number(program.duration);
+      const expiration = `30.06.${endYear}`;
+
+      const data = {
+        lastname: application?.applicant?.surname,
+        givennames: application?.applicant?.givennames,
+        degree: application.details?.academicLevel,
+        eduprogram: program?.name_eng,
+        image: photoUrl,
+        expiration,
+      };
+      // console.log('documents', documents);
+      const response = await fetch('/api/generate-student-card', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      // const result = await response.json();
+      // console.log('result', result);
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `id-card.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error generating ID card:', error);
     }
   };
 
@@ -306,6 +364,14 @@ export const RemoveCell = ({ row }: { row: Row<ExtendedApplication> }) => {
           }
         >
           <Trash2 className="h-4 w-4 text-red-600 hover:text-red-700" />
+        </Button>
+        <Button
+          variant="ghost"
+          className="bg-none hover:cursor-pointer"
+          onClick={() => handleGenerateIdCard()}
+          disabled={user?.role !== 'ADMIN'}
+        >
+          <IdCard className="h-4 w-4 text-green-600 hover:text-green-700" />
         </Button>
       </TableCell>
 
