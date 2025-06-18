@@ -79,6 +79,8 @@ export interface UpdateApplicationRequest {
       issueDate?: string;
       expirationDate?: string;
       issuingAuthority?: string;
+      additionalInfo1?: string;
+      additionalInfo2?: string;
     };
   } | null;
   contractLanguage?: string | null;

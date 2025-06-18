@@ -32,6 +32,8 @@ interface FormValues {
       issueDate?: string;
       expirationDate?: string;
       isDelivered?: boolean;
+      additionalInfo1?: string;
+      additionalInfo2?: string;
     };
   };
   applicant: {
@@ -304,6 +306,13 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
               expirationDate: doc.expirationDate
                 ? format(new Date(doc.expirationDate), 'yyyy-MM-dd')
                 : documentDetails[doc.code]?.expirationDate || '',
+            };
+          } else if (doc.code === 'photo') {
+            acc[doc.code] = {
+              additionalInfo1:
+                doc.additionalInfo1 || documentDetails[doc.code]?.additionalInfo1 || '',
+              additionalInfo2:
+                doc.additionalInfo2 || documentDetails[doc.code]?.additionalInfo2 || '',
             };
           }
           return acc;
@@ -587,6 +596,42 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                                         <FormControl>
                                           <Input
                                             type="date"
+                                            {...field}
+                                            disabled={isSubmitted || isLoading[doc.code || '']}
+                                          />
+                                        </FormControl>
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
+                              )}
+                              {doc.code === 'photo' && (
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                  <FormField
+                                    control={form.control}
+                                    name={`documentDetails.${doc.code}.additionalInfo1`}
+                                    defaultValue=""
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>{t('firstnameTranslit')}</FormLabel>
+                                        <FormControl>
+                                          <Input
+                                            {...field}
+                                            disabled={isSubmitted || isLoading[doc.code || '']}
+                                          />
+                                        </FormControl>
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField
+                                    control={form.control}
+                                    name={`documentDetails.${doc.code}.additionalInfo2`}
+                                    defaultValue=""
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>{t('lastnameTranslit')}</FormLabel>
+                                        <FormControl>
+                                          <Input
                                             {...field}
                                             disabled={isSubmitted || isLoading[doc.code || '']}
                                           />

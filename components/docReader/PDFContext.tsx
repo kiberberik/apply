@@ -12,6 +12,8 @@ interface FormValues {
       issueDate?: string;
       expirationDate?: string;
       issuingAuthority?: string;
+      additionalInfo1?: string;
+      additionalInfo2?: string;
     };
   };
   applicant: {

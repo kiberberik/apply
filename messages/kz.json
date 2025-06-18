@@ -454,7 +454,9 @@
     "documentNumber": "Құжат нөмірі",
     "documentIssueDate": "Құжат берілген күні",
     "documentExpirationDate": "Құжат жарамдылық мерзімі",
-    "documentIssuingAuthority": "Кім берген"
+    "documentIssuingAuthority": "Кім берген",
+    "firstnameTranslit": "Есімі латын қаріптерімен (Student ID Card)",
+    "lastnameTranslit": "Тегі латын қаріптерімен (Student ID Card)"
   },
   "AgeCategory": {
     "ADULT": "Кәмелетке толған",

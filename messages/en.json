@@ -454,7 +454,9 @@
     "documentNumber": "Document Number",
     "documentIssueDate": "Document Issue Date",
     "documentExpirationDate": "Document Expiration Date",
-    "documentIssuingAuthority": "Issued By"
+    "documentIssuingAuthority": "Issued By",
+    "firstnameTranslit": "First name in Latin (Student ID Card)",
+    "lastnameTranslit": "Last name in Latin (Student ID Card)"
   },
   "AgeCategory": {
     "ADULT": "Adult",

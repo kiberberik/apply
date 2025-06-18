@@ -454,7 +454,9 @@
     "documentNumber": "Номер документа",
     "documentIssueDate": "Дата выдачи документа",
     "documentExpirationDate": "Срок действия документа",
-    "documentIssuingAuthority": "Кем выдан"
+    "documentIssuingAuthority": "Кем выдан",
+    "firstnameTranslit": "Имя на латинице (Student ID Card)",
+    "lastnameTranslit": "Фамилия на латинице (Student ID Card)"
   },
   "AgeCategory": {
     "ADULT": "Совершеннолетний",

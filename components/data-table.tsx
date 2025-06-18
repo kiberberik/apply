@@ -323,8 +323,8 @@ export const RemoveCell = ({ row }: { row: Row<ExtendedApplication> }) => {
       const expiration = `30.06.${endYear}`;
 
       const data = {
-        lastname: application?.applicant?.surname,
-        givennames: application?.applicant?.givennames,
+        lastname: photoDoc?.additionalInfo2 || application?.applicant?.surname,
+        givennames: photoDoc?.additionalInfo1 || application?.applicant?.givennames,
         degree: application.details?.academicLevel,
         eduprogram: program?.name_eng,
         image: photoUrl,

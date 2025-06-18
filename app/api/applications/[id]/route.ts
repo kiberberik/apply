@@ -445,6 +445,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
               issueDate?: string;
               expirationDate?: string;
               issuingAuthority?: string;
+              additionalInfo1?: string;
+              additionalInfo2?: string;
             };
 
             await tx.document.update({
@@ -457,6 +459,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
                   ? new Date(typedDetails.expirationDate)
                   : null,
                 issuingAuthority: typedDetails.issuingAuthority || null,
+                additionalInfo1: typedDetails.additionalInfo1 || null,
+                additionalInfo2: typedDetails.additionalInfo2 || null,
               },
             });
           }
