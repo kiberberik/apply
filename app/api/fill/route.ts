@@ -8,6 +8,7 @@ import { checkServerAccess } from '@/lib/serverAuth';
 import countries from '@/data/countries.json';
 import platonusIds from '@/data/platonusIds.json';
 import { getTranslations } from 'next-intl/server';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic'; // если нужно всегда получать свежие данные
 
@@ -21,6 +22,12 @@ export async function POST(req: Request) {
 
   const body = await req.json();
   const { data } = body;
+
+  const consultant = await prisma.user.findFirst({
+    where: {
+      id: data.consultantId,
+    },
+  });
   // console.log('data', data);
   const convertedData = {
     contract_number: data.contractNumber as string,
@@ -54,18 +61,28 @@ export async function POST(req: Request) {
       ? `${data.representative.surname || ''} ${data.representative.givennames || ''} ${data.representative.patronymic || ''}`.trim()
       : '',
     representative_identification_number: data.representative?.identificationNumber || '',
-    representative_doc_type: data.representative?.documentType || '',
+    representative_doc_type:
+      data.representative?.relationshipDegree == 'PARENT'
+        ? 'Свидетельство о рождении'
+        : data.representative?.relationshipDegree == 'GUARDIAN'
+          ? 'Документ на опекунство'
+          : data.representative?.relationshipDegree == 'TRUSTEE'
+            ? 'Доверенность'
+            : '',
     representative_doc_number:
       data.documents?.find((doc: Document) => doc.code === 'representative_document')?.number || '',
     representative_doc_issuing_authority:
       data.documents?.find((doc: Document) => doc.code === 'representative_document')
         ?.issuingAuthority || '',
     representative_doc_issue_date:
-      data.documents?.find((doc: Document) => doc.code === 'representative_document')?.issueDate ||
-      '',
+      dateUtils.formatDateForDisplay(
+        data.documents?.find((doc: Document) => doc.code === 'representative_document')?.issueDate,
+      ) || '',
     representative_doc_expiry_date:
-      data.documents?.find((doc: Document) => doc.code === 'representative_document')
-        ?.expirationDate || '',
+      dateUtils.formatDateForDisplay(
+        data.documents?.find((doc: Document) => doc.code === 'representative_document')
+          ?.expirationDate,
+      ) || '',
     representative_relationship_degree: data.representative?.relationshipDegree || '',
     representative_email: data.representative?.email || '',
     representative_phone: data.representative?.phone || '',
@@ -152,6 +169,7 @@ export async function POST(req: Request) {
     military_check: data.documents?.find((doc: Document) => doc.code === 'military')?.isDelivered
       ? '+'
       : '-',
+    consultant: consultant?.name || '',
   };
 
   // console.log('convertedData', convertedData);
@@ -206,7 +224,7 @@ export async function POST(req: Request) {
       break;
   }
 
-  // currentTemplate = 'public/template-docs/test6.pdf';
+  // currentTemplate = 'public/template-docs/test.pdf';
 
   const templatePath = path.join(
     process.cwd(),

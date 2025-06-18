@@ -38,7 +38,7 @@ export async function fillPdfStudentIdCard(
       const imageWidth = 470;
       const imageHeight = 600;
       const imageX = 90;
-      const imageY = page.getHeight() - 280 - imageHeight;
+      const imageY = page.getHeight() - 240 - imageHeight;
 
       page.drawPage(imagePage, {
         x: imageX,

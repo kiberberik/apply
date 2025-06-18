@@ -52,3 +52,4 @@ private/contracts/*
 private/terminations/*
 
 public/template-docs/_main
+public/template-docs/test.pdf
