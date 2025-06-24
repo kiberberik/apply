@@ -1319,6 +1319,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           trustMeUrl,
           trustMeFileName,
           contractSignType: 'TRUSTME',
+          contractNumber: contractNumber,
         });
 
         // Создаем лог

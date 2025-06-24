@@ -19,7 +19,13 @@ export async function fillPdfPlaceholders(
   const pdfDoc = await PDFDocument.load(buffer);
   pdfDoc.registerFontkit(fontkit);
   // Загружаем кириллический шрифт Roboto
-  const fontPath = path.join(process.cwd(), 'public', 'fonts', 'Roboto-Regular.ttf');
+  const fontPath = path.join(
+    process.cwd(),
+    'public',
+    'fonts',
+    'Montserrat',
+    'Montserrat-Regular.ttf',
+  );
   const fontBytes = await fs.readFile(fontPath);
   const font = await pdfDoc.embedFont(fontBytes);
 
@@ -61,7 +67,7 @@ export async function fillPdfPlaceholders(
         pageRef.drawText(value, {
           x,
           y,
-          size: 8,
+          size: 7.5,
           font,
           color: rgb(0, 0, 0),
         });
