@@ -4,6 +4,7 @@ import { hasAccess } from '@/lib/hasAccess';
 import NoAccess from '@/components/layout/NoAccess';
 import { useAuthStore } from '@/store/useAuthStore';
 import React from 'react';
+import ExportAll from '@/components/(statistics)/ExportAll';
 
 export default function Page() {
   const { user } = useAuthStore();
@@ -12,5 +13,10 @@ export default function Page() {
     return <NoAccess />;
   }
 
-  return <div>Statistics</div>;
+  return (
+    <div>
+      Statistics
+      <ExportAll />
+    </div>
+  );
 }
