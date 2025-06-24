@@ -28,7 +28,7 @@ export async function POST(req: Request) {
       id: data.consultantId,
     },
   });
-  // console.log('data', data);
+  console.log('data', data);
   const convertedData = {
     contract_number: data.contractNumber as string,
     created_at: dateUtils.formatDateForDisplay(data.submittedAt as string),
@@ -91,6 +91,7 @@ export async function POST(req: Request) {
     is_dorm_needs: Boolean(data.details.isDormNeeds) == true ? 'Нуждаюсь' : 'Не нуждаюсь',
     academic_level: (await tAcademicLevel)(data.details.academicLevel as string) as string,
     edu_group_name: data.details.educationalProgram.group as string,
+    edu_group_code: data.details.educationalProgram.groupCode as string,
     edu_program_name: data.details.educationalProgram.name as string,
     edu_program_code: data.details.educationalProgram.code as string,
     edu_program_duration: data.details.educationalProgram.duration as string,
