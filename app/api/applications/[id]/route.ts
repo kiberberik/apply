@@ -113,6 +113,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           trustMeId: data.trustMeId ?? application.trustMeId,
           trustMeUrl: data.trustMeUrl ?? application.trustMeUrl,
           trustMeFileName: data.trustMeFileName ?? application.trustMeFileName,
+          contractNumber: data.contractNumber ?? application.contractNumber,
         },
         include: {
           applicant: true,
