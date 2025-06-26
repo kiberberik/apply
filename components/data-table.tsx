@@ -252,6 +252,7 @@ export function DataTable({ columns, data }: DataTableProps) {
                     </TableCell>
                   ))}
                   <RemoveCell row={row} />
+                  <GenerateIdCard row={row} />
                 </TableRow>
               ))
             ) : (
@@ -282,9 +283,7 @@ export const RemoveCell = ({ row }: { row: Row<ExtendedApplication> }) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { deleteApplication } = useApplicationStore();
-  const { documents, fetchDocumentsByApplication, resetDocuments } = useDocumentStore();
   const { user } = useAuthStore();
-  const { getEducationalProgramDetails } = useEducationalStore();
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -300,6 +299,51 @@ export const RemoveCell = ({ row }: { row: Row<ExtendedApplication> }) => {
     }
   };
 
+  return (
+    <>
+      <TableCell className="flex items-center justify-center">
+        <Button
+          variant="ghost"
+          className="bg-none hover:cursor-pointer"
+          onClick={() => setIsDeleteDialogOpen(true)}
+          disabled={
+            application.Log?.[0]?.statusId !== 'DRAFT' || application.createdById !== user?.id
+          }
+        >
+          <Trash2 className="h-4 w-4 text-red-600 hover:text-red-700" />
+        </Button>
+      </TableCell>
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="max-w-md" aria-describedby="dialog-title">
+          <DialogHeader>
+            <DialogTitle>{c('deleteConfirmation')}</DialogTitle>
+            <DialogDescription>{c('deleteApplicationConfirmation')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+              disabled={isDeleting}
+            >
+              {c('cancel')}
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting ? c('deleting') : c('delete')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+export const GenerateIdCard = ({ row }: { row: Row<ExtendedApplication> }) => {
+  const application = row.original;
+  const { documents, fetchDocumentsByApplication, resetDocuments } = useDocumentStore();
+  const { user } = useAuthStore();
+  const { getEducationalProgramDetails } = useEducationalStore();
+
   const handleGenerateIdCard = async () => {
     try {
       resetDocuments(); // Очищаем предыдущие документы
@@ -309,12 +353,16 @@ export const RemoveCell = ({ row }: { row: Row<ExtendedApplication> }) => {
 
       const educationalProgramId = application?.details?.educationalProgramId;
       if (!educationalProgramId) {
-        throw new Error('Не выбран образовательный курс');
+        toast.error('Не выбран образовательный курс');
+        // throw new Error('Не выбран образовательный курс');
+        return;
       }
       const program = await getEducationalProgramDetails(educationalProgramId);
 
       if (!program) {
-        throw new Error('Не удалось получить данные образовательного курса');
+        toast.error('Не выбран образовательный курс');
+        return;
+        // throw new Error('Не удалось получить данные образовательного курса');
       }
 
       // Расчет даты окончания
@@ -358,43 +406,12 @@ export const RemoveCell = ({ row }: { row: Row<ExtendedApplication> }) => {
         <Button
           variant="ghost"
           className="bg-none hover:cursor-pointer"
-          onClick={() => setIsDeleteDialogOpen(true)}
-          disabled={
-            application.Log?.[0]?.statusId !== 'DRAFT' || application.createdById !== user?.id
-          }
-        >
-          <Trash2 className="h-4 w-4 text-red-600 hover:text-red-700" />
-        </Button>
-        <Button
-          variant="ghost"
-          className="bg-none hover:cursor-pointer"
           onClick={() => handleGenerateIdCard()}
           disabled={user?.role !== 'ADMIN'}
         >
           <IdCard className="h-4 w-4 text-green-600 hover:text-green-700" />
         </Button>
       </TableCell>
-
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="max-w-md" aria-describedby="dialog-title">
-          <DialogHeader>
-            <DialogTitle>{c('deleteConfirmation')}</DialogTitle>
-            <DialogDescription>{c('deleteApplicationConfirmation')}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteDialogOpen(false)}
-              disabled={isDeleting}
-            >
-              {c('cancel')}
-            </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
-              {isDeleting ? c('deleting') : c('delete')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   );
 };
