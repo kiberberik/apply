@@ -1206,6 +1206,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               ...singleApplication?.details,
               educationalProgram: {
                 group: program.group?.name_rus || '',
+                groupCode: program.group?.code || '',
                 name: program.name_rus || '',
                 code: program.code || '',
                 duration: String(program.duration) || '',
@@ -1382,6 +1383,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               ...singleApplication?.details,
               educationalProgram: {
                 group: program.group?.name_rus || '',
+                groupCode: program.group?.code || '',
                 name: program.name_rus || '',
                 code: program.code || '',
                 duration: String(program.duration) || '',
