@@ -252,7 +252,7 @@ export function DataTable({ columns, data }: DataTableProps) {
                     </TableCell>
                   ))}
                   <RemoveCell row={row} />
-                  <GenerateIdCard row={row} />
+                  {/* <GenerateIdCard row={row} /> */}
                 </TableRow>
               ))
             ) : (

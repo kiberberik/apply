@@ -26,7 +26,7 @@ import {
 } from '@prisma/client';
 import { toast } from 'react-toastify';
 import dateUtils from '@/lib/dateUtils';
-import { Loader2 } from 'lucide-react';
+import { Loader2, IdCard } from 'lucide-react';
 import { hasAccess } from '@/lib/hasAccess';
 import LogHistory from './LogHistory';
 import Info from './Info';
@@ -38,6 +38,7 @@ import { Label } from '../ui/label';
 import { formSchema } from './formSchema';
 import { generateContractNumber } from '@/lib/generateContractNumber';
 import ConfirmDialog from './ConfirmDialog';
+import { Document } from '@prisma/client';
 
 interface ApplicationFormProps {
   id?: string;
@@ -151,6 +152,11 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
   const { fetchSingleApplication, updateSingleApplication, singleApplication, isLoadingSingleApp } =
     useApplicationStore();
   const { createLog, fetchLogsByApplicationId, getLatestLogByApplicationId } = useLogStore();
+  const {
+    documents: cardDocuments,
+    fetchDocumentsByApplication,
+    resetDocuments,
+  } = useDocumentStore();
 
   const tApplicant = useTranslations('Applicant');
   const tRepresentative = useTranslations('Representative');
@@ -1927,6 +1933,62 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     }
   };
 
+  const handleGenerateIdCard = async () => {
+    try {
+      resetDocuments(); // Очищаем предыдущие документы
+      await fetchDocumentsByApplication(singleApplication?.id || '');
+      const photoDoc = cardDocuments?.find((doc: Document) => doc.code === 'photo');
+      const photoUrl = photoDoc ? `${process.env.NEXT_PUBLIC_APP_URL}${photoDoc.link}` : null;
+
+      const educationalProgramId = singleApplication?.details?.educationalProgramId;
+      if (!educationalProgramId) {
+        toast.error('Не выбран образовательный курс');
+        // throw new Error('Не выбран образовательный курс');
+        return;
+      }
+      const program = await getEducationalProgramDetails(educationalProgramId);
+
+      if (!program) {
+        toast.error('Не выбран образовательный курс');
+        return;
+        // throw new Error('Не удалось получить данные образовательного курса');
+      }
+
+      // Расчет даты окончания
+      const submittedDate = new Date(singleApplication?.submittedAt || '');
+      const endYear = submittedDate.getFullYear() + Number(program.duration);
+      const expiration = `30.06.${endYear}`;
+
+      const data = {
+        lastname: photoDoc?.additionalInfo2 || singleApplication?.applicant?.surname,
+        givennames: photoDoc?.additionalInfo1 || singleApplication?.applicant?.givennames,
+        degree: singleApplication.details?.academicLevel,
+        eduprogram: program?.name_eng,
+        image: photoUrl,
+        expiration,
+      };
+      // console.log('documents', documents);
+      const response = await fetch('/api/generate-student-card', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      // const result = await response.json();
+      // console.log('result', result);
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `id-card.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error generating ID card:', error);
+    }
+  };
+
   // console.log('singleApplication', singleApplication);
 
   if (!singleApplication && id) {
@@ -1939,6 +2001,18 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
 
   return (
     <div>
+      {user?.role === Role.ADMIN && (
+        <div>
+          <Button
+            variant="ghost"
+            className="aspect-squareshrink-0 flex-col bg-none p-0 hover:cursor-pointer"
+            onClick={() => handleGenerateIdCard()}
+            disabled={user?.role !== 'ADMIN'}
+          >
+            <IdCard className="aspect-square size-10 shrink-0 text-green-600 hover:text-green-700" />
+          </Button>
+        </div>
+      )}
       {(!singleApplication?.submittedAt || user?.role !== Role.USER) && (
         <DocAnalizer
           id={id as string}
