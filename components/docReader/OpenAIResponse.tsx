@@ -3,7 +3,7 @@ import { useApplicationStore } from '@/store/useApplicationStore';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { Button } from '../ui/button';
+import { Button } from '@/components/ui/button';
 
 interface OpenAIResponseProps {
   images: string[];
@@ -41,6 +41,11 @@ export const OpenAIResponse = ({
     try {
       const base64Images = await Promise.all(
         images.map(async (imageUrl) => {
+          // Если imageUrl начинается с 'pdf:', убираем этот префикс
+          if (imageUrl.startsWith('pdf:')) {
+            imageUrl = imageUrl.replace(/^pdf:/, '');
+          }
+          // console.log('imageUrl', imageUrl);
           try {
             const response = await fetch(imageUrl);
             if (!response.ok) throw new Error('Ошибка при загрузке изображения');
@@ -138,7 +143,7 @@ error: "criteriaError" json.
           body: JSON.stringify(requestBody),
         });
 
-        console.log('Статус ответа:', response.status);
+        // console.log('Статус ответа:', response.status);
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
@@ -153,7 +158,7 @@ error: "criteriaError" json.
         }
 
         const data = await response.json();
-        console.log('data', data);
+        // console.log('data', data);
 
         if (data.choices[0].message.content && data.choices[0].message.content.includes('error')) {
           onResponse(data.choices[0].message.content);
@@ -238,7 +243,7 @@ error: "criteriaError" json.
                     // Определяем век по году (2000+ для 00-23, 1900+ для 24-99)
                     const century = parseInt(year) >= 0 && parseInt(year) <= 23 ? 2000 : 1900;
                     year = String(century + parseInt(year));
-                    console.log(`Короткий год: добавляем век ${century}, получаем ${year}`);
+                    // console.log(`Короткий год: добавляем век ${century}, получаем ${year}`);
                   }
 
                   // Нормализация для однозначных значений
@@ -264,7 +269,7 @@ error: "criteriaError" json.
                     // Определяем век по году (2000+ для 00-23, 1900+ для 24-99)
                     const century = parseInt(year) >= 0 && parseInt(year) <= 23 ? 2000 : 1900;
                     year = String(century + parseInt(year));
-                    console.log(`Короткий год: добавляем век ${century}, получаем ${year}`);
+                    // console.log(`Короткий год: добавляем век ${century}, получаем ${year}`);
                   }
 
                   // Нормализация для однозначных значений
@@ -287,7 +292,7 @@ error: "criteriaError" json.
               }
 
               const uploadData = await uploadResponse.json();
-              console.log('Документ успешно загружен:', uploadData);
+              // console.log('Документ успешно загружен:', uploadData);
 
               // Добавляем URL документа к распознанным данным
               if (!parsedContent.documentUrls) {

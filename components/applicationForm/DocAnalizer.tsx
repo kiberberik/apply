@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { OpenAIDocumentUpload } from '../docReader/OpenAIDocumentUpload';
 import { CameraCapture } from '../docReader/CameraCapture';
 import { OpenAIResponse } from '../docReader/OpenAIResponse';
@@ -82,11 +82,11 @@ const DocAnalizer = ({ id, activeTab, setActiveTab, isAdult, setFormValue }: Doc
 
         if (jsonMatch && jsonMatch[1]) {
           parsedData = JSON.parse(jsonMatch[1]) as DocumentData;
-          console.log('Извлеченные данные из OpenAI (markdown):', parsedData);
+          // console.log('Извлеченные данные из OpenAI (markdown):', parsedData);
         } else {
           try {
             parsedData = JSON.parse(response) as DocumentData;
-            console.log('Извлеченные данные из OpenAI (прямой парсинг):', parsedData);
+            // console.log('Извлеченные данные из OpenAI (прямой парсинг):', parsedData);
           } catch (error) {
             console.error('Ошибка парсинга JSON:', error);
             setOpenAIResponse(response);
@@ -97,7 +97,7 @@ const DocAnalizer = ({ id, activeTab, setActiveTab, isAdult, setFormValue }: Doc
       } else {
         // Если response уже является объектом, используем его напрямую
         parsedData = response as DocumentData;
-        console.log('Данные уже в формате объекта:', parsedData);
+        // console.log('Данные уже в формате объекта:', parsedData);
       }
 
       const currentTab = tabName || activeTab;
@@ -295,9 +295,9 @@ const DocAnalizer = ({ id, activeTab, setActiveTab, isAdult, setFormValue }: Doc
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  useEffect(() => {
-    console.log('openAIResponse изменился:', openAIResponse);
-  }, [openAIResponse]);
+  // useEffect(() => {
+  //   console.log('openAIResponse изменился:', openAIResponse);
+  // }, [openAIResponse]);
 
   if (
     latestLog?.statusId !== 'PROCESSING' &&

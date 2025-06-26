@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { PDFDocument } from 'pdf-lib';
+// import { PDFDocument } from 'pdf-lib';
 import { ImageGallery } from './ImageGallery';
 import { useTranslations } from 'next-intl';
 import { toast } from 'react-toastify';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
+import 'pdfjs-dist/legacy/build/pdf.worker.entry';
 
 interface OpenAIDocumentUploadProps {
   onImagesAdd: (images: string[]) => void;
@@ -42,24 +44,54 @@ export const OpenAIDocumentUpload = ({
       if (file.type === 'application/pdf') {
         try {
           const arrayBuffer = await file.arrayBuffer();
-          const pdfDoc = await PDFDocument.load(arrayBuffer);
-          const pages = pdfDoc.getPages();
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          const numPages = Math.min(pdf.numPages, 2);
 
-          for (let i = 0; i < pages.length; i++) {
-            const newPdfDoc = await PDFDocument.create();
-            const [newPage] = await newPdfDoc.copyPages(pdfDoc, [i]);
-            newPdfDoc.addPage(newPage);
-
-            const pdfBytes = await newPdfDoc.save();
-            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-            const imageUrl = 'pdf:' + URL.createObjectURL(blob);
-            newImages.push(imageUrl);
+          for (let i = 1; i <= numPages; i++) {
+            const page = await pdf.getPage(i);
+            const viewport = page.getViewport({ scale: 2 });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            if (context) {
+              await page.render({ canvasContext: context, viewport }).promise;
+              const imageUrl = canvas.toDataURL('image/jpeg', 0.92);
+              newImages.push(imageUrl);
+            }
           }
         } catch (error) {
           console.error('Error processing PDF:', error);
         }
       } else if (file.type.startsWith('image/')) {
-        const imageUrl = URL.createObjectURL(file);
+        // Конвертируем изображение в dataURL (image/jpeg)
+        const imageUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            // Преобразуем в JPEG, если это не JPEG
+            if (typeof reader.result === 'string' && !reader.result.startsWith('data:image/jpeg')) {
+              const img = new window.Image();
+              img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                  ctx.drawImage(img, 0, 0);
+                  resolve(canvas.toDataURL('image/jpeg', 0.92));
+                } else {
+                  resolve(reader.result as string);
+                }
+              };
+              img.onerror = () => resolve(reader.result as string);
+              img.src = reader.result as string;
+            } else {
+              resolve(reader.result as string);
+            }
+          };
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(file);
+        });
         newImages.push(imageUrl);
       }
     }
@@ -88,7 +120,7 @@ export const OpenAIDocumentUpload = ({
         type="file"
         ref={fileInputRef}
         onChange={handleFileChange}
-        accept=".jpg,.jpeg,.png"
+        accept=".jpg,.jpeg,.png,.pdf"
         multiple
         className="block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100"
       />
