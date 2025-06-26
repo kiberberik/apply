@@ -1933,10 +1933,17 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
     }
   };
 
+  useEffect(() => {
+    if (singleApplication?.id) {
+      resetDocuments();
+      fetchDocumentsByApplication(singleApplication?.id || '');
+    }
+  }, [singleApplication?.id]);
+
   const handleGenerateIdCard = async () => {
     try {
-      resetDocuments(); // Очищаем предыдущие документы
-      await fetchDocumentsByApplication(singleApplication?.id || '');
+      // resetDocuments();
+      // await fetchDocumentsByApplication(singleApplication?.id || '');
       const photoDoc = cardDocuments?.find((doc: Document) => doc.code === 'photo');
       const photoUrl = photoDoc ? `${process.env.NEXT_PUBLIC_APP_URL}${photoDoc.link}` : null;
 
