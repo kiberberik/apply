@@ -65,6 +65,8 @@ export default function ExportAll() {
     }
   };
 
+  const link = (process.env.NEXT_PUBLIC_GOOGLE_SHEETS_LINK as string) || '';
+
   return (
     <Card>
       <CardHeader>
@@ -76,7 +78,7 @@ export default function ExportAll() {
           Выберите период для экспорта данных заявок в{' '}
           <Link
             className="cursor-pointer font-bold text-blue-500 hover:text-blue-700"
-            href="https://docs.google.com/spreadsheets/d/1U7t2ruCpCUgFx2qg-64QERVEt8QbEwC4T8lw_UWToSY/edit?gid=0#gid=0"
+            href={link}
             target="_blank"
           >
             Google Sheets
