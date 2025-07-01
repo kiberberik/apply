@@ -34,13 +34,13 @@ export async function POST(req: Request) {
     created_at: dateUtils.formatDateForDisplay(data.submittedAt as string),
     surname: data.applicant.surname as string,
     givennames: data.applicant.givennames as string,
-    patronymic: data.applicant.patronymic as string,
+    patronymic: (data.applicant.patronymic as string) ?? '',
     fullname:
       (data.applicant.surname as string) +
       ' ' +
       (data.applicant.givennames as string) +
       ' ' +
-      (data.applicant.patronymic as string),
+      ((data.applicant.patronymic as string) ?? ''),
     identification_number: data.applicant.identificationNumber as string,
     doc_type: data.applicant.documentType == 'ID_CARD' ? 'Удостоверение личности' : 'Паспорт',
     doc_number: data.applicant.documentNumber as string,
