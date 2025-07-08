@@ -48,20 +48,20 @@ export async function fillPdfPlaceholders(
         const transform = item.transform as number[];
         const x = transform[4];
         const y = transform[5];
-        const width = item.width || 0; // используем точную ширину текста из PDF
+        // const width = item.width || 0; // используем точную ширину текста из PDF
         // const height = item.height || 0;
 
         const pageRef = pages[i];
 
         // Удаляем старый текст с переменной
-        pageRef.drawRectangle({
-          x,
-          y: y - 1.7, // центрируем по высоте
-          width,
-          height: 8,
-          color: rgb(1, 1, 1),
-          opacity: 1,
-        });
+        // pageRef.drawRectangle({
+        //   x,
+        //   y: y - 1.7, // центрируем по высоте
+        //   width,
+        //   height: 8,
+        //   color: rgb(1, 1, 1),
+        //   opacity: 1,
+        // });
 
         // Рисуем новый текст
         pageRef.drawText(value, {

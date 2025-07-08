@@ -29,9 +29,10 @@ export async function POST(req: Request) {
     },
   });
   console.log('data', data);
+  const createdAt = new Date();
   const convertedData = {
     contract_number: data.contractNumber as string,
-    created_at: dateUtils.formatDateForDisplay(data.submittedAt as string),
+    created_at: dateUtils.formatDateForDisplay(createdAt.toISOString()),
     surname: data.applicant.surname as string,
     givennames: data.applicant.givennames as string,
     patronymic: (data.applicant.patronymic as string) ?? '',
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
       (data.applicant.givennames as string) +
       ' ' +
       ((data.applicant.patronymic as string) ?? ''),
-    identification_number: data.applicant.identificationNumber as string,
+    iin: (data.applicant?.identificationNumber as string) ?? '',
     doc_type: data.applicant.documentType == 'ID_CARD' ? 'Удостоверение личности' : 'Паспорт',
     doc_number: data.applicant.documentNumber as string,
     doc_issuing_authority: data.applicant.documentIssuingAuthority
@@ -60,7 +61,7 @@ export async function POST(req: Request) {
     representative_fullname: data.representative
       ? `${data.representative.surname || ''} ${data.representative.givennames || ''} ${data.representative.patronymic || ''}`.trim()
       : '',
-    representative_identification_number: data.representative?.identificationNumber || '',
+    representative_iin: (data.representative?.identificationNumber as string) ?? '',
     representative_doc_type:
       data.representative?.relationshipDegree == 'PARENT'
         ? 'Свидетельство о рождении'
@@ -89,6 +90,7 @@ export async function POST(req: Request) {
     representative_address_residential: data.representative?.addressResidential || '',
     representative_address_registration: data.representative?.addressRegistration || '',
     is_dorm_needs: Boolean(data.details.isDormNeeds) == true ? 'Нуждаюсь' : 'Не нуждаюсь',
+    study_type: data.details.type == StudyType.GRANT ? 'Грант' : 'Платная',
     academic_level: (await tAcademicLevel)(data.details.academicLevel as string) as string,
     edu_group_name: data.details.educationalProgram.group as string,
     edu_group_code: data.details.educationalProgram.groupCode as string,
@@ -106,9 +108,8 @@ export async function POST(req: Request) {
     photo_check: data.documents?.find((doc: Document) => doc.code === 'photo')?.isDelivered
       ? '+'
       : '-',
-    medical_certificate_check: data.documents?.find(
-      (doc: Document) => doc.code === 'medical_certificate_075u',
-    )?.isDelivered
+    medical_check: data.documents?.find((doc: Document) => doc.code === 'medical_certificate_075u')
+      ?.isDelivered
       ? '+'
       : '-',
     vaccination_check: data.documents?.find((doc: Document) => doc.code === 'vaccination')
@@ -173,7 +174,7 @@ export async function POST(req: Request) {
     consultant: consultant?.name || '',
   };
 
-  // console.log('convertedData', convertedData);
+  console.log('convertedData', convertedData);
 
   const paid_adult = 'public/template-docs/paid_adult_application_for_accession.pdf';
   const paid_minor = 'public/template-docs/paid_minor_application_for_accession.pdf';
@@ -225,7 +226,7 @@ export async function POST(req: Request) {
       break;
   }
 
-  // currentTemplate = 'public/template-docs/test.pdf';
+  currentTemplate = 'public/template-docs/test.pdf';
 
   const templatePath = path.join(
     process.cwd(),
