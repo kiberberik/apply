@@ -23,7 +23,9 @@ const PlatonusButton = ({ application }: { application: any }) => {
       const idDoc = application?.documents?.find(
         (doc: Document) => doc?.code === 'identity_document',
       );
-      const fileUrl = `${process.env.NEXT_PUBLIC_APP_URL}${idDoc?.link.trim()}`;
+      const idDocLink = idDoc?.link.trim();
+      const fileUrl = `${process.env.NEXT_PUBLIC_APP_URL}${idDocLink}`;
+      console.log('fileUrl: ', fileUrl);
       const response = await fetch(fileUrl);
       const blob = await response.blob();
       // Шаг 2: Конвертируем Blob → base64
