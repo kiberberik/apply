@@ -227,6 +227,8 @@ function Details({ application, isSubmitted = false }: DetailsProps) {
                       <SelectItem value="KAZ">{tSupportLanguages('KAZ')}</SelectItem>
                       <SelectItem value="ENG">{tSupportLanguages('ENG')}</SelectItem>
                       <SelectItem value="POLY">{tSupportLanguages('POLY')}</SelectItem>
+                      <SelectItem value="ENG_KAZ">{tSupportLanguages('ENG_KAZ')}</SelectItem>
+                      <SelectItem value="ENG_RUS">{tSupportLanguages('ENG_RUS')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
