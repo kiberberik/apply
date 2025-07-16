@@ -161,6 +161,7 @@ export async function POST(request: Request) {
         educationalProgramGroupCode: app.details?.educationalProgram?.group?.code || '',
         educationalProgramName: app.details?.educationalProgram?.name_rus || '',
         educationalProgramCode: app.details?.educationalProgram?.code || '',
+        educationalProgramDuration: app.details?.educationalProgram?.duration || '',
         isDormNeeds: app.details?.isDormNeeds ? 'Да' : 'Нет',
         // Документы (пример для диплома/аттестата)
         diplomaLink: getDocLink('education_document'),
