@@ -39,6 +39,7 @@ import { formSchema } from './formSchema';
 import { generateContractNumber } from '@/lib/generateContractNumber';
 import ConfirmDialog from './ConfirmDialog';
 import { Document } from '@prisma/client';
+import PlatonusButton from './PlatonusButton';
 
 interface ApplicationFormProps {
   id?: string;
@@ -2008,18 +2009,21 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
 
   return (
     <div>
-      {user?.role === Role.ADMIN && (
-        <div>
-          <Button
-            variant="ghost"
-            className="aspect-squareshrink-0 flex-col bg-none p-0 hover:cursor-pointer"
-            onClick={() => handleGenerateIdCard()}
-            disabled={user?.role !== 'ADMIN'}
-          >
-            <IdCard className="aspect-square size-10 shrink-0 text-green-600 hover:text-green-700" />
-          </Button>
-        </div>
-      )}
+      <div className="flex justify-between">
+        {user?.role === Role.ADMIN && (
+          <div>
+            <Button
+              variant="ghost"
+              className="aspect-squareshrink-0 flex-col bg-none p-0 hover:cursor-pointer"
+              onClick={() => handleGenerateIdCard()}
+              disabled={user?.role !== 'ADMIN'}
+            >
+              <IdCard className="aspect-square size-10 shrink-0 text-green-600 hover:text-green-700" />
+            </Button>
+          </div>
+        )}
+        <PlatonusButton application={singleApplication as any} />
+      </div>
       {(!singleApplication?.submittedAt || user?.role !== Role.USER) && (
         <DocAnalizer
           id={id as string}

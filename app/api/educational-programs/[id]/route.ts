@@ -52,6 +52,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
                 isDeleted: true,
                 createdAt: true,
                 updatedAt: true,
+                platonusId: true,
               },
             }
           : undefined,
