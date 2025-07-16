@@ -2022,7 +2022,9 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
             </Button>
           </div>
         )}
-        <PlatonusButton application={singleApplication as any} />
+        {(user?.role === Role.MANAGER || user?.role === Role.ADMIN) && (
+          <PlatonusButton application={singleApplication as any} />
+        )}
       </div>
       {(!singleApplication?.submittedAt || user?.role !== Role.USER) && (
         <DocAnalizer
