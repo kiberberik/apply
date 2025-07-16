@@ -126,6 +126,8 @@ enum SupportLanguages {
     KAZ
     ENG
     POLY
+    ENG_KAZ
+    ENG_RUS
 }
 
 enum RelationshipDegree {
