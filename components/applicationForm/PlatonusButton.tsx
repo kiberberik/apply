@@ -21,8 +21,9 @@ const PlatonusButton = ({ application }: { application: any }) => {
         throw new Error('Не удалось получить данные образовательного курса');
       }
       const idDoc = application?.documents?.find(
-        (doc: Document) => doc?.code === 'identity_document',
+        (doc: Document) => doc?.code?.trim() === 'identity_document',
       );
+
       const idDocLink = idDoc?.link.trim();
       const fileUrl = `${process.env.NEXT_PUBLIC_APP_URL}${idDocLink}`;
       console.log('fileUrl: ', fileUrl);
