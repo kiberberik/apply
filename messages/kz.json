@@ -458,7 +458,8 @@
     "documentExpirationDate": "Құжат жарамдылық мерзімі",
     "documentIssuingAuthority": "Кім берген",
     "firstnameTranslit": "Есімі латын қаріптерімен (Student ID Card)",
-    "lastnameTranslit": "Тегі латын қаріптерімен (Student ID Card)"
+    "lastnameTranslit": "Тегі латын қаріптерімен (Student ID Card)",
+    "ikt": "Тестіленушінің жеке коды (ТЖК)"
   },
   "AgeCategory": {
     "ADULT": "Кәмелетке толған",

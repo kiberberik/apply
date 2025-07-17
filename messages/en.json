@@ -458,7 +458,8 @@
     "documentExpirationDate": "Document Expiration Date",
     "documentIssuingAuthority": "Issued By",
     "firstnameTranslit": "First name in Latin (Student ID Card)",
-    "lastnameTranslit": "Last name in Latin (Student ID Card)"
+    "lastnameTranslit": "Last name in Latin (Student ID Card)",
+    "ikt": "Individual test code (ITC)"
   },
   "AgeCategory": {
     "ADULT": "Adult",

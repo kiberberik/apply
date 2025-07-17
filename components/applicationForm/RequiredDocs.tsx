@@ -523,7 +523,11 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                                     defaultValue=""
                                     render={({ field }) => (
                                       <FormItem>
-                                        <FormLabel>{t('documentNumber')}</FormLabel>
+                                        <FormLabel>
+                                          {doc.code === 'ent_certificate'
+                                            ? t('ikt')
+                                            : t('documentNumber')}
+                                        </FormLabel>
                                         <FormControl>
                                           <Input
                                             {...field}

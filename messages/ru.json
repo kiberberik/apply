@@ -458,7 +458,8 @@
     "documentExpirationDate": "Срок действия документа",
     "documentIssuingAuthority": "Кем выдан",
     "firstnameTranslit": "Имя на латинице (Student ID Card)",
-    "lastnameTranslit": "Фамилия на латинице (Student ID Card)"
+    "lastnameTranslit": "Фамилия на латинице (Student ID Card)",
+    "ikt": "Индивидуальный код тестируемого (ИКТ)"
   },
   "AgeCategory": {
     "ADULT": "Совершеннолетний",
