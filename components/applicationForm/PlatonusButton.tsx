@@ -4,6 +4,7 @@ import { Button } from '../ui/button';
 import { useEducationalStore } from '@/store/useEducationalStore';
 import { Document } from '@prisma/client';
 import { toast } from 'react-toastify';
+import { getDocumentBase64 } from '@/lib/getDocumentBase64';
 
 export const formatDate = (dateString: string) => (dateString ? dateString.slice(0, 10) : '');
 
@@ -20,42 +21,96 @@ const PlatonusButton = ({ application }: { application: any }) => {
       if (!program) {
         throw new Error('Не удалось получить данные образовательного курса');
       }
-      const idDoc = application?.documents?.find(
-        (doc: Document) => doc?.code?.trim() === 'identity_document',
-      );
-
-      const idDocLink = idDoc?.link.trim();
-      const fileUrl = `${process.env.NEXT_PUBLIC_APP_URL}${idDocLink}`;
-      console.log('fileUrl: ', fileUrl);
-      const response = await fetch(fileUrl);
-      const blob = await response.blob();
-      // Шаг 2: Конвертируем Blob → base64
-      const idDocBase64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const result = reader.result as string;
-          resolve(result); // будет что-то вроде "data:application/pdf;base64,...."
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-
       const edDoc = application?.documents?.find(
-        (doc: Document) => doc?.code === 'education_document',
+        (doc: Document) => doc?.code?.trim() === 'education_document',
       );
       const entDoc = application?.documents?.find(
-        (doc: Document) => doc?.code === 'ent_certificate',
+        (doc: Document) => doc?.code?.trim() === 'ent_certificate',
       );
-      //   const langDoc = application?.documents?.find(
-      //     (doc: Document) => doc?.code === 'international_language_certificate',
-      //   );
+      const photoDoc = application?.documents?.find(
+        (doc: Document) => doc?.code?.trim() === 'photo',
+      );
 
-      //   console.log('edDoc: ', edDoc);
+      const documentConfigs = [
+        {
+          code: 'identity_document',
+          type: 1,
+          name: `${application.applicant.surname}_${application.applicant.givennames}_удостоверение`,
+        },
+        {
+          code: 'education_document',
+          type: 8,
+          name: `${application.applicant.surname}_${application.applicant.givennames}_образование`,
+        },
+        {
+          code: 'education_document',
+          type: 9,
+          name: `${application.applicant.surname}_${application.applicant.givennames}_приложение`,
+        },
+        {
+          code: 'ent_certificate',
+          type: 5,
+          name: `${application.applicant.surname}_${application.applicant.givennames}_ЕНТ`,
+        },
+        {
+          code: 'international_language_certificate',
+          type: 46,
+          name: `${application.applicant.surname}_${application.applicant.givennames}_английский`,
+        },
+        {
+          code: 'employment_certificate',
+          type: 45,
+          name: `${application.applicant.surname}_${application.applicant.givennames}_справка`,
+        },
+        {
+          code: 'medical_certificate_075u',
+          type: 10,
+          name: `${application.applicant.surname}_${application.applicant.givennames}_075у+флюра`,
+        },
+        {
+          code: 'vaccination',
+          type: 43,
+          name: `${application.applicant.surname}_${application.applicant.givennames}_063`,
+        },
+        {
+          code: 'grant_certificate',
+          type: 30,
+          name: `${application.applicant.surname}_${application.applicant.givennames}_грант`,
+        },
+        {
+          code: 'kaztest_certificate',
+          type: 172,
+          name: `${application.applicant.surname}_${application.applicant.givennames}_казтест`,
+        },
+      ];
+
+      const documents: {
+        type: number;
+        name: string;
+        contentType: string;
+        data: string;
+      }[] = [];
+
+      for (const { code, type, name } of documentConfigs) {
+        const base64 = await getDocumentBase64(application, code);
+        if (base64) {
+          documents.push({
+            type,
+            name: `${name}.pdf`,
+            contentType: 'application/pdf',
+            data: base64,
+          });
+        }
+      }
+
+      console.log('photoDoc: ', photoDoc);
       const payload = {
         applicant: {
           firstName: application.applicant.givennames ?? '',
           lastName: application.applicant.surname ?? '',
           patronymic: application.applicant.patronymic ?? '',
+          firstNameEn: photoDoc?.additionalInfo1 ?? '',
+          lastNameEn: photoDoc?.additionalInfo2 ?? '',
           mobilePhone: application.applicant.phone ?? '',
           email: application.applicant.email ?? '',
           address: application.applicant.addressRegistration ?? '',
@@ -69,8 +124,8 @@ const PlatonusButton = ({ application }: { application: any }) => {
           icFinishDate: formatDate(application.applicant.documentExpiryDate),
           icDate: formatDate(application.applicant.documentIssueDate),
           studyFormID: program?.platonusStudyFormId ?? '',
-          professionID: program?.group?.platonusId,
-          specializationID: program?.platonusId ?? '',
+          professionID: Number(program?.group?.platonusId) ?? null,
+          specializationID: Number(program?.platonusId) ?? null,
           paymentFormID:
             application.details.type == 'PAID' ? 1 : application.details.type == 'GRANT' ? 2 : '', // 2 - гос. грант, 1 - договор
           grantType:
@@ -82,7 +137,9 @@ const PlatonusButton = ({ application }: { application: any }) => {
                 ? 2
                 : application.details.studyingLanguage == 'ENG'
                   ? 3
-                  : '', // 1 - русский, 2 - казахский, 3 - английский
+                  : application.details.studyingLanguage == 'POLY'
+                    ? 51
+                    : 3, // 1 - русский, 2 - казахский, 3 - английский, 51 - полиязычный
           dormState: application.details.isDormNeeds ? 2 : 1, // 1 - не нуждается, 2 - нуждается
           seriyaAttestata: edDoc?.diplomaSerialNumber,
           nomerAttestata: edDoc.number,
@@ -119,14 +176,7 @@ const PlatonusButton = ({ application }: { application: any }) => {
                   : 4, // 3 - родитель, 4 - доверитель, 5 - опекун
           },
         ],
-        documents: [
-          {
-            type: 1,
-            name: `${idDoc?.code}.pdf`,
-            contentType: 'application/pdf',
-            data: idDocBase64,
-          },
-        ],
+        documents: documents,
       };
       console.log('payload: ', payload);
 
