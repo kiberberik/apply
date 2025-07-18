@@ -6,7 +6,15 @@ import { Document } from '@prisma/client';
 import { toast } from 'react-toastify';
 import { getDocumentBase64 } from '@/lib/getDocumentBase64';
 
-export const formatDate = (dateString: string) => (dateString ? dateString.slice(0, 10) : '');
+// export const formatDate = (dateString: string) => (dateString ? dateString.slice(0, 10) : '');
+export const formatDate = (dateString: string) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const PlatonusButton = ({ application }: { application: any }) => {
