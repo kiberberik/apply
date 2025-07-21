@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { toTitleCase } from '@/lib/toTitleCase';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -210,6 +211,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         // Создаем базовые данные заявителя
         const applicantBaseData = {
           ...applicantData,
+          // Форматируем ФИО
+          ...(applicantData.surname && { surname: toTitleCase(applicantData.surname) }),
+          ...(applicantData.givennames && { givennames: toTitleCase(applicantData.givennames) }),
+          ...(applicantData.patronymic && { patronymic: toTitleCase(applicantData.patronymic) }),
           // Обновляем даты, если они были преобразованы
           ...(birthDate !== undefined && { birthDate }),
           ...(documentIssueDate !== undefined && { documentIssueDate }),
@@ -314,6 +319,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         // Создаем базовые данные представителя
         const representativeBaseData = {
           ...representativeData,
+          // Форматируем ФИО
+          ...(representativeData.surname && { surname: toTitleCase(representativeData.surname) }),
+          ...(representativeData.givennames && {
+            givennames: toTitleCase(representativeData.givennames),
+          }),
+          ...(representativeData.patronymic && {
+            patronymic: toTitleCase(representativeData.patronymic),
+          }),
           // Обновляем даты документов, если они были преобразованы
           ...(documentIssueDate !== undefined && { documentIssueDate }),
           ...(documentExpiryDate !== undefined && { documentExpiryDate }),

@@ -5,6 +5,9 @@ import { useEducationalStore } from '@/store/useEducationalStore';
 import { Document } from '@prisma/client';
 import { toast } from 'react-toastify';
 import { getDocumentBase64 } from '@/lib/getDocumentBase64';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf'; // legacy — совместимость
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = `pdfjs-dist/build/pdf.worker.js`;
 
 // export const formatDate = (dateString: string) => (dateString ? dateString.slice(0, 10) : '');
 export const formatDate = (dateString: string) => {
@@ -14,6 +17,33 @@ export const formatDate = (dateString: string) => {
   const month = `${date.getMonth() + 1}`.padStart(2, '0');
   const day = `${date.getDate()}`.padStart(2, '0');
   return `${year}-${month}-${day}`;
+};
+
+export const convertPdfToJpegBase64 = async (pdfUrl: string): Promise<string> => {
+  const loadingTask = pdfjsLib.getDocument(pdfUrl);
+  const pdf = await loadingTask.promise;
+
+  const page = await pdf.getPage(1); // первая страница
+  const scale = 1; // увеличь до 3-4 при необходимости качества
+  const viewport = page.getViewport({ scale });
+
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+
+  const renderContext = {
+    canvasContext: context!,
+    viewport,
+  };
+
+  await page.render(renderContext).promise;
+
+  // Конвертируем canvas в JPEG base64
+  const jpegBase64 = canvas.toDataURL('image/jpeg'); // default quality = 92%
+
+  return jpegBase64; // data:image/jpeg;base64,...
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -38,6 +68,11 @@ const PlatonusButton = ({ application }: { application: any }) => {
       const photoDoc = application?.documents?.find(
         (doc: Document) => doc?.code?.trim() === 'photo',
       );
+      const photoDocUrl = `${process.env.NEXT_PUBLIC_APP_URL}${photoDoc.link?.trim()}`;
+      const base64Image = await convertPdfToJpegBase64(photoDocUrl);
+      console.log('JPEG base64:', base64Image);
+
+      console.log('photoDocUrl: ', photoDocUrl);
 
       const documentConfigs = [
         {
@@ -111,7 +146,15 @@ const PlatonusButton = ({ application }: { application: any }) => {
         }
       }
 
-      console.log('photoDoc: ', photoDoc);
+      if (base64Image) {
+        documents.push({
+          type: 12,
+          name: `photo.jpeg`,
+          contentType: 'application/image',
+          data: base64Image,
+        });
+      }
+
       const payload = {
         applicant: {
           firstName: application.applicant.givennames ?? '',
@@ -129,6 +172,7 @@ const PlatonusButton = ({ application }: { application: any }) => {
           icType: application.applicant.documentType == 'PASSPORT' ? 2 : 1,
           icDepartmentID: Number(application.applicant.documentIssuingAuthority),
           icNumber: application.applicant.documentNumber,
+          icSeries: 'IDKAZ',
           icFinishDate: formatDate(application.applicant.documentExpiryDate),
           icDate: formatDate(application.applicant.documentIssueDate),
           studyFormID: program?.platonusStudyFormId ?? '',

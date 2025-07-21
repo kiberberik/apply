@@ -19,6 +19,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useLogStore } from '@/store/useLogStore';
 import DocDeleteDialog from '../docReader/DocDeleteDialog';
 import { generatePDFFromImages } from '@/lib/generatePDFFromImages';
+import { toTitleCase } from '@/lib/toTitleCase';
 
 interface FormValues {
   documents: {
@@ -621,6 +622,9 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                                         <FormControl>
                                           <Input
                                             {...field}
+                                            onChange={(e) =>
+                                              field.onChange(toTitleCase(e.target.value))
+                                            }
                                             disabled={isSubmitted || isLoading[doc.code || '']}
                                           />
                                         </FormControl>
@@ -637,6 +641,9 @@ export function RequiredDocs({ application, isSubmitted = false }: RequiredDocsP
                                         <FormControl>
                                           <Input
                                             {...field}
+                                            onChange={(e) =>
+                                              field.onChange(toTitleCase(e.target.value))
+                                            }
                                             disabled={isSubmitted || isLoading[doc.code || '']}
                                           />
                                         </FormControl>

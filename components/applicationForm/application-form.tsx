@@ -825,7 +825,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
               statusId: 'PROCESSING',
               createdById: user?.id,
               description: selectedConsultant
-                ? `Consultant: ${selectedConsultant.name || ''} - ${selectedConsultant.email || ''}`
+                ? `Consultant: ${selectedConsultant.name || ''} - ${selectedConsultant.email || ''}\n\nContract: ${contractNumber}`
                 : 'Consultant not assigned',
             });
           } catch (logError) {
@@ -1335,7 +1335,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           applicationId: id,
           createdById: user.id,
           statusId: 'NEED_SIGNATURE',
-          description: `TrustMe: ${JSON.stringify(trustMeUrl, null, 2)}`,
+          description: `TrustMe: ${JSON.stringify(trustMeUrl, null, 2)}\n\nContract: ${contractNumber}`,
           // description: `TrustMe: ${JSON.stringify(result?.data, null, 2)}`,
         });
         toast.success('Контракт успешно отправлен на подписание');

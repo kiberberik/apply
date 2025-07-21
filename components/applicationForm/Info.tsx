@@ -48,6 +48,10 @@ const Info = () => {
           {tContractSignType(singleApplication.contractSignType)}
         </p>
       )}
+
+      {singleApplication?.contractNumber && (
+        <p className="text-xl font-bold">{singleApplication.contractNumber}</p>
+      )}
     </div>
   );
 };

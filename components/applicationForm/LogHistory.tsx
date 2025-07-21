@@ -122,7 +122,7 @@ const LogHistory = () => {
                   )}
                 </div>
                 {latestLog.description && (
-                  <p className="mt-2 text-gray-600">{latestLog.description}</p>
+                  <p className="mt-2 whitespace-pre-line text-gray-600">{latestLog.description}</p>
                 )}
               </div>
             </div>
@@ -172,7 +172,9 @@ const LogHistory = () => {
                         </div>
                       )}
                     </div>
-                    {log.description && <p className="mt-2 text-gray-600">{log.description}</p>}
+                    {log.description && (
+                      <p className="mt-2 whitespace-pre-line text-gray-600">{log.description}</p>
+                    )}
                   </div>
                 </div>
 
