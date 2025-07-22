@@ -262,8 +262,8 @@
     "RUS": "Russian",
     "ENG": "English",
     "POLY": "Multilingual",
-    "ENG_KAZ": "English language (with certain courses taught in Kazakh)",
-    "ENG_RUS": "English language (with certain courses taught in Russian)"
+    "ENG_KAZ": "English (selected subjects in Kazakh)",
+    "ENG_RUS": "English (selected subjects in Russian)"
   },
   "Applications": {
     "title": "Applications",
