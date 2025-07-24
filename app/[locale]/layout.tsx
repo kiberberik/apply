@@ -6,7 +6,7 @@ import { routing } from '@/i18n/routing';
 import { Mulish } from 'next/font/google';
 import NextTopLoader from 'nextjs-toploader';
 import { ToastContainer } from 'react-toastify';
-import Footer from '@/components/layout/Footer';
+// import Footer from '@/components/layout/Footer';
 
 const mulish = Mulish({
   subsets: ['latin', 'cyrillic'],
@@ -50,10 +50,11 @@ export default async function LocaleLayout({
           showAtBottom={false}
         />
         <NextIntlClientProvider>
-          <div className="flex min-h-screen w-full flex-col">
+          {children}
+          {/* <div className="flex min-h-screen w-full flex-col">
             <div className="flex-grow">{children}</div>
             <Footer />
-          </div>
+          </div> */}
         </NextIntlClientProvider>
         <ToastContainer />
       </body>

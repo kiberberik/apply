@@ -28,9 +28,9 @@ export default function LanguageSwitcher() {
 
   return (
     <Menu as="div" className="relative mx-4 text-left">
-      <MenuButton className="flex items-center justify-center space-x-2 p-2 text-base transition-colors duration-200">
+      <MenuButton className="flex items-center justify-center space-x-2 p-2 text-sm transition-colors duration-200">
         <span>{languages[currentLocale as keyof typeof languages]}</span>
-        <LanguageIcon className="h-6 w-6 text-white hover:text-rose-600" />
+        <LanguageIcon className="h-6 w-6 text-rose-600 hover:text-rose-400" />
       </MenuButton>
 
       <Transition
@@ -42,7 +42,7 @@ export default function LanguageSwitcher() {
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
       >
-        <MenuItems className="ring-opacity-5 absolute right-0 z-10 mt-2 w-min origin-top-right bg-[#0F0F0F] shadow-lg ring-1 ring-black focus:outline-none">
+        <MenuItems className="ring-opacity-5 absolute right-0 z-10 mt-2 w-min origin-top-right rounded-lg shadow-lg ring-1 focus:outline-none">
           {Object.entries(languages).map(([locale, label]) => {
             if (locale === currentLocale) return null;
 
@@ -52,8 +52,8 @@ export default function LanguageSwitcher() {
                   <button
                     onClick={() => handleLanguageChange(locale)}
                     className={classNames(
-                      'flex w-full items-center justify-center px-4 py-2 text-sm',
-                      active ? 'bg-zinc-700 text-white' : 'text-gray-300',
+                      'flex w-full items-center justify-center rounded-sm px-6 py-2 text-sm',
+                      active ? 'bg-zinc-700 text-white' : 'text-black',
                     )}
                   >
                     {label}

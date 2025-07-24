@@ -168,7 +168,10 @@
     "unauthorized": "Unauthorized",
     "sessionExpired": "Session expired",
     "serverError": "Server error",
-    "successLogout": "Logout completed successfully"
+    "successLogout": "Logout completed successfully",
+    "noAccount": "Don't have an account?",
+    "greeting": "Glad to see you again!",
+    "become": "Become a part of Maqsut Narikbayev University!"
   },
   "passwordReset": {
     "notFound": "User with this email not found",

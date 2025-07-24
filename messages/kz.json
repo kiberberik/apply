@@ -168,7 +168,10 @@
     "unauthorized": "Жүйеге кірмеген",
     "sessionExpired": "Сессия жарамсыз",
     "serverError": "Серверлік қате",
-    "successLogout": "Жүйеден сәтті шықтыңыз"
+    "successLogout": "Жүйеден сәтті шықтыңыз",
+    "noAccount": "Аккаунтыңыз жоқ па?",
+    "greeting": "Қайта көргенімізге қуаныштымыз!",
+    "become": "Maqsut Narikbayev University бөлігі болыңыз!"
   },
   "passwordReset": {
     "notFound": "Пайдаланушы табылмады",

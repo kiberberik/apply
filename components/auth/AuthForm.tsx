@@ -8,6 +8,8 @@ import { Bounce, toast } from 'react-toastify';
 import dynamic from 'next/dynamic';
 import { useAuthStore } from '@/store/useAuthStore'; // Импорт стора
 import LanguageSwitcher from '../layout/LanguageSwitcher';
+import Image from 'next/image';
+import Link from 'next/link';
 
 type FormMode = 'login' | 'register' | 'recovery' | 'successRecovery';
 
@@ -23,6 +25,7 @@ function AuthFormComponent() {
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [isClient, setIsClient] = useState(false);
+  const year = new Date().getFullYear();
 
   useEffect(() => {
     setIsClient(true);
@@ -149,137 +152,196 @@ function AuthFormComponent() {
   }
 
   return (
-    <div className="px-4">
+    <div className="container mx-auto px-4 py-4 md:py-0">
       {isClient && (
         <>
-          <div className="absolute top-8 right-8">
-            <LanguageSwitcher />
-          </div>
-          <div className="mx-auto my-24 w-full max-w-3xl rounded-lg bg-white p-6 shadow-md">
-            {/* Tabs only visible if not in successRecovery */}
-            {mode !== 'successRecovery' && (
-              <div className="mb-6 flex flex-wrap justify-around text-sm">
-                <button
-                  type="button"
-                  onClick={() => handleModeSwitch('login')}
-                  className={`px-1 py-2 ${
-                    mode === 'login'
-                      ? 'border-b-2 border-zinc-600 font-semibold text-zinc-600'
-                      : 'text-gray-600'
-                  }`}
-                >
-                  {t('signIn')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleModeSwitch('register')}
-                  className={`px-1 py-2 ${
-                    mode === 'register'
-                      ? 'border-b-2 border-zinc-600 font-semibold text-zinc-600'
-                      : 'text-gray-600'
-                  }`}
-                >
-                  {t('signUp')}
-                </button>
+          <div className="mx-auto my-auto grid h-full min-h-screen w-full grid-cols-1 gap-8 py-10 md:grid-cols-2 md:p-10">
+            <div className="absolute top-2 right-0 md:top-8 md:right-8">
+              <LanguageSwitcher />
+            </div>
+            <div className="relative hidden w-full items-center justify-center md:flex">
+              <Image
+                src="/images/welcome_bg.png"
+                alt="Welcome"
+                fill
+                className="rounded-xl object-cover"
+                priority
+              />
+            </div>
+            <div className="mx-auto my-auto h-full w-[80%] max-w-3xl rounded-lg bg-white p-2">
+              <div className="mb-4 flex items-center justify-center md:mb-8">
+                <Link href="https://mnu.kz" target="_blank">
+                  <Image src="/images/mnu_logo_black.svg" alt="MNU Logo" width={100} height={100} />
+                </Link>
               </div>
-            )}
+              <h1 className="mx-auto mb-2 max-w-sm text-center text-lg font-bold md:mb-8 md:text-2xl">
+                {mode == 'login' ? (
+                  <>
+                    <br />
+                    {t('greeting')}
+                    <br />
+                  </>
+                ) : mode == 'register' ? (
+                  <>{t('become')}</>
+                ) : (
+                  ''
+                )}
+              </h1>
 
-            {/* SUCCESS MESSAGE */}
-            {mode === 'successRecovery' ? (
-              <div className="py-10 text-center">
-                <h2 className="mb-4 text-lg font-semibold">{t('recoveryEmailSent')}</h2>
-                <p className="text-gray-600">
-                  {t('checkYourEmail')} - {email}
+              {/* Tabs only visible if not in successRecovery */}
+              {mode !== 'successRecovery' && (
+                <div className="mb-4 grid grid-cols-2 flex-wrap justify-around text-sm md:mb-8">
+                  <button
+                    type="button"
+                    onClick={() => handleModeSwitch('login')}
+                    className={`w-full px-1 py-2 ${
+                      mode === 'login'
+                        ? 'border-b-1 border-zinc-600 font-semibold text-zinc-600'
+                        : 'text-gray-600'
+                    }`}
+                  >
+                    {t('signIn')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleModeSwitch('register')}
+                    className={`w-full px-1 py-2 ${
+                      mode === 'register'
+                        ? 'border-b-1 border-zinc-600 font-semibold text-zinc-600'
+                        : 'text-gray-600'
+                    }`}
+                  >
+                    {t('signUp')}
+                  </button>
+                </div>
+              )}
+
+              {/* SUCCESS MESSAGE */}
+              {mode === 'successRecovery' ? (
+                <div className="py-10 text-center">
+                  <h2 className="mb-4 text-lg font-semibold">{t('recoveryEmailSent')}</h2>
+                  <p className="text-gray-600">
+                    {t('checkYourEmail')} - {email}
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {mode === 'recovery' ? (
+                    <h2 className="mb-4 text-base font-semibold">{t('recoveryEmailTitle')}</h2>
+                  ) : null}
+
+                  {mode === 'register' && (
+                    <div>
+                      <label htmlFor="fullname" className="block text-sm font-medium text-gray-700">
+                        {t('name')}
+                      </label>
+                      <input
+                        type="text"
+                        id="fullname"
+                        autoComplete="fullname"
+                        value={fullname}
+                        onChange={(e) => setFullname(e.target.value)}
+                        required
+                        minLength={1}
+                        maxLength={63}
+                        disabled={status === 'loading'}
+                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none disabled:bg-gray-100"
+                      />
+                    </div>
+                  )}
+
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                      {t('email')}
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      disabled={status === 'loading'}
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none disabled:bg-gray-100"
+                    />
+                  </div>
+
+                  {mode !== 'recovery' && (
+                    <div>
+                      <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                        {t('password')}
+                      </label>
+                      <input
+                        type="password"
+                        id="password"
+                        autoComplete="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        minLength={6}
+                        disabled={status === 'loading'}
+                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none disabled:bg-gray-100"
+                      />
+                    </div>
+                  )}
+
+                  {/* Forgot Password Link */}
+                  {mode === 'login' && (
+                    <div className="mt-4 text-right">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleModeSwitch('recovery');
+                        }}
+                        className="text-sm text-[#1E4AE9] hover:underline"
+                      >
+                        {t('forgotPassword')}
+                      </button>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={status === 'loading'}
+                    className="flex w-full justify-center rounded-md border border-transparent bg-[#162D3A] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-zinc-700 focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 focus:outline-none disabled:bg-zinc-300"
+                  >
+                    {status === 'loading'
+                      ? t('loading')
+                      : mode === 'login'
+                        ? t('signIn')
+                        : mode === 'register'
+                          ? t('signUp')
+                          : t('sendRecoveryEmail')}
+                  </button>
+                </form>
+              )}
+
+              {mode !== 'register' && (
+                <div className="mt-6 text-center text-sm md:mt-8">
+                  {t('noAccount')}{' '}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleModeSwitch('register');
+                    }}
+                    className="text-[#1E4AE9] hover:underline"
+                  >
+                    {t('signUp')}
+                  </button>
+                </div>
+              )}
+
+              <div className="mx-auto mt-6 max-w-7xl px-4 sm:px-6 md:mt-16 lg:px-8">
+                <p className="text-center text-sm text-[#959CB6] md:text-base">
+                  2025 {year > 2025 ? `- ${year}` : ''} ©
+                  <Link href={'mailto:dwts@mnu.kz'} target="_blank">
+                    {' '}
+                    DWTS MNU{' '}
+                  </Link>
                 </p>
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {mode === 'recovery' ? (
-                  <h2 className="mb-4 text-lg font-semibold">{t('recoveryEmailTitle')}</h2>
-                ) : null}
-
-                {mode === 'register' && (
-                  <div>
-                    <label htmlFor="fullname" className="block text-sm font-medium text-gray-700">
-                      {t('name')}
-                    </label>
-                    <input
-                      type="text"
-                      id="fullname"
-                      autoComplete="fullname"
-                      value={fullname}
-                      onChange={(e) => setFullname(e.target.value)}
-                      required
-                      minLength={1}
-                      maxLength={63}
-                      disabled={status === 'loading'}
-                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none disabled:bg-gray-100"
-                    />
-                  </div>
-                )}
-
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                    {t('email')}
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    disabled={status === 'loading'}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none disabled:bg-gray-100"
-                  />
-                </div>
-
-                {mode !== 'recovery' && (
-                  <div>
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                      {t('password')}
-                    </label>
-                    <input
-                      type="password"
-                      id="password"
-                      autoComplete="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      minLength={6}
-                      disabled={status === 'loading'}
-                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none disabled:bg-gray-100"
-                    />
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={status === 'loading'}
-                  className="flex w-full justify-center rounded-md border border-transparent bg-zinc-800 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-zinc-700 focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 focus:outline-none disabled:bg-zinc-300"
-                >
-                  {status === 'loading'
-                    ? t('loading')
-                    : mode === 'login'
-                      ? t('signIn')
-                      : mode === 'register'
-                        ? t('signUp')
-                        : t('sendRecoveryEmail')}
-                </button>
-
-                {/* Forgot Password Link */}
-                {mode === 'login' && (
-                  <div className="mt-4 text-center">
-                    <button
-                      type="button"
-                      onClick={() => handleModeSwitch('recovery')}
-                      className="text-sm text-zinc-600 hover:underline"
-                    >
-                      {t('forgotPassword')}
-                    </button>
-                  </div>
-                )}
-              </form>
-            )}
+            </div>
           </div>
         </>
       )}

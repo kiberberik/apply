@@ -168,7 +168,10 @@
     "unauthorized": "Не авторизован",
     "sessionExpired": "Сессия недействительна",
     "serverError": "Ошибка сервера",
-    "successLogout": "Выход из системы завершен успешно"
+    "successLogout": "Выход из системы завершен успешно",
+    "noAccount": "У вас нет аккаунта?",
+    "greeting": "Рады видеть Вас снова!",
+    "become": "Станьте частью Maqsut Narikbayev University!"
   },
   "passwordReset": {
     "notFound": "Пользователь не найден",
