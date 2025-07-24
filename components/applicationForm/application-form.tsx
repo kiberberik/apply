@@ -680,7 +680,12 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         documentDetails: data.documentDetails || null,
         contractLanguage: data.contractLanguage || null,
         contractNumber: isSubmit ? contractNumber : !isSubmit ? data.contractNumber : null,
-        submittedAt: isSubmit ? new Date().toISOString() : !isSubmit ? data.submittedAt : null,
+        submittedAt: isSubmit
+          ? new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Almaty' }).replace(' ', 'T')
+          : !isSubmit
+            ? data.submittedAt
+            : null,
+        // submittedAt: isSubmit ? new Date().toISOString() : !isSubmit ? data.submittedAt : null,
       };
 
       if (isSubmit) {
