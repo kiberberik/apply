@@ -681,7 +681,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         contractLanguage: data.contractLanguage || null,
         contractNumber: isSubmit ? contractNumber : !isSubmit ? data.contractNumber : null,
         submittedAt: isSubmit
-          ? new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Almaty' }).replace(' ', 'T')
+          ? new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
           : !isSubmit
             ? data.submittedAt
             : null,
