@@ -51,10 +51,75 @@ const PlatonusButton = ({ application }: { application: any }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { getEducationalProgramDetails } = useEducationalStore();
 
-  console.log('application', application);
+  // console.log('application', application);
   const handleSendToPlatonus = async () => {
     setIsLoading(true);
     try {
+      let filePath;
+      let contractBase64 = null;
+      if (application?.trustMeId) {
+        try {
+          const res = await fetch(
+            `/api/trustme/download-contract?documentId=${application.trustMeId}`,
+          );
+          const data = await res.json();
+          // console.log('contract: ', data);
+          if (data.success) {
+            filePath = data?.filePath;
+            toast.info('Подписанный контракт успешно загружен из TrustMe');
+            // Скачиваем файл и конвертируем в base64
+            if (filePath) {
+              try {
+                // Получаем PDF через новый API-роут
+                const fileRes = await fetch('/api/contracts/get-by-path', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ filePath: filePath.replace('/private/contracts/', '') }),
+                });
+                if (fileRes.ok) {
+                  const arrayBuffer = await fileRes.arrayBuffer();
+                  contractBase64 = `data:application/pdf;base64,${Buffer.from(arrayBuffer).toString('base64')}`;
+                }
+              } catch {}
+            }
+          } else {
+            toast.error(data.error || 'Ошибка при загрузке контракта из TrustMe');
+          }
+        } catch {
+          toast.error('Ошибка при обращении к TrustMe API');
+        }
+      } else {
+        // Если нет trustMeId, пробуем взять контракт оффлайн
+        const contractLinks = application?.contractFileLinks;
+        let offlineFile = null;
+        if (Array.isArray(contractLinks) && contractLinks.length > 0) {
+          offlineFile = contractLinks[0];
+        } else if (typeof contractLinks === 'string') {
+          try {
+            const arr = JSON.parse(contractLinks);
+            if (Array.isArray(arr) && arr.length > 0) offlineFile = arr[0];
+          } catch {}
+        }
+        if (offlineFile) {
+          try {
+            const fileRes = await fetch('/api/contracts/get-by-path', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ filePath: offlineFile }),
+            });
+            if (fileRes.ok) {
+              const arrayBuffer = await fileRes.arrayBuffer();
+              contractBase64 = `data:application/pdf;base64,${Buffer.from(arrayBuffer).toString('base64')}`;
+              toast.info('Оффлайн контракт успешно добавлен');
+            } else {
+              toast.error('Не удалось получить оффлайн контракт');
+            }
+          } catch {
+            toast.error('Ошибка при получении оффлайн контракта');
+          }
+        }
+      }
+
       const program = await getEducationalProgramDetails(application.details.educationalProgram.id);
       if (!program) {
         throw new Error('Не удалось получить данные образовательного курса');
@@ -70,9 +135,9 @@ const PlatonusButton = ({ application }: { application: any }) => {
       );
       const photoDocUrl = `${process.env.NEXT_PUBLIC_APP_URL}${photoDoc.link?.trim()}`;
       const base64Image = await convertPdfToJpegBase64(photoDocUrl);
-      console.log('JPEG base64:', base64Image);
+      // console.log('JPEG base64:', base64Image);
 
-      console.log('photoDocUrl: ', photoDocUrl);
+      // console.log('photoDocUrl: ', photoDocUrl);
 
       const documentConfigs = [
         {
@@ -125,6 +190,16 @@ const PlatonusButton = ({ application }: { application: any }) => {
           type: 172,
           name: `${application.applicant.surname}_${application.applicant.givennames}_казтест`,
         },
+        {
+          code: 'admission_fee',
+          type: 174,
+          name: `${application.applicant.surname}_${application.applicant.givennames}_вступительный_взнос`,
+        },
+        {
+          code: 'military',
+          type: 4,
+          name: `${application.applicant.surname}_${application.applicant.givennames}_скан-копия_приписного`,
+        },
       ];
 
       const documents: {
@@ -146,6 +221,15 @@ const PlatonusButton = ({ application }: { application: any }) => {
         }
       }
 
+      if (contractBase64) {
+        documents.push({
+          type: 48,
+          name: `${application.applicant.surname}_${application.applicant.givennames}_договор_о_присоединении.pdf`,
+          contentType: 'application/pdf',
+          data: contractBase64,
+        });
+      }
+
       if (base64Image) {
         documents.push({
           type: 12,
@@ -163,7 +247,10 @@ const PlatonusButton = ({ application }: { application: any }) => {
           firstNameEn: photoDoc?.additionalInfo1 ?? '',
           lastNameEn: photoDoc?.additionalInfo2 ?? '',
           mobilePhone: application.applicant.phone ?? '',
-          email: application.applicant.email ?? '',
+          // email: '', //application.applicant.email ?? '',
+          additionalEmail: application.applicant.email ?? '', // new
+          contractNumber: application?.contractNumber, // new
+          contractDate: application?.submittedAt, // new
           address: application.applicant.addressRegistration ?? '',
           livingAddress: application.applicant.addressResidential ?? '',
           iin: application.applicant.identificationNumber ?? '',
@@ -197,6 +284,7 @@ const PlatonusButton = ({ application }: { application: any }) => {
           nomerAttestata: edDoc.number,
           fNomerDiplom: edDoc.number,
           fSeriyaDiplom: edDoc?.diplomaSerialNumber,
+          educationDocAwardedDate: formatDate(edDoc?.issueDate), // new
           applicationStatusID: 3, // 3 - принято, 7 - отказано
           entIndividualCode: entDoc?.number ?? '',
           enterExamType: 1, // 1 - ент/кт
