@@ -17,6 +17,7 @@ const publicApiPaths = [
   '/api/verification-email/send',
   '/api/verification-email/verify',
   '/api/webhook/notification',
+  '/api/trustme/download-contract',
 ];
 
 const intlMiddleware = createIntlMiddleware({

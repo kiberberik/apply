@@ -28,18 +28,51 @@ interface SendEmailProps {
   to: string;
   subject: string;
   html: string;
+  cc?: string;
+  attachments?: Array<{
+    filename: string;
+    content: Buffer;
+    contentType: string;
+  }>;
 }
 
-export async function sendEmail({ to, subject, html }: SendEmailProps) {
+export async function sendEmail({ to, subject, html, cc, attachments }: SendEmailProps) {
   try {
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM, // адрес отправителя
+    console.log('Preparing to send email to:', to);
+    if (cc) {
+      console.log('CC to:', cc);
+    }
+    console.log('Email subject:', subject);
+    console.log('Attachments count:', attachments?.length || 0);
+
+    if (attachments && attachments.length > 0) {
+      console.log('Attachment details:');
+      attachments.forEach((attachment, index) => {
+        console.log(`  Attachment ${index + 1}:`, {
+          filename: attachment.filename,
+          // contentType: attachment.contentType,
+          contentLength: attachment.content.length,
+          contentType: typeof attachment.content,
+        });
+      });
+    }
+
+    const mailOptions = {
+      from: process.env.SMTP_FROM,
       to,
+      cc,
       subject,
       html,
-    });
-  } catch (error) {
+      attachments,
+    };
+
+    console.log('Mail options prepared, sending...');
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully:', result.messageId);
+
+    return result;
+  } catch (error: unknown) {
     console.error('Email sending error:', error);
-    throw new Error('Failed to send email');
+    throw new Error(`Failed to send email: ${(error as Error).message}`);
   }
 }
