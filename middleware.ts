@@ -7,7 +7,7 @@ import { routing } from './i18n/routing';
 export const locales = routing.locales;
 export const defaultLocale = 'ru';
 
-const publicRoutes = ['/auth', '/reset-password', '/verify-email'];
+const publicRoutes = ['/', '/auth', '/reset-password', '/verify-email'];
 const publicApiPaths = [
   '/api/login',
   '/api/register',
@@ -82,5 +82,10 @@ export default async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next|_vercel|.*\\..*).*)', '/api/:path*'],
+  matcher: [
+    // Исключаем статические файлы и системные пути
+    '/((?!_next|_vercel|.*\\..*).*)',
+    // API маршруты
+    '/api/((?!login|register|password-reset|logout|verification-email|webhook).*)',
+  ],
 };
