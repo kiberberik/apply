@@ -270,7 +270,7 @@ const PlatonusButton = ({ application }: { application: any }) => {
           professionID: Number(program?.group?.platonusId) ?? null,
           specializationID: Number(program?.platonusId) ?? null,
           paymentFormID:
-            application.details.type == 'PAID' ? 1 : application.details.type == 'GRANT' ? 2 : '', // 2 - гос. грант, 1 - договор
+            application.details.type == 'PAID' ? 1 : application.details.type == 'GRANT' ? 2 : 1, // 2 - гос. грант, 1 - договор
           grantType:
             application.details.type == 'PAID' ? -7 : application.details.type == 'GRANT' ? -4 : '', // -4 - гос грант, -7 собств. средства
           studyLanguageID:
