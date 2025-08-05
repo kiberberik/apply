@@ -6,6 +6,8 @@ import { Document } from '@prisma/client';
 import { toast } from 'react-toastify';
 import { getDocumentBase64 } from '@/lib/getDocumentBase64';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf'; // legacy — совместимость
+import { useLogStore } from '@/store/useLogStore';
+import { useAuthStore } from '@/store/useAuthStore';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `pdfjs-dist/build/pdf.worker.js`;
 
@@ -50,6 +52,8 @@ export const convertPdfToJpegBase64 = async (pdfUrl: string): Promise<string> =>
 const PlatonusButton = ({ application }: { application: any }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { getEducationalProgramDetails } = useEducationalStore();
+  const { createLog, fetchLogsByApplicationId, getLatestLogByApplicationId } = useLogStore();
+  const { user } = useAuthStore();
 
   // console.log('application', application);
   const handleSendToPlatonus = async () => {
@@ -320,20 +324,34 @@ const PlatonusButton = ({ application }: { application: any }) => {
       };
       console.log('payload: ', payload);
 
-      const platonusResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_PLATONUS_API_URL}/rest/ApplicantIntake/save`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${process.env.PLATONUS_API_KEY}`,
-          },
-          body: JSON.stringify(payload),
+      const platonusResponse = await fetch('/api/platonus/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify(payload),
+      });
+
+      const latestLog = application?.id ? getLatestLogByApplicationId(application.id) : null;
+      // console.log('latestLog: ', latestLog);
+
       const data = await platonusResponse.json();
+
+      if (!platonusResponse.ok) {
+        console.error('Platonus API error:', data);
+        toast.error(data.error || 'Произошла ошибка при передаче данных в Platonus');
+        return;
+      }
+
       if (data.studentID) {
         toast.success('Успешно записано в Platonus');
+        await createLog({
+          applicationId: application.id,
+          statusId: latestLog?.statusId,
+          createdById: user?.id,
+          description: `Данные успешно переданы в Platonus`,
+        });
+        await fetchLogsByApplicationId(application.id as string);
       } else {
         toast.error('Произошла ошибка при передаче данных в Platonus');
       }
