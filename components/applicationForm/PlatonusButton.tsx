@@ -272,7 +272,7 @@ const PlatonusButton = ({ application }: { application: any }) => {
           paymentFormID:
             application.details.type == 'PAID' ? 1 : application.details.type == 'GRANT' ? 2 : 1, // 2 - гос. грант, 1 - договор
           grantType:
-            application.details.type == 'PAID' ? -7 : application.details.type == 'GRANT' ? -4 : '', // -4 - гос грант, -7 собств. средства
+            application.details.type == 'PAID' ? -7 : application.details.type == 'GRANT' ? -4 : -7, // -4 - гос грант, -7 собств. средства
           studyLanguageID:
             application.details.studyingLanguage == 'RUS'
               ? 1
