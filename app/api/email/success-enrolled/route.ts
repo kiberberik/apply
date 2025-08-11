@@ -2425,7 +2425,7 @@ export async function POST(request: Request) {
 
     await sendEmail({
       to: 'berikbazar@yandex.com', // email,
-      cc: 'dwts@mnu.kz, kairula_madina@mnu.kz, 95bazarov@gmail.com',
+      cc: 'dwts@mnu.kz, kairula_madina@mnu.kz, 95bazarov@gmail.com, burambekov@gmail.com, a_zhussipova@kazguu.kz, f_bakirova@kazguu.kz, e_suleeva@kazguu.kz, a_muratova@kazguu.kz, shynarbek_a@kazguu.kz, ibrayevas@kazguu.kz, sh_utegenova@kazguu.kz, f_zhussupbekova@mnu.kz, nagymetbaevd@gmail.com',
       subject: 'Test Success Enrolled',
       html: selectedHtml,
       attachments,

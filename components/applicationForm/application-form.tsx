@@ -40,6 +40,7 @@ import { generateContractNumber } from '@/lib/generateContractNumber';
 import ConfirmDialog from './ConfirmDialog';
 import { Document } from '@prisma/client';
 import PlatonusButton from './PlatonusButton';
+import EnrolledEmailButton from './EnrolledEmailButton';
 
 interface ApplicationFormProps {
   id?: string;
@@ -2028,7 +2029,10 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
           </div>
         )}
         {(user?.role === Role.MANAGER || user?.role === Role.ADMIN) && (
-          <PlatonusButton application={singleApplication as any} />
+          <div className="flex gap-8">
+            <PlatonusButton application={singleApplication as any} />
+            <EnrolledEmailButton applicationId={singleApplication?.id as string} />
+          </div>
         )}
       </div>
       {(!singleApplication?.submittedAt || user?.role !== Role.USER) && (
