@@ -44,7 +44,7 @@ export const DocumentUpload = ({
       if (file.type === 'application/pdf') {
         try {
           const arrayBuffer = await file.arrayBuffer();
-          const pdfDoc = await PDFDocument.load(arrayBuffer);
+          const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true }); // , { ignoreEncryption: true }
           const pages = pdfDoc.getPages();
 
           const l = pages.length > 10 ? 10 : pages.length;
