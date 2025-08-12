@@ -639,6 +639,14 @@ export async function POST(request: Request) {
       </div>
     </div>
 
+    <img
+       src="https://spaces.mnu.kz/wp-content/uploads/2025/07/img_isj.png"
+       alt="ISJ"
+       width="100%"
+       height="auto"
+       style="display: block; padding: 20px 0;"
+    />
+
     <table
       width="100%"
       cellpadding="0"
@@ -1165,6 +1173,14 @@ export async function POST(request: Request) {
       </div>
     </div>
 
+    <img
+       src="https://spaces.mnu.kz/wp-content/uploads/2025/07/img_mls.png"
+       alt="MLS"
+       width="100%"
+       height="auto"
+       style="display: block; padding: 20px 0;"
+    />
+
     <table
       width="100%"
       cellpadding="0"
@@ -1689,6 +1705,14 @@ export async function POST(request: Request) {
       </div>
     </div>
 
+    <img
+       src="https://spaces.mnu.kz/wp-content/uploads/2025/07/img_ise.png"
+       alt="ISE"
+       width="100%"
+       height="auto"
+       style="display: block; padding: 20px 0;"
+    />
+
     <table
       width="100%"
       cellpadding="0"
@@ -2211,6 +2235,14 @@ export async function POST(request: Request) {
         </a>
       </div>
     </div>
+
+    <img
+       src="https://spaces.mnu.kz/wp-content/uploads/2025/07/img_sla.png"
+       alt="SLA"
+       width="100%"
+       height="auto"
+       style="display: block; padding: 20px 0;"
+    />
 
     <table
       width="100%"
