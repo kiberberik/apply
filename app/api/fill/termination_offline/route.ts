@@ -2,7 +2,6 @@ import { fillPdfPlaceholders } from '@/lib/pdfFill';
 import path from 'path';
 import { NextResponse } from 'next/server';
 import { Role, Document } from '@prisma/client';
-import dateUtils from '@/lib/dateUtils';
 import { checkServerAccess } from '@/lib/serverAuth';
 
 export const dynamic = 'force-dynamic'; // если нужно всегда получать свежие данные
