@@ -29,10 +29,10 @@ export async function POST(req: Request) {
     },
   });
   console.log('data', data);
-  const createdAt = new Date();
+  const createdAt = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Almaty' }));
   const convertedData = {
     contract_number: data.contractNumber as string,
-    created_at: dateUtils.formatDateForDisplay(createdAt.toISOString()),
+    created_at: `${createdAt.getDate().toString().padStart(2, '0')}.${(createdAt.getMonth() + 1).toString().padStart(2, '0')}.${createdAt.getFullYear()}`,
     surname: data.applicant.surname as string,
     givennames: data.applicant.givennames as string,
     patronymic: (data.applicant.patronymic as string) ?? '',
