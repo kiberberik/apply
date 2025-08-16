@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
 import { useEducationalStore } from '@/store/useEducationalStore';
 import { Document } from '@prisma/client';
@@ -54,6 +54,12 @@ const PlatonusButton = ({ application }: { application: any }) => {
   const { getEducationalProgramDetails } = useEducationalStore();
   const { createLog, fetchLogsByApplicationId, getLatestLogByApplicationId } = useLogStore();
   const { user } = useAuthStore();
+
+  useEffect(() => {
+    if (application?.id) {
+      fetchLogsByApplicationId(application.id);
+    }
+  }, [application?.id, fetchLogsByApplicationId]);
 
   // console.log('application', application);
   const handleSendToPlatonus = async () => {
@@ -324,6 +330,23 @@ const PlatonusButton = ({ application }: { application: any }) => {
       };
       console.log('payload: ', payload);
 
+      // Сначала загружаем логи, если они еще не загружены
+      if (application?.id) {
+        await fetchLogsByApplicationId(application.id);
+      }
+
+      const latestLog = application?.id ? getLatestLogByApplicationId(application.id) : null;
+      console.log('latestLog: ', latestLog);
+      console.log('latestLog?.statusId: ', latestLog?.statusId);
+      console.log('typeof latestLog?.statusId: ', typeof latestLog?.statusId);
+
+      // Проверяем, загружены ли логи для этой заявки
+      const { logs } = useLogStore.getState();
+      const applicationLogs = logs[application?.id || ''] || [];
+      console.log('Application logs count: ', applicationLogs.length);
+      console.log('All application logs: ', applicationLogs);
+      // return;
+
       const platonusResponse = await fetch('/api/platonus/save', {
         method: 'POST',
         headers: {
@@ -331,9 +354,6 @@ const PlatonusButton = ({ application }: { application: any }) => {
         },
         body: JSON.stringify(payload),
       });
-
-      const latestLog = application?.id ? getLatestLogByApplicationId(application.id) : null;
-      // console.log('latestLog: ', latestLog);
 
       const data = await platonusResponse.json();
 
@@ -345,12 +365,21 @@ const PlatonusButton = ({ application }: { application: any }) => {
 
       if (data.studentID) {
         toast.success('Успешно записано в Platonus');
-        await createLog({
+        console.log('Creating log with statusId: ', latestLog?.statusId);
+
+        // Проверяем, есть ли statusId у latestLog
+        if (!latestLog?.statusId) {
+          console.warn('latestLog.statusId is null or undefined, will create log without statusId');
+        }
+
+        const logData = {
           applicationId: application.id,
-          statusId: latestLog?.statusId,
+          statusId: latestLog?.statusId || null, // Явно указываем null если statusId нет
           createdById: user?.id,
           description: `Данные успешно переданы в Platonus`,
-        });
+        };
+        console.log('Full log data being sent: ', logData);
+        await createLog(logData);
         await fetchLogsByApplicationId(application.id as string);
       } else {
         toast.error('Произошла ошибка при передаче данных в Platonus');
