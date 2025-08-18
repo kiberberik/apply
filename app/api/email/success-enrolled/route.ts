@@ -2920,10 +2920,11 @@ export async function POST(request: Request) {
     else if (ISE_CODES.has(groupCode)) selectedHtml = htmlISE;
 
     console.log('Educational program group code:', groupCode, '-> template selected');
+    //       cc: 'dwts@mnu.kz, kairula_madina@mnu.kz, 95bazarov@gmail.com, burambekov@gmail.com, a_zhussipova@kazguu.kz, f_bakirova@kazguu.kz, e_suleeva@kazguu.kz, a_muratova@kazguu.kz, shynarbek_a@kazguu.kz, ibrayevas@kazguu.kz, sh_utegenova@kazguu.kz, f_zhussupbekova@mnu.kz, nagymetbaevd@gmail.com',
 
     await sendEmail({
-      to: 'berikbazar@yandex.com', // email,
-      cc: 'dwts@mnu.kz, kairula_madina@mnu.kz, 95bazarov@gmail.com, burambekov@gmail.com, a_zhussipova@kazguu.kz, f_bakirova@kazguu.kz, e_suleeva@kazguu.kz, a_muratova@kazguu.kz, shynarbek_a@kazguu.kz, ibrayevas@kazguu.kz, sh_utegenova@kazguu.kz, f_zhussupbekova@mnu.kz, nagymetbaevd@gmail.com',
+      to: application?.applicant?.email as string, // email,
+      cc: 'dwts@mnu.kz',
       subject: 'Құттықтаймыз! Поздравляем! Congratulations!',
       html: selectedHtml,
       attachments,
