@@ -720,7 +720,6 @@ export async function POST(request: Request) {
             border: none;
             font-size: 16px;
             font-weight: bold;
-            text-decoration: none;
             text-align: center;
           "
         >
@@ -1349,7 +1348,6 @@ export async function POST(request: Request) {
             border: none;
             font-size: 16px;
             font-weight: bold;
-            text-decoration: none;
             text-align: center;
           "
         >
@@ -1976,7 +1974,6 @@ export async function POST(request: Request) {
             border: none;
             font-size: 16px;
             font-weight: bold;
-            text-decoration: none;
             text-align: center;
           "
         >
@@ -2602,7 +2599,6 @@ export async function POST(request: Request) {
             border: none;
             font-size: 16px;
             font-weight: bold;
-            text-decoration: none;
             text-align: center;
           "
         >
