@@ -357,1294 +357,8 @@ export async function POST(request: Request) {
     // application?.details?.academicLevel === DOCTORAL && application?.details?.type === GRANT = public/contracts/contract_grant_25_phd.pdf
     // application?.details?.academicLevel === DOCTORAL && application?.details?.type === PAID = public/contracts/contract_paid_25_phd.pdf
 
-    const htmlISJ = `
-    <div style="margin: 0 auto; width: 100%; background-color: #9ca3af">
-  <div style="margin: 0 auto; max-width: 768px; text-align: center">
-    <div
-      style="
-        height: 350px;
-        background-image: url(&quot;https://spaces.mnu.kz/wp-content/uploads/2025/07/isj-hero.jpg&quot;);
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-      "
-    ></div>
-    <div style="position: relative; background-color: white; padding: 40px 0">
-      <div style="text-align: center; margin-bottom: 32px;">
-        <img
-          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/isj-logo.png"
-          alt=""
-          style="height: 50px; width: auto; display: inline-block; vertical-align: middle; margin-right: 16px;"
-        />
-        <img
-          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/logo_mnu_red.png"
-          alt=""
-          style="height: 50px; width: auto; display: inline-block; vertical-align: middle;"
-        />
-      </div>
-      <div style="margin-bottom: 32px">
-        <h2
-          style="
-            margin-bottom: 16px;
-            font-family: Inter, Arial, sans-serif;
-            font-size: 30px;
-            font-weight: bold;
-            color: #000000;
-          "
-        >
-          Құрметті, ${givennames}!
-        </h2>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          Құттықтаймыз, сіз
-          <span style="color: #d62e1f"
-            >Maqsut&nbsp;Narikbayev&nbsp;University</span
-          >-ге оқуға қабылдандыңыз!
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          <b>🦊 ХЖМ - Түлкі</b>
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          Бүгіннен бастап сіз <b>Халықаралық журналистика мектебінің</b> бір бөлігісіз.
-          Біздің символымыз - түлкі. Бұл жануар қырағылықты, алғыр ойды
-          және тапқырлықты бейнелейді. Бұл қасиеттер әрбір журналист үшін
-          маңызды: мәселенің түпкі мәнін аңғару, өткір сұрақтар қоя білу және
-          шындықты анықтай білу.
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          Біздің мектепте сізді кәсіби жолға бастайтын қызықты сапар күтеді:
-          заманауи студиялар, кәсіби техника және монтаж зертханалары. Сізге
-          индустрия мамандары дәріс береді, алда - нақты медиа-жобалар,
-          Қазақстанның жетекші БАҚ-тарында тағылымдамалар және халықаралық
-          бағдарламаларға қатысу бар. Сонымен бірге, сізді жылы шырайлы
-          қауымдастық, клубтар, фестивальдер мен есте қаларлық <b>студенттік өмір</b>
-          күтіп тұр.
-        </p>
-
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          Оқуға қажетті барлық платформалар біздің сайттағы
-          <a
-            href="https://mnu.kz/kk-kz/studying/"
-            style="cursor: pointer; text-decoration: underline; color: #d62e1f"
-            >«MNU студенттеріне»</a
-          >
-          бөлімінде жинақталған. Жақын арада өздеріңіздің білім жолында әрдайым
-          жандарыңыздан табылатын ХЖМ ұжымымен танысатын боласыздар.
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          <b>MNU</b> — сіздің тарихыңыздың жаңа тарауы басталатын орын.
-        </p>
-      </div>
-
-      <div style="z-index: 50; margin-bottom: 32px">
-        <h2
-          style="
-            margin-bottom: 16px;
-            font-family: Inter, Arial, sans-serif;
-            font-size: 30px;
-            font-weight: bold;
-            color: #000000;
-          "
-        >
-          Уважаемый(ая), ${givennames}!
-        </h2>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          Поздравляем, вы зачислены в
-          <span style="color: #d62e1f"
-            >Maqsut&nbsp;Narikbayev&nbsp;University</span
-          >!
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          <b>🦊 МШЖ - Лис</b>
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          С сегодняшнего дня вы часть <b>Международной школы журналистики</b>. Наш
-          символ — лис. Это животное олицетворяет наблюдательность,
-          острый ум и находчивость. Эти качества важны для каждого журналиста:
-          видеть суть, задавать неудобные вопросы и искать правду, даже когда её
-          пытаются скрыть.
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          В нашей школе вас ждёт увлекательный путь к профессии: современные
-          студии, профессиональная техника и монтажные лаборатории. Вас будут
-          обучать практики из индустрии, впереди — реальные медиа-проекты,
-          стажировки в ведущих СМИ Казахстана и участие в международных
-          программах. А ещё, тёплое сообщество, клубы, фестивали и <b>студенческая
-          жизнь</b>, которую вы не забудете.
-        </p>
-
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          Все необходимые для учёбы платформы и сервисы уже собраны в разделе
-          <a
-            href="https://mnu.kz/ru/studying/"
-            style="cursor: pointer; text-decoration: underline; color: #d62e1f"
-            >«Обучение в MNU»</a
-          >
-          на нашем сайте. Совсем скоро вы познакомитесь с командой МШЖ, которая
-          будет рядом на всём вашем пути.
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          Добро пожаловать в <b>MNU</b> - место, где начинается новая глава вашей истории.
-        </p>
-      </div>
-
-      <div style="z-index: 50; margin-bottom: 32px">
-        <h2
-          style="
-            margin-bottom: 16px;
-            font-family: Inter, Arial, sans-serif;
-            font-size: 30px;
-            font-weight: bold;
-            color: #000000;
-          "
-        >
-          Dear ${givennames}!
-        </h2>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          Congratulations — you are now enrolled at
-          <span style="color: #d62e1f"
-            >Maqsut&nbsp;Narikbayev&nbsp;University</span
-          >!
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          <b>🦊 ISJ — The Fox</b>
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          As of today, you are part of the <b>International School of Journalism</b>.
-          Our symbol is the fox — a creature known for its keen
-          observation, sharp intellect, and resourcefulness. These are essential
-          qualities for every journalist: to perceive the truth beneath the
-          surface, to ask difficult questions, and to uncover what others may
-          try to hide.
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          An exciting journey into the profession awaits you at our School. You
-          will have access to state-of-the-art studios, professional equipment,
-          and editing laboratories. Your education will be guided by experienced
-          industry practitioners. Ahead of you lie real media projects,
-          internships at leading Kazakhstani media outlets, and opportunities to
-          participate in international programmes. You will also become part of
-          a vibrant community — clubs, festivals, and <b>student life</b> that you’ll
-          remember for years to come.
-        </p>
-
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          All the platforms and services necessary for your studies are already
-          available in the
-          <a
-            href="https://mnu.kz/studying/"
-            style="cursor: pointer; text-decoration: underline; color: #d62e1f"
-            >«Studying at MNU»</a
-          >
-          section of our website. Very soon, you will meet the ISJ team, who
-          will support you every step of the way.
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          <b>Welcome to MNU — the place where a new chapter of your story begins.</b>
-        </p>
-      </div>
-
-      <div style="margin: 0 auto; width: 100%; text-align: center">
-        <a
-          href="https://outlook.office.com/mail/"
-          style="
-            width: 200px;
-            margin: 0 auto;
-            display: inline-block;
-            cursor: pointer;
-            border-radius: 12px;
-            background-color: #d62e1f;
-            padding: 8px 16px;
-            color: white;
-            border: none;
-            font-size: 16px;
-            font-weight: bold;
-            text-align: center;
-          "
-        >
-          Outlook
-        </a>
-
-        <table
-          width="100%"
-          cellpadding="0"
-          cellspacing="0"
-          border="0"
-          style="margin-top: 12px; margin-bottom: 12px; border-collapse: collapse"
-        >
-          <tr>
-            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Login:</td>
-            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.email_login || ''}</td>
-          </tr>
-          <tr>
-            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Password:</td>
-            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.email_pass || ''}</td>
-          </tr>
-        </table>
-      </div>
-
-      <div style="margin: 0 auto; width: 100%; text-align: center">
-        <div style="
-            width: 200px;
-            margin: 0 auto;
-            border-radius: 12px;
-            background-color: #d62e1f;
-            padding: 8px 16px;
-            color: white;
-            border: none;
-            font-size: 16px;
-            font-weight: bold;
-            text-decoration: none;
-            text-align: center;
-          ">
-            <a
-              href="https://platonus.mnu.kz/"
-              style="
-                display: inline-block;
-                cursor: pointer;
-                color: white;
-              "
-            >
-              Platonus${' '}
-            </a>
-            ${'  '}/${' '}
-            <a
-              href="https://kazguu.instructure.com/login/ldap"
-              style="
-                display: inline-block;
-                cursor: pointer;
-                color: white;
-              "
-            >
-              Canvas LMS
-            </a>
-        </div>
-
-        <table
-          width="100%"
-          cellpadding="0"
-          cellspacing="0"
-          border="0"
-          style="margin-top: 12px; margin-bottom: 12px; border-collapse: collapse"
-        >
-          <tr>
-            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Login:</td>
-            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.platonus_login || ''}</td>
-          </tr>
-          <tr>
-            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Password:</td>
-            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.platonus_pass || ''}</td>
-          </tr>
-        </table>
-      </div>
-
-      <div style="margin: 0 auto; width: 100%; text-align: center">
-        <a
-          href="https://lp.mnu.kz/box"
-          style="
-            width: 200px;
-            margin: 0 auto;
-            display: inline-block;
-            cursor: pointer;
-            border-radius: 12px;
-            background-color: #d62e1f;
-            padding: 8px 16px;
-            color: white;
-            border: none;
-            font-size: 16px;
-            font-weight: bold;
-            text-decoration: none;
-            text-align: center;
-          "
-        >
-          See more &rarr;
-        </a>
-      </div>
-    </div>
-
-    <img
-       src="https://spaces.mnu.kz/wp-content/uploads/2025/07/img_isj.png"
-       alt="ISJ"
-       width="100%"
-       height="auto"
-       style="display: block; padding: 20px 0;"
-    />
-
-    <table
-      width="100%"
-      cellpadding="0"
-      cellspacing="0"
-      border="0"
-      style="
-        background-color: black;
-        padding: 24px 16px;
-        color: #9e9e9e;
-        font-family: Arial, sans-serif;
-      "
-    >
-      <tr>
-        <td align="center" valign="top">
-          <table
-            cellpadding="0"
-            cellspacing="0"
-            border="0"
-            width="100%"
-            style="max-width: 768px"
-          >
-            <tr>
-              <!-- Logo -->
-              <td align="left" valign="top" style="width: 25%; padding: 0 8px">
-                <a href="https://mnu.kz/" target="_blank">
-                  <img
-                    src="https://spaces.mnu.kz/wp-content/uploads/2025/07/logo_mnu_white.png"
-                    alt="MNU Logo"
-                    width="100"
-                    height="auto"
-                    style="display: block"
-                  />
-                </a>
-              </td>
-
-              <!-- Contact Us -->
-              <td
-                align="left"
-                valign="top"
-                style="
-                  width: 25%;
-                  padding: 0 8px;
-                  color: #9e9e9e;
-                  font-size: 12px;
-                "
-              >
-                <strong
-                  style="
-                    text-transform: uppercase;
-                    text-decoration: underline;
-                    margin-bottom: 8px;
-                    display: block;
-                  "
-                  >Contact Us</strong
-                >
-                <a
-                  href="mailto:info@mnu.kz"
-                  style="
-                    color: #9e9e9e;
-                    text-decoration: none;
-                    margin-bottom: 4px;
-                    display: block;
-                  "
-                  >info@mnu.kz</a
-                >
-                <a
-                  href="tel:+77172703030"
-                  style="
-                    color: #9e9e9e;
-                    text-decoration: none;
-                    margin-bottom: 4px;
-                    display: block;
-                  "
-                  >+7 (717) 270-30-30</a
-                >
-                <a
-                  href="tel:+77001703030"
-                  style="color: #9e9e9e; text-decoration: none; display: block"
-                  >+7 (700) 170-30-30</a
-                >
-              </td>
-
-              <!-- Socials -->
-              <td
-                align="left"
-                valign="top"
-                style="
-                  width: 25%;
-                  padding: 0 8px;
-                  color: #9e9e9e;
-                  font-size: 12px;
-                "
-              >
-                <strong
-                  style="text-transform: uppercase; text-decoration: underline"
-                  >Socials</strong
-                ><br />
-                <table
-                  cellpadding="0"
-                  cellspacing="0"
-                  border="0"
-                  style="margin-top: 8px"
-                >
-                  <tr>
-                    <td style="padding-right: 8px">
-                      <a href="https://instagram.com/mnu.kz" target="_blank">
-                        <img
-                          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/ig.png"
-                          alt="Instagram"
-                          width="20"
-                          height="20"
-                          style="display: block"
-                        />
-                      </a>
-                    </td>
-                    <td style="padding-right: 8px">
-                      <a
-                        href="https://www.facebook.com/kazguuKZ/?locale=ru_RU"
-                        target="_blank"
-                      >
-                        <img
-                          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/fb.png"
-                          alt="Facebook"
-                          width="20"
-                          height="20"
-                          style="display: block"
-                        />
-                      </a>
-                    </td>
-                    <td>
-                      <a href="https://www.tiktok.com/@mnu.kz" target="_blank">
-                        <img
-                          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/tt.png"
-                          alt="TikTok"
-                          width="20"
-                          height="20"
-                          style="display: block"
-                        />
-                      </a>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-
-              <!-- Links -->
-              <td
-                align="left"
-                valign="top"
-                style="
-                  width: 25%;
-                  padding: 0 8px;
-                  color: #9e9e9e;
-                  font-size: 12px;
-                "
-              >
-                <a
-                  href="https://mnu.kz/dsa"
-                  style="
-                    color: #9e9e9e;
-                    text-decoration: underline;
-                    display: block;
-                    margin-bottom: 8px;
-                  "
-                  >Student Life</a
-                >
-                <a
-                  href="https://mnu.kz/studying/"
-                  style="
-                    color: #9e9e9e;
-                    text-decoration: underline;
-                    display: block;
-                  "
-                  >Studying at MNU</a
-                >
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </div>
-</div>
-    `;
-
-    const htmlMLS = `
-    <div style="margin: 0 auto; width: 100%; background-color: #9ca3af">
-  <div style="margin: 0 auto; max-width: 768px; text-align: center">
-    <div
-      style="
-        height: 350px;
-        background-image: url(&quot;https://spaces.mnu.kz/wp-content/uploads/2025/07/mls-hero.jpg&quot;);
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-      "
-    ></div>
-    <div style="position: relative; background-color: white; padding: 40px 0">
-      <div style="text-align: center; margin-bottom: 32px;">
-        <img
-          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/mls-logo.png"
-          alt=""
-          style="height: 50px; width: auto; display: inline-block; vertical-align: middle; margin-right: 16px;"
-        />
-        <img
-          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/logo_mnu_red.png"
-          alt=""
-          style="height: 50px; width: auto; display: inline-block; vertical-align: middle;"
-        />
-      </div>
-      <div style="margin-bottom: 32px">
-        <h2
-          style="
-            margin-bottom: 16px;
-            font-family: Inter, Arial, sans-serif;
-            font-size: 30px;
-            font-weight: bold;
-            color: #000000;
-          "
-        >
-          Құрметті, ${givennames}!
-        </h2>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          Құттықтаймыз, сіз
-          <span style="color: #d62e1f"
-            >Maqsut&nbsp;Narikbayev&nbsp;University</span
-          >-ге оқуға қабылдандыңыз!
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          <b>🦁 ҚЖМ — Арыстан</b>
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          Бүгіннен бастап сіз <b>Құқық жоғары мектебінің</b> бір бөлігісіз.
-          Біздің символымыз - Арыстан. Ол әділеттілікті, күш пен көшбасшылықты бейнелейді. Арыстан секілді, сіз заң мен әділеттің қорғаны болып, құқықтар мен қағидаттарды сақтай отырып, адал қоғамның қалыптасуына ықпал етесіз.
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          MNU-де сізді халықаралық деңгейдегі білім, тәжірибелі мамандардың қолдауы, түрлі жобаларға қатысу, тағылымдамалар мен халықаралық бағдарламалар күтіп тұр. Сондай-ақ,  сізді студенттік клубтар, фестивальдер, форумдардарға толы жарқын <b>студенттік өмір</b> күтіп тұр.
-        </p>
-
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          Оқуға қажетті барлық платформалар біздің сайттағы
-          <a
-            href="https://mnu.kz/kk-kz/studying/"
-            style="cursor: pointer; text-decoration: underline; color: #d62e1f"
-            >«MNU студенттеріне»</a
-          >
-          бөлімінде жинақталған. Жақын арада өздеріңіздің білім жолында әрдайым
-          жандарыңыздан табылатын ХЖМ ұжымымен танысатын боласыздар.
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          <b>MNU</b> — сіздің тарихыңыздың жаңа тарауы басталатын орын.
-        </p>
-      </div>
-
-      <div style="z-index: 50; margin-bottom: 32px">
-        <h2
-          style="
-            margin-bottom: 16px;
-            font-family: Inter, Arial, sans-serif;
-            font-size: 30px;
-            font-weight: bold;
-            color: #000000;
-          "
-        >
-          Уважаемый(ая), ${givennames}!
-        </h2>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          Поздравляем, вы зачислены в
-          <span style="color: #d62e1f"
-            >Maqsut&nbsp;Narikbayev&nbsp;University</span
-          >!
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          <b>🦁 ВШП — Лев</b>
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          С сегодняшнего дня вы часть <b>Высшей Школы Права</b>. Наш символ это Лев - воплощение справедливости, силы и лидерства. Как Лев, вы будете стоять на защите закона, отстаивать права и принципы, формируя честное и ответственное общество.
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          В MNU вы получите знания международного уровня, поддержку преподавателей‑практиков, опыт участия в реальных проектах, стажировках и международных программах. А ещё вас ждёт яркая <b>студенческая жизнь</b>: клубы, фестивали, форумы и крутое сообщество.
-        </p>
-
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          Все необходимые для учёбы платформы и сервисы уже собраны в разделе
-          <a
-            href="https://mnu.kz/ru/studying/"
-            style="cursor: pointer; text-decoration: underline; color: #d62e1f"
-            >«Обучение в MNU»</a
-          >
-          на нашем сайте. Совсем скоро вы познакомитесь с командой МШЖ, которая
-          будет рядом на всём вашем пути.
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          Добро пожаловать в <b>MNU</b> - университет, который станет точкой старта вашего будущего!
-        </p>
-      </div>
-
-      <div style="z-index: 50; margin-bottom: 32px">
-        <h2
-          style="
-            margin-bottom: 16px;
-            font-family: Inter, Arial, sans-serif;
-            font-size: 30px;
-            font-weight: bold;
-            color: #000000;
-          "
-        >
-          Dear ${givennames}!
-        </h2>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          Congratulations — you are now enrolled at
-          <span style="color: #d62e1f"
-            >Maqsut&nbsp;Narikbayev&nbsp;University</span
-          >!
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          <b>🦁 MLS — The Lion</b>
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          From today onwards, you are part of the <b>MNU Law School</b>. Our symbol is the Lion — the embodiment of justice, strength, and leadership. As a Lion, you will uphold the law, defend rights and principles, and contribute to building an honest and responsible society.
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          At MNU, you will receive a world-class education, guided by experienced faculty who are active professionals in the field. You will gain practical experience through real-world projects, internships, and international programmes. In addition to your academic journey, you will find a vibrant <b>student life</b> — clubs, festivals, forums, and a welcoming, energetic community.
-        </p>
-
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          All the platforms and services necessary for your studies are already
-          available in the
-          <a
-            href="https://mnu.kz/studying/"
-            style="cursor: pointer; text-decoration: underline; color: #d62e1f"
-            >«Studying at MNU»</a
-          >
-          section of our website. Very soon, you will meet the ISJ team, who
-          will support you every step of the way.
-        </p>
-        <p
-          style="
-            margin-bottom: 16px;
-            padding: 0 40px;
-            font-family: Montserrat, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #000000;
-          "
-        >
-          <b>Welcome to MNU — the place where a new chapter of your story begins.</b>
-        </p>
-      </div>
-
-      <div style="margin: 0 auto; width: 100%; text-align: center">
-        <a
-          href="https://outlook.office.com/mail/"
-          style="
-            width: 200px;
-            margin: 0 auto;
-            display: inline-block;
-            cursor: pointer;
-            border-radius: 12px;
-            background-color: #d62e1f;
-            padding: 8px 16px;
-            color: white;
-            border: none;
-            font-size: 16px;
-            font-weight: bold;
-            text-align: center;
-          "
-        >
-          Outlook
-        </a>
-
-        <table
-          width="100%"
-          cellpadding="0"
-          cellspacing="0"
-          border="0"
-          style="margin-top: 12px; margin-bottom: 12px; border-collapse: collapse"
-        >
-          <tr>
-            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Login:</td>
-            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.email_login || ''}</td>
-          </tr>
-          <tr>
-            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Password:</td>
-            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.email_pass || ''}</td>
-          </tr>
-        </table>
-      </div>
-
-      <div style="margin: 0 auto; width: 100%; text-align: center">
-        <div style="
-            width: 200px;
-            margin: 0 auto;
-            border-radius: 12px;
-            background-color: #d62e1f;
-            padding: 8px 16px;
-            color: white;
-            border: none;
-            font-size: 16px;
-            font-weight: bold;
-            text-decoration: none;
-            text-align: center;
-          ">
-            <a
-              href="https://platonus.mnu.kz/"
-              style="
-                display: inline-block;
-                cursor: pointer;
-                color: white;
-              "
-            >
-              Platonus${' '}
-            </a>
-            ${'  '}/${' '}
-            <a
-              href="https://kazguu.instructure.com/login/ldap"
-              style="
-                display: inline-block;
-                cursor: pointer;
-                color: white;
-              "
-            >
-              Canvas LMS
-            </a>
-        </div>
-
-        <table
-          width="100%"
-          cellpadding="0"
-          cellspacing="0"
-          border="0"
-          style="margin-top: 12px; margin-bottom: 12px; border-collapse: collapse"
-        >
-          <tr>
-            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Login:</td>
-            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.platonus_login || ''}</td>
-          </tr>
-          <tr>
-            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Password:</td>
-            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.platonus_pass || ''}</td>
-          </tr>
-        </table>
-      </div>
-
-      <div style="margin: 0 auto; width: 100%; text-align: center">
-        <a
-          href="https://lp.mnu.kz/box"
-          style="
-            width: 200px;
-            margin: 0 auto;
-            display: inline-block;
-            cursor: pointer;
-            border-radius: 12px;
-            background-color: #d62e1f;
-            padding: 8px 16px;
-            color: white;
-            border: none;
-            font-size: 16px;
-            font-weight: bold;
-            text-decoration: none;
-            text-align: center;
-          "
-        >
-          See more &rarr;
-        </a>
-      </div>
-    </div>
-
-    <img
-       src="https://spaces.mnu.kz/wp-content/uploads/2025/07/img_mls.png"
-       alt="MLS"
-       width="100%"
-       height="auto"
-       style="display: block; padding: 20px 0;"
-    />
-
-    <table
-      width="100%"
-      cellpadding="0"
-      cellspacing="0"
-      border="0"
-      style="
-        background-color: black;
-        padding: 24px 16px;
-        color: #9e9e9e;
-        font-family: Arial, sans-serif;
-      "
-    >
-      <tr>
-        <td align="center" valign="top">
-          <table
-            cellpadding="0"
-            cellspacing="0"
-            border="0"
-            width="100%"
-            style="max-width: 768px"
-          >
-            <tr>
-              <!-- Logo -->
-              <td align="left" valign="top" style="width: 25%; padding: 0 8px">
-                <a href="https://mnu.kz/" target="_blank">
-                  <img
-                    src="https://spaces.mnu.kz/wp-content/uploads/2025/07/logo_mnu_white.png"
-                    alt="MNU Logo"
-                    width="100"
-                    height="auto"
-                    style="display: block"
-                  />
-                </a>
-              </td>
-
-              <!-- Contact Us -->
-              <td
-                align="left"
-                valign="top"
-                style="
-                  width: 25%;
-                  padding: 0 8px;
-                  color: #9e9e9e;
-                  font-size: 12px;
-                "
-              >
-                <strong
-                  style="
-                    text-transform: uppercase;
-                    text-decoration: underline;
-                    margin-bottom: 8px;
-                    display: block;
-                  "
-                  >Contact Us</strong
-                >
-                <a
-                  href="mailto:info@mnu.kz"
-                  style="
-                    color: #9e9e9e;
-                    text-decoration: none;
-                    margin-bottom: 4px;
-                    display: block;
-                  "
-                  >info@mnu.kz</a
-                >
-                <a
-                  href="tel:+77172703030"
-                  style="
-                    color: #9e9e9e;
-                    text-decoration: none;
-                    margin-bottom: 4px;
-                    display: block;
-                  "
-                  >+7 (717) 270-30-30</a
-                >
-                <a
-                  href="tel:+77001703030"
-                  style="color: #9e9e9e; text-decoration: none; display: block"
-                  >+7 (700) 170-30-30</a
-                >
-              </td>
-
-              <!-- Socials -->
-              <td
-                align="left"
-                valign="top"
-                style="
-                  width: 25%;
-                  padding: 0 8px;
-                  color: #9e9e9e;
-                  font-size: 12px;
-                "
-              >
-                <strong
-                  style="text-transform: uppercase; text-decoration: underline"
-                  >Socials</strong
-                ><br />
-                <table
-                  cellpadding="0"
-                  cellspacing="0"
-                  border="0"
-                  style="margin-top: 8px"
-                >
-                  <tr>
-                    <td style="padding-right: 8px">
-                      <a href="https://instagram.com/mnu.kz" target="_blank">
-                        <img
-                          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/ig.png"
-                          alt="Instagram"
-                          width="20"
-                          height="20"
-                          style="display: block"
-                        />
-                      </a>
-                    </td>
-                    <td style="padding-right: 8px">
-                      <a
-                        href="https://www.facebook.com/kazguuKZ/?locale=ru_RU"
-                        target="_blank"
-                      >
-                        <img
-                          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/fb.png"
-                          alt="Facebook"
-                          width="20"
-                          height="20"
-                          style="display: block"
-                        />
-                      </a>
-                    </td>
-                    <td>
-                      <a href="https://www.tiktok.com/@mnu.kz" target="_blank">
-                        <img
-                          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/tt.png"
-                          alt="TikTok"
-                          width="20"
-                          height="20"
-                          style="display: block"
-                        />
-                      </a>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-
-              <!-- Links -->
-              <td
-                align="left"
-                valign="top"
-                style="
-                  width: 25%;
-                  padding: 0 8px;
-                  color: #9e9e9e;
-                  font-size: 12px;
-                "
-              >
-                <a
-                  href="https://mnu.kz/dsa"
-                  style="
-                    color: #9e9e9e;
-                    text-decoration: underline;
-                    display: block;
-                    margin-bottom: 8px;
-                  "
-                  >Student Life</a
-                >
-                <a
-                  href="https://mnu.kz/studying/"
-                  style="
-                    color: #9e9e9e;
-                    text-decoration: underline;
-                    display: block;
-                  "
-                  >Studying at MNU</a
-                >
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </div>
-</div>
-    `;
-
     const htmlISE = `
-    <div style="margin: 0 auto; width: 100%; background-color: #9ca3af">
+    <div style="margin: 0 auto; width: 100%;">
   <div style="margin: 0 auto; max-width: 768px; text-align: center">
     <div
       style="
@@ -1658,14 +372,14 @@ export async function POST(request: Request) {
     <div style="position: relative; background-color: white; padding: 40px 0">
       <div style="text-align: center; margin-bottom: 32px;">
         <img
-          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/ise-logo.png"
-          alt=""
-          style="height: 50px; width: auto; display: inline-block; vertical-align: middle; margin-right: 16px;"
-        />
-        <img
           src="https://spaces.mnu.kz/wp-content/uploads/2025/07/logo_mnu_red.png"
           alt=""
           style="height: 50px; width: auto; display: inline-block; vertical-align: middle;"
+        />
+        <img
+          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/ise-logo.png"
+          alt=""
+          style="height: 50px; width: auto; display: inline-block; vertical-align: middle; margin-right: 16px;"
         />
       </div>
       <div style="margin-bottom: 32px">
@@ -1717,7 +431,7 @@ export async function POST(request: Request) {
             color: #000000;
           "
         >
-        Бүгіннен бастап сіз <b>Халықаралық экономика мектебінің</b> бір бөлігісіз. Біздің символымыз - жаңғыруды, трансформацияны және өсуді бейнелейтін Феникс. Феникс ретінде сіз талдау мен стратегиялық ойлаудың күшіне сүйене отырып, қиындықтарды жеңуді, өзгерістерден мүмкіндіктер табуды және болашақты құруды үйренесіз.
+        Бүгіннен бастап сіз <b>Халықаралық экономика мектебінің</b> бір бөлігісіз. Біздің символымыз — жаңғыруды, трансформацияны және өсуді бейнелейтін Феникс. Феникс ретінде сіз талдау мен стратегиялық ойлаудың күшіне сүйене отырып, қиындықтарды жеңуді, өзгерістерден мүмкіндіктер табуды және болашақты құруды үйренесіз.
         </p>
         <p
           style="
@@ -1814,7 +528,7 @@ export async function POST(request: Request) {
             color: #000000;
           "
         >
-         С сегодняшнего дня вы - часть <b>Международной школы экономики</b>. Наш символ - Феникс, олицетворяющий возрождение, трансформацию и рост. Как Феникс, вы научитесь преодолевать вызовы, находить возможности в переменах и строить будущее, опираясь на силу анализа и стратегического мышления.        </p>
+         С сегодняшнего дня вы — часть <b>Международной школы экономики</b>. Наш символ — Феникс, олицетворяющий возрождение, трансформацию и рост. Как Феникс, вы научитесь преодолевать вызовы, находить возможности в переменах и строить будущее, опираясь на силу анализа и стратегического мышления.        </p>
         <p
           style="
             margin-bottom: 16px;
@@ -1857,7 +571,7 @@ export async function POST(request: Request) {
             color: #000000;
           "
         >
-          Добро пожаловать в <b>MNU</b> - университет, который станет точкой старта вашего будущего!
+          Добро пожаловать в <b>MNU</b> — университет, который станет точкой старта вашего будущего!
         </p>
       </div>
 
@@ -2020,9 +734,9 @@ export async function POST(request: Request) {
                 color: white;
               "
             >
-              Platonus${' '}
+              Platonus
             </a>
-            ${'  '}/${' '}
+            <span style="margin-left: 10px; margin-right:10px;">/</span>
             <a
               href="https://kazguu.instructure.com/login/ldap"
               style="
@@ -2269,8 +983,1294 @@ export async function POST(request: Request) {
 </div>
     `;
 
+    const htmlMLS = `
+    <div style="margin: 0 auto; width: 100%;">
+  <div style="margin: 0 auto; max-width: 768px; text-align: center">
+    <div
+      style="
+        height: 350px;
+        background-image: url(&quot;https://spaces.mnu.kz/wp-content/uploads/2025/07/mls-hero.jpg&quot;);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+      "
+    ></div>
+    <div style="position: relative; background-color: white; padding: 40px 0">
+      <div style="text-align: center; margin-bottom: 32px;">
+        <img
+          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/logo_mnu_red.png"
+          alt=""
+          style="height: 50px; width: auto; display: inline-block; vertical-align: middle;"
+        />
+        <img
+          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/mls-logo.png"
+          alt=""
+          style="height: 50px; width: auto; display: inline-block; vertical-align: middle; margin-right: 16px;"
+        />
+      </div>
+      <div style="margin-bottom: 32px">
+        <h2
+          style="
+            margin-bottom: 16px;
+            font-family: Inter, Arial, sans-serif;
+            font-size: 30px;
+            font-weight: bold;
+            color: #000000;
+          "
+        >
+          Құрметті, ${givennames}!
+        </h2>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          Құттықтаймыз, сіз
+          <span style="color: #d62e1f"
+            >Maqsut&nbsp;Narikbayev&nbsp;University</span
+          >-ге оқуға қабылдандыңыз!
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          <b>🦁 ҚЖМ — Арыстан</b>
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          Бүгіннен бастап сіз <b>Құқық жоғары мектебінің</b> бір бөлігісіз.
+          Біздің символымыз — Арыстан. Ол әділеттілікті, күш пен көшбасшылықты бейнелейді. Арыстан секілді, сіз заң мен әділеттің қорғаны болып, құқықтар мен қағидаттарды сақтай отырып, адал қоғамның қалыптасуына ықпал етесіз.
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          MNU-де сізді халықаралық деңгейдегі білім, тәжірибелі мамандардың қолдауы, түрлі жобаларға қатысу, тағылымдамалар мен халықаралық бағдарламалар күтіп тұр. Сондай-ақ,  сізді студенттік клубтар, фестивальдер, форумдардарға толы жарқын <b>студенттік өмір</b> күтіп тұр.
+        </p>
+
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          Оқуға қажетті барлық платформалар біздің сайттағы
+          <a
+            href="https://mnu.kz/kk-kz/studying/"
+            style="cursor: pointer; text-decoration: underline; color: #d62e1f"
+            >«MNU студенттеріне»</a
+          >
+          бөлімінде жинақталған. Жақын арада өздеріңіздің білім жолында әрдайым
+          жандарыңыздан табылатын ХЖМ ұжымымен танысатын боласыздар.
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          <b>MNU</b> — сіздің тарихыңыздың жаңа тарауы басталатын орын.
+        </p>
+      </div>
+
+      <div style="z-index: 50; margin-bottom: 32px">
+        <h2
+          style="
+            margin-bottom: 16px;
+            font-family: Inter, Arial, sans-serif;
+            font-size: 30px;
+            font-weight: bold;
+            color: #000000;
+          "
+        >
+          Уважаемый(ая), ${givennames}!
+        </h2>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          Поздравляем, вы зачислены в
+          <span style="color: #d62e1f"
+            >Maqsut&nbsp;Narikbayev&nbsp;University</span
+          >!
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          <b>🦁 ВШП — Лев</b>
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          С сегодняшнего дня вы часть <b>Высшей Школы Права</b>. Наш символ это Лев — воплощение справедливости, силы и лидерства. Как Лев, вы будете стоять на защите закона, отстаивать права и принципы, формируя честное и ответственное общество.
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          В MNU вы получите знания международного уровня, поддержку преподавателей‑практиков, опыт участия в реальных проектах, стажировках и международных программах. А ещё вас ждёт яркая <b>студенческая жизнь</b>: клубы, фестивали, форумы и крутое сообщество.
+        </p>
+
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          Все необходимые для учёбы платформы и сервисы уже собраны в разделе
+          <a
+            href="https://mnu.kz/ru/studying/"
+            style="cursor: pointer; text-decoration: underline; color: #d62e1f"
+            >«Обучение в MNU»</a
+          >
+          на нашем сайте. Совсем скоро вы познакомитесь с командой МШЖ, которая
+          будет рядом на всём вашем пути.
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          Добро пожаловать в <b>MNU</b> — университет, который станет точкой старта вашего будущего!
+        </p>
+      </div>
+
+      <div style="z-index: 50; margin-bottom: 32px">
+        <h2
+          style="
+            margin-bottom: 16px;
+            font-family: Inter, Arial, sans-serif;
+            font-size: 30px;
+            font-weight: bold;
+            color: #000000;
+          "
+        >
+          Dear ${givennames}!
+        </h2>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          Congratulations — you are now enrolled at
+          <span style="color: #d62e1f"
+            >Maqsut&nbsp;Narikbayev&nbsp;University</span
+          >!
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          <b>🦁 MLS — The Lion</b>
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          From today onwards, you are part of the <b>MNU Law School</b>. Our symbol is the Lion — the embodiment of justice, strength, and leadership. As a Lion, you will uphold the law, defend rights and principles, and contribute to building an honest and responsible society.
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          At MNU, you will receive a world-class education, guided by experienced faculty who are active professionals in the field. You will gain practical experience through real-world projects, internships, and international programmes. In addition to your academic journey, you will find a vibrant <b>student life</b> — clubs, festivals, forums, and a welcoming, energetic community.
+        </p>
+
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          All the platforms and services necessary for your studies are already
+          available in the
+          <a
+            href="https://mnu.kz/studying/"
+            style="cursor: pointer; text-decoration: underline; color: #d62e1f"
+            >«Studying at MNU»</a
+          >
+          section of our website. Very soon, you will meet the ISJ team, who
+          will support you every step of the way.
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          <b>Welcome to MNU — the place where a new chapter of your story begins.</b>
+        </p>
+      </div>
+
+      <div style="margin: 0 auto; width: 100%; text-align: center">
+        <a
+          href="https://outlook.office.com/mail/"
+          style="
+            width: 200px;
+            margin: 0 auto;
+            display: inline-block;
+            cursor: pointer;
+            border-radius: 12px;
+            background-color: #d62e1f;
+            padding: 8px 16px;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+          "
+        >
+          Outlook
+        </a>
+
+        <table
+          width="100%"
+          cellpadding="0"
+          cellspacing="0"
+          border="0"
+          style="margin-top: 12px; margin-bottom: 12px; border-collapse: collapse"
+        >
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Login:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.email_login || ''}</td>
+          </tr>
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Password:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.email_pass || ''}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="margin: 0 auto; width: 100%; text-align: center">
+        <div style="
+            width: 200px;
+            margin: 0 auto;
+            border-radius: 12px;
+            background-color: #d62e1f;
+            padding: 8px 16px;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            text-align: center;
+          ">
+            <a
+              href="https://platonus.mnu.kz/"
+              style="
+                display: inline-block;
+                cursor: pointer;
+                color: white;
+              "
+            >
+              Platonus
+            </a>
+            <span style="margin-left: 10px; margin-right:10px;">/</span>
+            <a
+              href="https://kazguu.instructure.com/login/ldap"
+              style="
+                display: inline-block;
+                cursor: pointer;
+                color: white;
+              "
+            >
+              Canvas LMS
+            </a>
+        </div>
+
+        <table
+          width="100%"
+          cellpadding="0"
+          cellspacing="0"
+          border="0"
+          style="margin-top: 12px; margin-bottom: 12px; border-collapse: collapse"
+        >
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Login:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.platonus_login || ''}</td>
+          </tr>
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Password:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.platonus_pass || ''}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="margin: 0 auto; width: 100%; text-align: center">
+        <a
+          href="https://lp.mnu.kz/box"
+          style="
+            width: 200px;
+            margin: 0 auto;
+            display: inline-block;
+            cursor: pointer;
+            border-radius: 12px;
+            background-color: #d62e1f;
+            padding: 8px 16px;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            text-align: center;
+          "
+        >
+          See more &rarr;
+        </a>
+      </div>
+    </div>
+
+    <img
+       src="https://spaces.mnu.kz/wp-content/uploads/2025/07/img_mls.png"
+       alt="MLS"
+       width="100%"
+       height="auto"
+       style="display: block; padding: 20px 0;"
+    />
+
+    <table
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      style="
+        background-color: black;
+        padding: 24px 16px;
+        color: #9e9e9e;
+        font-family: Arial, sans-serif;
+      "
+    >
+      <tr>
+        <td align="center" valign="top">
+          <table
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+            width="100%"
+            style="max-width: 768px"
+          >
+            <tr>
+              <!-- Logo -->
+              <td align="left" valign="top" style="width: 25%; padding: 0 8px">
+                <a href="https://mnu.kz/" target="_blank">
+                  <img
+                    src="https://spaces.mnu.kz/wp-content/uploads/2025/07/logo_mnu_white.png"
+                    alt="MNU Logo"
+                    width="100"
+                    height="auto"
+                    style="display: block"
+                  />
+                </a>
+              </td>
+
+              <!-- Contact Us -->
+              <td
+                align="left"
+                valign="top"
+                style="
+                  width: 25%;
+                  padding: 0 8px;
+                  color: #9e9e9e;
+                  font-size: 12px;
+                "
+              >
+                <strong
+                  style="
+                    text-transform: uppercase;
+                    text-decoration: underline;
+                    margin-bottom: 8px;
+                    display: block;
+                  "
+                  >Contact Us</strong
+                >
+                <a
+                  href="mailto:info@mnu.kz"
+                  style="
+                    color: #9e9e9e;
+                    text-decoration: none;
+                    margin-bottom: 4px;
+                    display: block;
+                  "
+                  >info@mnu.kz</a
+                >
+                <a
+                  href="tel:+77172703030"
+                  style="
+                    color: #9e9e9e;
+                    text-decoration: none;
+                    margin-bottom: 4px;
+                    display: block;
+                  "
+                  >+7 (717) 270-30-30</a
+                >
+                <a
+                  href="tel:+77001703030"
+                  style="color: #9e9e9e; text-decoration: none; display: block"
+                  >+7 (700) 170-30-30</a
+                >
+              </td>
+
+              <!-- Socials -->
+              <td
+                align="left"
+                valign="top"
+                style="
+                  width: 25%;
+                  padding: 0 8px;
+                  color: #9e9e9e;
+                  font-size: 12px;
+                "
+              >
+                <strong
+                  style="text-transform: uppercase; text-decoration: underline"
+                  >Socials</strong
+                ><br />
+                <table
+                  cellpadding="0"
+                  cellspacing="0"
+                  border="0"
+                  style="margin-top: 8px"
+                >
+                  <tr>
+                    <td style="padding-right: 8px">
+                      <a href="https://instagram.com/mnu.kz" target="_blank">
+                        <img
+                          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/ig.png"
+                          alt="Instagram"
+                          width="20"
+                          height="20"
+                          style="display: block"
+                        />
+                      </a>
+                    </td>
+                    <td style="padding-right: 8px">
+                      <a
+                        href="https://www.facebook.com/kazguuKZ/?locale=ru_RU"
+                        target="_blank"
+                      >
+                        <img
+                          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/fb.png"
+                          alt="Facebook"
+                          width="20"
+                          height="20"
+                          style="display: block"
+                        />
+                      </a>
+                    </td>
+                    <td>
+                      <a href="https://www.tiktok.com/@mnu.kz" target="_blank">
+                        <img
+                          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/tt.png"
+                          alt="TikTok"
+                          width="20"
+                          height="20"
+                          style="display: block"
+                        />
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+
+              <!-- Links -->
+              <td
+                align="left"
+                valign="top"
+                style="
+                  width: 25%;
+                  padding: 0 8px;
+                  color: #9e9e9e;
+                  font-size: 12px;
+                "
+              >
+                <a
+                  href="https://mnu.kz/dsa"
+                  style="
+                    color: #9e9e9e;
+                    text-decoration: underline;
+                    display: block;
+                    margin-bottom: 8px;
+                  "
+                  >Student Life</a
+                >
+                <a
+                  href="https://mnu.kz/studying/"
+                  style="
+                    color: #9e9e9e;
+                    text-decoration: underline;
+                    display: block;
+                  "
+                  >Studying at MNU</a
+                >
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+    `;
+
+    const htmlISJ = `
+    <div style="margin: 0 auto; width: 100%;">
+  <div style="margin: 0 auto; max-width: 768px; text-align: center">
+    <div
+      style="
+        height: 350px;
+        background-image: url(&quot;https://spaces.mnu.kz/wp-content/uploads/2025/07/isj-hero.jpg&quot;);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+      "
+    ></div>
+    <div style="position: relative; background-color: white; padding: 40px 0">
+      <div style="text-align: center; margin-bottom: 32px;">
+        <img
+          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/logo_mnu_red.png"
+          alt=""
+          style="height: 50px; width: auto; display: inline-block; vertical-align: middle;"
+        />
+        <img
+          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/isj-logo.png"
+          alt=""
+          style="height: 50px; width: auto; display: inline-block; vertical-align: middle; margin-right: 16px;"
+        />
+      </div>
+      <div style="margin-bottom: 32px">
+        <h2
+          style="
+            margin-bottom: 16px;
+            font-family: Inter, Arial, sans-serif;
+            font-size: 30px;
+            font-weight: bold;
+            color: #000000;
+          "
+        >
+          Құрметті, ${givennames}!
+        </h2>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          Құттықтаймыз, сіз
+          <span style="color: #d62e1f"
+            >Maqsut&nbsp;Narikbayev&nbsp;University</span
+          >-ге оқуға қабылдандыңыз!
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          <b>🦊 ХЖМ — Түлкі</b>
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          Бүгіннен бастап сіз <b>Халықаралық журналистика мектебінің</b> бір бөлігісіз.
+          Біздің символымыз — түлкі. Бұл жануар қырағылықты, алғыр ойды
+          және тапқырлықты бейнелейді. Бұл қасиеттер әрбір журналист үшін
+          маңызды: мәселенің түпкі мәнін аңғару, өткір сұрақтар қоя білу және
+          шындықты анықтай білу.
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          Біздің мектепте сізді кәсіби жолға бастайтын қызықты сапар күтеді:
+          заманауи студиялар, кәсіби техника және монтаж зертханалары. Сізге
+          индустрия мамандары дәріс береді, алда - нақты медиа-жобалар,
+          Қазақстанның жетекші БАҚ-тарында тағылымдамалар және халықаралық
+          бағдарламаларға қатысу бар. Сонымен бірге, сізді жылы шырайлы
+          қауымдастық, клубтар, фестивальдер мен есте қаларлық <b>студенттік өмір</b>
+          күтіп тұр.
+        </p>
+
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          Оқуға қажетті барлық платформалар біздің сайттағы
+          <a
+            href="https://mnu.kz/kk-kz/studying/"
+            style="cursor: pointer; text-decoration: underline; color: #d62e1f"
+            >«MNU студенттеріне»</a
+          >
+          бөлімінде жинақталған. Жақын арада өздеріңіздің білім жолында әрдайым
+          жандарыңыздан табылатын ХЖМ ұжымымен танысатын боласыздар.
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          <b>MNU</b> — сіздің тарихыңыздың жаңа тарауы басталатын орын.
+        </p>
+      </div>
+
+      <div style="z-index: 50; margin-bottom: 32px">
+        <h2
+          style="
+            margin-bottom: 16px;
+            font-family: Inter, Arial, sans-serif;
+            font-size: 30px;
+            font-weight: bold;
+            color: #000000;
+          "
+        >
+          Уважаемый(ая), ${givennames}!
+        </h2>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          Поздравляем, вы зачислены в
+          <span style="color: #d62e1f"
+            >Maqsut&nbsp;Narikbayev&nbsp;University</span
+          >!
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          <b>🦊 МШЖ — Лис</b>
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          С сегодняшнего дня вы часть <b>Международной школы журналистики</b>. Наш
+          символ — лис. Это животное олицетворяет наблюдательность,
+          острый ум и находчивость. Эти качества важны для каждого журналиста:
+          видеть суть, задавать неудобные вопросы и искать правду, даже когда её
+          пытаются скрыть.
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          В нашей школе вас ждёт увлекательный путь к профессии: современные
+          студии, профессиональная техника и монтажные лаборатории. Вас будут
+          обучать практики из индустрии, впереди — реальные медиа-проекты,
+          стажировки в ведущих СМИ Казахстана и участие в международных
+          программах. А ещё, тёплое сообщество, клубы, фестивали и <b>студенческая
+          жизнь</b>, которую вы не забудете.
+        </p>
+
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          Все необходимые для учёбы платформы и сервисы уже собраны в разделе
+          <a
+            href="https://mnu.kz/ru/studying/"
+            style="cursor: pointer; text-decoration: underline; color: #d62e1f"
+            >«Обучение в MNU»</a
+          >
+          на нашем сайте. Совсем скоро вы познакомитесь с командой МШЖ, которая
+          будет рядом на всём вашем пути.
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          Добро пожаловать в <b>MNU</b> — место, где начинается новая глава вашей истории.
+        </p>
+      </div>
+
+      <div style="z-index: 50; margin-bottom: 32px">
+        <h2
+          style="
+            margin-bottom: 16px;
+            font-family: Inter, Arial, sans-serif;
+            font-size: 30px;
+            font-weight: bold;
+            color: #000000;
+          "
+        >
+          Dear ${givennames}!
+        </h2>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          Congratulations — you are now enrolled at
+          <span style="color: #d62e1f"
+            >Maqsut&nbsp;Narikbayev&nbsp;University</span
+          >!
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          <b>🦊 ISJ — The Fox</b>
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          As of today, you are part of the <b>International School of Journalism</b>.
+          Our symbol is the fox — a creature known for its keen
+          observation, sharp intellect, and resourcefulness. These are essential
+          qualities for every journalist: to perceive the truth beneath the
+          surface, to ask difficult questions, and to uncover what others may
+          try to hide.
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          An exciting journey into the profession awaits you at our School. You
+          will have access to state-of-the-art studios, professional equipment,
+          and editing laboratories. Your education will be guided by experienced
+          industry practitioners. Ahead of you lie real media projects,
+          internships at leading Kazakhstani media outlets, and opportunities to
+          participate in international programmes. You will also become part of
+          a vibrant community — clubs, festivals, and <b>student life</b> that you’ll
+          remember for years to come.
+        </p>
+
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          All the platforms and services necessary for your studies are already
+          available in the
+          <a
+            href="https://mnu.kz/studying/"
+            style="cursor: pointer; text-decoration: underline; color: #d62e1f"
+            >«Studying at MNU»</a
+          >
+          section of our website. Very soon, you will meet the ISJ team, who
+          will support you every step of the way.
+        </p>
+        <p
+          style="
+            margin-bottom: 16px;
+            padding: 0 40px;
+            font-family: Montserrat, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000000;
+          "
+        >
+          <b>Welcome to MNU — the place where a new chapter of your story begins.</b>
+        </p>
+      </div>
+
+      <div style="margin: 0 auto; width: 100%; text-align: center">
+        <a
+          href="https://outlook.office.com/mail/"
+          style="
+            width: 200px;
+            margin: 0 auto;
+            display: inline-block;
+            cursor: pointer;
+            border-radius: 12px;
+            background-color: #d62e1f;
+            padding: 8px 16px;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+          "
+        >
+          Outlook
+        </a>
+
+        <table
+          width="100%"
+          cellpadding="0"
+          cellspacing="0"
+          border="0"
+          style="margin-top: 12px; margin-bottom: 12px; border-collapse: collapse"
+        >
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Login:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.email_login || ''}</td>
+          </tr>
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Password:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.email_pass || ''}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="margin: 0 auto; width: 100%; text-align: center">
+        <div style="
+            width: 200px;
+            margin: 0 auto;
+            border-radius: 12px;
+            background-color: #d62e1f;
+            padding: 8px 16px;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            text-align: center;
+          ">
+            <a
+              href="https://platonus.mnu.kz/"
+              style="
+                display: inline-block;
+                cursor: pointer;
+                color: white;
+              "
+            >
+              Platonus
+            </a>
+            <span style="margin-left: 10px; margin-right:10px;">/</span>
+            <a
+              href="https://kazguu.instructure.com/login/ldap"
+              style="
+                display: inline-block;
+                cursor: pointer;
+                color: white;
+              "
+            >
+              Canvas LMS
+            </a>
+        </div>
+
+        <table
+          width="100%"
+          cellpadding="0"
+          cellspacing="0"
+          border="0"
+          style="margin-top: 12px; margin-bottom: 12px; border-collapse: collapse"
+        >
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Login:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.platonus_login || ''}</td>
+          </tr>
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Password:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.platonus_pass || ''}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="margin: 0 auto; width: 100%; text-align: center">
+        <a
+          href="https://lp.mnu.kz/box"
+          style="
+            width: 200px;
+            margin: 0 auto;
+            display: inline-block;
+            cursor: pointer;
+            border-radius: 12px;
+            background-color: #d62e1f;
+            padding: 8px 16px;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            text-align: center;
+          "
+        >
+          See more &rarr;
+        </a>
+      </div>
+    </div>
+
+    <img
+       src="https://spaces.mnu.kz/wp-content/uploads/2025/07/img_isj.png"
+       alt="ISJ"
+       width="100%"
+       height="auto"
+       style="display: block; padding: 20px 0;"
+    />
+
+    <table
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      style="
+        background-color: black;
+        padding: 24px 16px;
+        color: #9e9e9e;
+        font-family: Arial, sans-serif;
+      "
+    >
+      <tr>
+        <td align="center" valign="top">
+          <table
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+            width="100%"
+            style="max-width: 768px"
+          >
+            <tr>
+              <!-- Logo -->
+              <td align="left" valign="top" style="width: 25%; padding: 0 8px">
+                <a href="https://mnu.kz/" target="_blank">
+                  <img
+                    src="https://spaces.mnu.kz/wp-content/uploads/2025/07/logo_mnu_white.png"
+                    alt="MNU Logo"
+                    width="100"
+                    height="auto"
+                    style="display: block"
+                  />
+                </a>
+              </td>
+
+              <!-- Contact Us -->
+              <td
+                align="left"
+                valign="top"
+                style="
+                  width: 25%;
+                  padding: 0 8px;
+                  color: #9e9e9e;
+                  font-size: 12px;
+                "
+              >
+                <strong
+                  style="
+                    text-transform: uppercase;
+                    text-decoration: underline;
+                    margin-bottom: 8px;
+                    display: block;
+                  "
+                  >Contact Us</strong
+                >
+                <a
+                  href="mailto:info@mnu.kz"
+                  style="
+                    color: #9e9e9e;
+                    text-decoration: none;
+                    margin-bottom: 4px;
+                    display: block;
+                  "
+                  >info@mnu.kz</a
+                >
+                <a
+                  href="tel:+77172703030"
+                  style="
+                    color: #9e9e9e;
+                    text-decoration: none;
+                    margin-bottom: 4px;
+                    display: block;
+                  "
+                  >+7 (717) 270-30-30</a
+                >
+                <a
+                  href="tel:+77001703030"
+                  style="color: #9e9e9e; text-decoration: none; display: block"
+                  >+7 (700) 170-30-30</a
+                >
+              </td>
+
+              <!-- Socials -->
+              <td
+                align="left"
+                valign="top"
+                style="
+                  width: 25%;
+                  padding: 0 8px;
+                  color: #9e9e9e;
+                  font-size: 12px;
+                "
+              >
+                <strong
+                  style="text-transform: uppercase; text-decoration: underline"
+                  >Socials</strong
+                ><br />
+                <table
+                  cellpadding="0"
+                  cellspacing="0"
+                  border="0"
+                  style="margin-top: 8px"
+                >
+                  <tr>
+                    <td style="padding-right: 8px">
+                      <a href="https://instagram.com/mnu.kz" target="_blank">
+                        <img
+                          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/ig.png"
+                          alt="Instagram"
+                          width="20"
+                          height="20"
+                          style="display: block"
+                        />
+                      </a>
+                    </td>
+                    <td style="padding-right: 8px">
+                      <a
+                        href="https://www.facebook.com/kazguuKZ/?locale=ru_RU"
+                        target="_blank"
+                      >
+                        <img
+                          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/fb.png"
+                          alt="Facebook"
+                          width="20"
+                          height="20"
+                          style="display: block"
+                        />
+                      </a>
+                    </td>
+                    <td>
+                      <a href="https://www.tiktok.com/@mnu.kz" target="_blank">
+                        <img
+                          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/tt.png"
+                          alt="TikTok"
+                          width="20"
+                          height="20"
+                          style="display: block"
+                        />
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+
+              <!-- Links -->
+              <td
+                align="left"
+                valign="top"
+                style="
+                  width: 25%;
+                  padding: 0 8px;
+                  color: #9e9e9e;
+                  font-size: 12px;
+                "
+              >
+                <a
+                  href="https://mnu.kz/dsa"
+                  style="
+                    color: #9e9e9e;
+                    text-decoration: underline;
+                    display: block;
+                    margin-bottom: 8px;
+                  "
+                  >Student Life</a
+                >
+                <a
+                  href="https://mnu.kz/studying/"
+                  style="
+                    color: #9e9e9e;
+                    text-decoration: underline;
+                    display: block;
+                  "
+                  >Studying at MNU</a
+                >
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+    `;
+
     const htmlSLA = `
-    <div style="margin: 0 auto; width: 100%; background-color: #9ca3af">
+    <div style="margin: 0 auto; width: 100%;">
   <div style="margin: 0 auto; max-width: 768px; text-align: center">
     <div
       style="
@@ -2284,14 +2284,14 @@ export async function POST(request: Request) {
     <div style="position: relative; background-color: white; padding: 40px 0">
       <div style="text-align: center; margin-bottom: 32px;">
         <img
-          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/sla-logo.png"
-          alt=""
-          style="height: 50px; width: auto; display: inline-block; vertical-align: middle; margin-right: 16px;"
-        />
-        <img
           src="https://spaces.mnu.kz/wp-content/uploads/2025/07/logo_mnu_red.png"
           alt=""
           style="height: 50px; width: auto; display: inline-block; vertical-align: middle;"
+        />
+        <img
+          src="https://spaces.mnu.kz/wp-content/uploads/2025/07/sla-logo.png"
+          alt=""
+          style="height: 50px; width: auto; display: inline-block; vertical-align: middle; margin-right: 16px;"
         />
       </div>
       <div style="margin-bottom: 32px">
@@ -2343,7 +2343,7 @@ export async function POST(request: Request) {
             color: #000000;
           "
         >
-        Бүгіннен бастап сіз <b>Жоғары Гуманитарлық Мектептің</b> бір бөлігісіз. Біздің символымыз - Айдаһар. Ол даналықты, ой тереңдігін және рух қуатын бейнелейді. Айдаһар секілді, сіз әлемді талдаумен шектелмей, оны мәдениет, тіл, идеялар және адам болмысына терең түсінік арқылы жетілдіруге үлес қосасыз.        </p>
+        Бүгіннен бастап сіз <b>Жоғары Гуманитарлық Мектептің</b> бір бөлігісіз. Біздің символымыз — Айдаһар. Ол даналықты, ой тереңдігін және рух қуатын бейнелейді. Айдаһар секілді, сіз әлемді талдаумен шектелмей, оны мәдениет, тіл, идеялар және адам болмысына терең түсінік арқылы жетілдіруге үлес қосасыз.        </p>
         <p
           style="
             margin-bottom: 16px;
@@ -2439,7 +2439,7 @@ export async function POST(request: Request) {
             color: #000000;
           "
         >
-        С сегодняшнего дня вы - часть <b>Высшей Гуманитарной Школы</b>. Наш символ это Дракон, воплощающий мудрость, глубину мысли и силу духа. Как Дракон, вы будете не только анализировать мир, но и влиять на его развитие - через культуру, язык, идеи и понимание человека.
+        С сегодняшнего дня вы — часть <b>Высшей Гуманитарной Школы</b>. Наш символ это Дракон, воплощающий мудрость, глубину мысли и силу духа. Как Дракон, вы будете не только анализировать мир, но и влиять на его развитие — через культуру, язык, идеи и понимание человека.
         <p
           style="
             margin-bottom: 16px;
@@ -2482,7 +2482,7 @@ export async function POST(request: Request) {
             color: #000000;
           "
         >
-          Добро пожаловать в <b>MNU</b> - университет, который станет точкой старта вашего будущего!
+          Добро пожаловать в <b>MNU</b> — университет, который станет точкой старта вашего будущего!
         </p>
       </div>
 
@@ -2645,9 +2645,9 @@ export async function POST(request: Request) {
                 color: white;
               "
             >
-              Platonus${' '}
+              Platonus
             </a>
-            ${'  '}/${' '}
+            <span style="margin-left: 10px; margin-right:10px;">/</span>
             <a
               href="https://kazguu.instructure.com/login/ldap"
               style="
@@ -2924,7 +2924,7 @@ export async function POST(request: Request) {
 
     await sendEmail({
       to: application?.applicant?.email as string, // email,
-      cc: 'dwts@mnu.kz',
+      cc: `admission@mnu.kz, apply@mnu.kz, ${application?.consultant?.email}`,
       subject: 'Құттықтаймыз! Поздравляем! Congratulations!',
       html: selectedHtml,
       attachments,
