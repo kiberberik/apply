@@ -8,6 +8,88 @@ import { getContractBuffer } from '@/lib/contractUtils';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// Получение логинов/паролей для абитуриента из внешнего источника
+type ExternalLoginRow = {
+  [key: string]: string | null | undefined;
+};
+
+type ApplicantCredentials = {
+  email_login: string;
+  email_pass: string;
+  platonus_login: string;
+  platonus_pass: string;
+};
+
+function normalizeName(input: string | null | undefined): string {
+  if (!input) return '';
+  return input.toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ').trim();
+}
+
+function buildNameVariants(fullName: string): string[] {
+  const normalized = normalizeName(fullName);
+  const parts = normalized.split(' ').filter(Boolean);
+  const variants = new Set<string>([normalized]);
+  // Если есть отчество, добавляем вариант без отчества
+  if (parts.length >= 3) {
+    variants.add(`${parts[0]} ${parts[1]}`);
+  }
+  return Array.from(variants);
+}
+
+async function fetchExternalLogins(): Promise<ExternalLoginRow[]> {
+  const url = process.env.NEXT_PUBLIC_LOGINS_PASSWORDS;
+  if (!url) return [];
+  try {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) return [];
+    const data = (await res.json()) as unknown;
+    if (Array.isArray(data)) return data as ExternalLoginRow[];
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+async function getApplicantCredentialsByIinOrName(
+  iin: string | null | undefined,
+  fullName: string,
+): Promise<ApplicantCredentials | null> {
+  const rows = await fetchExternalLogins();
+  if (!rows.length) return null;
+
+  const nameVariants = buildNameVariants(fullName);
+
+  // 1) Поиск по ИИН
+  let found: ExternalLoginRow | undefined;
+  if (iin) {
+    found = rows.find((r) => String(r['ИИН'] ?? '').trim() === String(iin).trim());
+  }
+
+  // 2) Если ИИН нет или не нашли — поиск по ФИО
+  if (!found) {
+    found = rows.find((r) => {
+      const fio = normalizeName(String(r['ФИО'] ?? ''));
+      return nameVariants.some((v) => v === fio);
+    });
+  }
+
+  if (!found) return null;
+
+  const emailLogin = String(found['Корпоративная почта логин'] ?? '').trim();
+  const emailPass = String(found['Пароль от корпоративной почты'] ?? '').trim();
+  const platonusLogin = String(found['Логин от АИС "Платон"'] ?? '').trim();
+  const platonusPass = String(found['Пароль от АИС "Платон"'] ?? '').trim();
+
+  if (!emailLogin && !emailPass && !platonusLogin && !platonusPass) return null;
+
+  return {
+    email_login: emailLogin,
+    email_pass: emailPass,
+    platonus_login: platonusLogin,
+    platonus_pass: platonusPass,
+  };
+}
+
 function resolveStaticContractPath(
   academicLevel?: AcademicLevel | null,
   type?: StudyType | null,
@@ -88,7 +170,15 @@ export async function POST(request: Request) {
 
   const email = application?.applicant?.email as string;
   const givennames = application?.applicant?.givennames as string;
+  const iin = application?.applicant?.identificationNumber as string;
   //   const consultant = application?.consultant?.name as string;
+
+  const surname = application?.applicant?.surname as string;
+  const patronymic = application?.applicant?.patronymic as string;
+  const fullName = [surname, givennames, patronymic].filter(Boolean).join(' ').trim();
+
+  const applicantCredentials = await getApplicantCredentialsByIinOrName(iin, fullName);
+  console.log('Applicant credentials resolved:', applicantCredentials);
 
   if (!email) {
     console.error('No email found for application:', id);
@@ -613,6 +703,99 @@ export async function POST(request: Request) {
         >
           <b>Welcome to MNU — the place where a new chapter of your story begins.</b>
         </p>
+      </div>
+
+      <div style="margin: 0 auto; width: 100%; text-align: center">
+        <a
+          href="https://outlook.office.com/mail/"
+          style="
+            width: 200px;
+            margin: 0 auto;
+            display: inline-block;
+            cursor: pointer;
+            border-radius: 12px;
+            background-color: #d62e1f;
+            padding: 8px 16px;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            text-align: center;
+          "
+        >
+          Outlook
+        </a>
+
+        <table
+          width="100%"
+          cellpadding="0"
+          cellspacing="0"
+          border="0"
+          style="margin-top: 12px; margin-bottom: 12px; border-collapse: collapse"
+        >
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Login:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.email_login || ''}</td>
+          </tr>
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Password:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.email_pass || ''}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="margin: 0 auto; width: 100%; text-align: center">
+        <div style="
+            width: 200px;
+            margin: 0 auto;
+            border-radius: 12px;
+            background-color: #d62e1f;
+            padding: 8px 16px;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            text-align: center;
+          ">
+            <a
+              href="https://platonus.mnu.kz/"
+              style="
+                display: inline-block;
+                cursor: pointer;
+              "
+            >
+              Platonus
+            </a>
+            ${' '}/${' '}
+            <a
+              href="https://kazguu.instructure.com/login/ldap"
+              style="
+                display: inline-block;
+                cursor: pointer;
+              "
+            >
+              Canvas LMS
+            </a>
+        </div>
+
+        <table
+          width="100%"
+          cellpadding="0"
+          cellspacing="0"
+          border="0"
+          style="margin-top: 12px; margin-bottom: 12px; border-collapse: collapse"
+        >
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Login:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.platonus_login || ''}</td>
+          </tr>
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Password:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.platonus_pass || ''}</td>
+          </tr>
+        </table>
       </div>
 
       <div style="margin: 0 auto; width: 100%; text-align: center">
@@ -1151,6 +1334,99 @@ export async function POST(request: Request) {
 
       <div style="margin: 0 auto; width: 100%; text-align: center">
         <a
+          href="https://outlook.office.com/mail/"
+          style="
+            width: 200px;
+            margin: 0 auto;
+            display: inline-block;
+            cursor: pointer;
+            border-radius: 12px;
+            background-color: #d62e1f;
+            padding: 8px 16px;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            text-align: center;
+          "
+        >
+          Outlook
+        </a>
+
+        <table
+          width="100%"
+          cellpadding="0"
+          cellspacing="0"
+          border="0"
+          style="margin-top: 12px; margin-bottom: 12px; border-collapse: collapse"
+        >
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Login:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.email_login || ''}</td>
+          </tr>
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Password:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.email_pass || ''}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="margin: 0 auto; width: 100%; text-align: center">
+        <div style="
+            width: 200px;
+            margin: 0 auto;
+            border-radius: 12px;
+            background-color: #d62e1f;
+            padding: 8px 16px;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            text-align: center;
+          ">
+            <a
+              href="https://platonus.mnu.kz/"
+              style="
+                display: inline-block;
+                cursor: pointer;
+              "
+            >
+              Platonus
+            </a>
+            ${' '}/${' '}
+            <a
+              href="https://kazguu.instructure.com/login/ldap"
+              style="
+                display: inline-block;
+                cursor: pointer;
+              "
+            >
+              Canvas LMS
+            </a>
+        </div>
+
+        <table
+          width="100%"
+          cellpadding="0"
+          cellspacing="0"
+          border="0"
+          style="margin-top: 12px; margin-bottom: 12px; border-collapse: collapse"
+        >
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Login:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.platonus_login || ''}</td>
+          </tr>
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Password:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.platonus_pass || ''}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="margin: 0 auto; width: 100%; text-align: center">
+        <a
           href="https://lp.mnu.kz/box"
           style="
             width: 200px;
@@ -1683,6 +1959,99 @@ export async function POST(request: Request) {
 
       <div style="margin: 0 auto; width: 100%; text-align: center">
         <a
+          href="https://outlook.office.com/mail/"
+          style="
+            width: 200px;
+            margin: 0 auto;
+            display: inline-block;
+            cursor: pointer;
+            border-radius: 12px;
+            background-color: #d62e1f;
+            padding: 8px 16px;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            text-align: center;
+          "
+        >
+          Outlook
+        </a>
+
+        <table
+          width="100%"
+          cellpadding="0"
+          cellspacing="0"
+          border="0"
+          style="margin-top: 12px; margin-bottom: 12px; border-collapse: collapse"
+        >
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Login:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.email_login || ''}</td>
+          </tr>
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Password:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.email_pass || ''}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="margin: 0 auto; width: 100%; text-align: center">
+        <div style="
+            width: 200px;
+            margin: 0 auto;
+            border-radius: 12px;
+            background-color: #d62e1f;
+            padding: 8px 16px;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            text-align: center;
+          ">
+            <a
+              href="https://platonus.mnu.kz/"
+              style="
+                display: inline-block;
+                cursor: pointer;
+              "
+            >
+              Platonus
+            </a>
+            ${' '}/${' '}
+            <a
+              href="https://kazguu.instructure.com/login/ldap"
+              style="
+                display: inline-block;
+                cursor: pointer;
+              "
+            >
+              Canvas LMS
+            </a>
+        </div>
+
+        <table
+          width="100%"
+          cellpadding="0"
+          cellspacing="0"
+          border="0"
+          style="margin-top: 12px; margin-bottom: 12px; border-collapse: collapse"
+        >
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Login:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.platonus_login || ''}</td>
+          </tr>
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Password:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.platonus_pass || ''}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="margin: 0 auto; width: 100%; text-align: center">
+        <a
           href="https://lp.mnu.kz/box"
           style="
             width: 200px;
@@ -2210,6 +2579,99 @@ export async function POST(request: Request) {
         >
           <b>Welcome to MNU — the place where a new chapter of your story begins.</b>
         </p>
+      </div>
+
+      <div style="margin: 0 auto; width: 100%; text-align: center">
+        <a
+          href="https://outlook.office.com/mail/"
+          style="
+            width: 200px;
+            margin: 0 auto;
+            display: inline-block;
+            cursor: pointer;
+            border-radius: 12px;
+            background-color: #d62e1f;
+            padding: 8px 16px;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            text-align: center;
+          "
+        >
+          Outlook
+        </a>
+
+        <table
+          width="100%"
+          cellpadding="0"
+          cellspacing="0"
+          border="0"
+          style="margin-top: 12px; margin-bottom: 12px; border-collapse: collapse"
+        >
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Login:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.email_login || ''}</td>
+          </tr>
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Password:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.email_pass || ''}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="margin: 0 auto; width: 100%; text-align: center">
+        <div style="
+            width: 200px;
+            margin: 0 auto;
+            border-radius: 12px;
+            background-color: #d62e1f;
+            padding: 8px 16px;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            text-align: center;
+          ">
+            <a
+              href="https://platonus.mnu.kz/"
+              style="
+                display: inline-block;
+                cursor: pointer;
+              "
+            >
+              Platonus
+            </a>
+            ${' '}/${' '}
+            <a
+              href="https://kazguu.instructure.com/login/ldap"
+              style="
+                display: inline-block;
+                cursor: pointer;
+              "
+            >
+              Canvas LMS
+            </a>
+        </div>
+
+        <table
+          width="100%"
+          cellpadding="0"
+          cellspacing="0"
+          border="0"
+          style="margin-top: 12px; margin-bottom: 12px; border-collapse: collapse"
+        >
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Login:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.platonus_login || ''}</td>
+          </tr>
+          <tr>
+            <td style="text-align: right; width: 50%; padding: 4px 8px; font-weight: 600; white-space: nowrap;">Password:</td>
+            <td style="text-align: left; padding: 4px 8px;">${applicantCredentials?.platonus_pass || ''}</td>
+          </tr>
+        </table>
       </div>
 
       <div style="margin: 0 auto; width: 100%; text-align: center">

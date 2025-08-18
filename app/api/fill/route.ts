@@ -213,8 +213,8 @@ export async function POST(req: Request) {
       templateName = isAdult(data.applicant.birthDate) ? 'conditional_adult' : 'conditional_minor';
       break;
     case StudyType.NONE_DEGREE:
-      currentTemplate = isAdult(data.applicant.birthDate) ? nd_minor : nd_adult;
-      templateName = isAdult(data.applicant.birthDate) ? 'nd_minor' : 'nd_adult';
+      currentTemplate = isAdult(data.applicant.birthDate) ? nd_adult : nd_minor;
+      templateName = isAdult(data.applicant.birthDate) ? 'nd_adult' : 'nd_minor';
       break;
     case StudyType.GRANT:
       currentTemplate = isAdult(data.applicant.birthDate) ? grant_adult : grant_minor;
