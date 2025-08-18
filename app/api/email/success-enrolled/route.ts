@@ -764,16 +764,18 @@ export async function POST(request: Request) {
               style="
                 display: inline-block;
                 cursor: pointer;
+                color: white;
               "
             >
               Platonus
             </a>
-            ${' '}/${' '}
+            ${'  '}/${' '}
             <a
               href="https://kazguu.instructure.com/login/ldap"
               style="
                 display: inline-block;
                 cursor: pointer;
+                color: white;
               "
             >
               Canvas LMS
@@ -1391,16 +1393,18 @@ export async function POST(request: Request) {
               style="
                 display: inline-block;
                 cursor: pointer;
+                color: white;
               "
             >
               Platonus
             </a>
-            ${' '}/${' '}
+            ${'  '}/${' '}
             <a
               href="https://kazguu.instructure.com/login/ldap"
               style="
                 display: inline-block;
                 cursor: pointer;
+                color: white;
               "
             >
               Canvas LMS
@@ -2016,16 +2020,18 @@ export async function POST(request: Request) {
               style="
                 display: inline-block;
                 cursor: pointer;
+                color: white;
               "
             >
               Platonus
             </a>
-            ${' '}/${' '}
+            ${'  '}/${' '}
             <a
               href="https://kazguu.instructure.com/login/ldap"
               style="
                 display: inline-block;
                 cursor: pointer;
+                color: white;
               "
             >
               Canvas LMS
@@ -2640,16 +2646,18 @@ export async function POST(request: Request) {
               style="
                 display: inline-block;
                 cursor: pointer;
+                color: white;
               "
             >
               Platonus
             </a>
-            ${' '}/${' '}
+            ${'  '}/${' '}
             <a
               href="https://kazguu.instructure.com/login/ldap"
               style="
                 display: inline-block;
                 cursor: pointer;
+                color: white;
               "
             >
               Canvas LMS
