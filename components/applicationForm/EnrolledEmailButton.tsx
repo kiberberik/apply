@@ -1,17 +1,23 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-// import { useLogStore } from '@/store/useLogStore';
-// import { useAuthStore } from '@/store/useAuthStore';
+import { useAuthStore } from '@/store/useAuthStore';
 import { Button } from '../ui/button';
 import { useLocale } from 'next-intl';
+import { useLogStore } from '@/store/useLogStore';
 
 const EnrolledEmailButton = ({ applicationId }: { applicationId: string }) => {
   const [isLoading, setIsLoading] = useState(false);
-  //   const { createLog, fetchLogsByApplicationId, getLatestLogByApplicationId } = useLogStore();
-  //   const { user } = useAuthStore();
+  const { createLog, fetchLogsByApplicationId, getLatestLogByApplicationId } = useLogStore();
+  const { user } = useAuthStore();
 
   const locale = useLocale();
+
+  useEffect(() => {
+    if (applicationId) {
+      fetchLogsByApplicationId(applicationId);
+    }
+  }, [applicationId, fetchLogsByApplicationId]);
 
   const handleSendSuccessEnrolled = async () => {
     setIsLoading(true);
@@ -31,7 +37,39 @@ const EnrolledEmailButton = ({ applicationId }: { applicationId: string }) => {
         console.error('Ошибка при отправке письма');
         toast.error('Произошла ошибка при отправке Email');
       }
+
       toast.success('Email успешно отправлен');
+
+      if (applicationId) {
+        await fetchLogsByApplicationId(applicationId);
+      }
+      const latestLog = applicationId ? getLatestLogByApplicationId(applicationId) : null;
+      console.log('latestLog: ', latestLog);
+      console.log('latestLog?.statusId: ', latestLog?.statusId);
+      console.log('typeof latestLog?.statusId: ', typeof latestLog?.statusId);
+
+      // Проверяем, загружены ли логи для этой заявки
+      const { logs } = useLogStore.getState();
+      const applicationLogs = logs[applicationId || ''] || [];
+      console.log('Application logs count: ', applicationLogs.length);
+      console.log('All application logs: ', applicationLogs);
+
+      console.log('Creating log with statusId: ', latestLog?.statusId);
+
+      // Проверяем, есть ли statusId у latestLog
+      if (!latestLog?.statusId) {
+        console.warn('latestLog.statusId is null or undefined, will create log without statusId');
+      }
+
+      const logData = {
+        applicationId: applicationId,
+        statusId: latestLog?.statusId || null, // Явно указываем null если statusId нет
+        createdById: user?.id,
+        description: `Письмо счастья успешно отправлено`,
+      };
+      console.log('Full log data being sent: ', logData);
+      await createLog(logData);
+      await fetchLogsByApplicationId(applicationId as string);
     } catch (error) {
       console.error('Ошибка при отправке письма:', error);
       toast.error('Произошла ошибка при отправке Email');
