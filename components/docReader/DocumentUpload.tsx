@@ -43,6 +43,13 @@ export const DocumentUpload = ({
     for (const file of Array.from(files)) {
       if (file.type === 'application/pdf') {
         try {
+          // Проверяем размер загружаемого PDF файла (10 МБ = 10 * 1024 * 1024 байт)
+          const maxSizeInBytes = 10 * 1024 * 1024; // 10 МБ
+          if (file.size > maxSizeInBytes) {
+            toast.warning(`Файл "${file.name}" превышает 10 мегабайтов и не будет загружен.`);
+            continue;
+          }
+
           const arrayBuffer = await file.arrayBuffer();
           const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true }); // , { ignoreEncryption: true }
           const pages = pdfDoc.getPages();
@@ -63,6 +70,13 @@ export const DocumentUpload = ({
           console.error('Error processing PDF:', error);
         }
       } else if (file.type.startsWith('image/')) {
+        // Проверяем размер загружаемого изображения (10 МБ = 10 * 1024 * 1024 байт)
+        const maxSizeInBytes = 10 * 1024 * 1024; // 10 МБ
+        if (file.size > maxSizeInBytes) {
+          toast.warning(`Изображение "${file.name}" превышает 10 мегабайтов и не будет загружено.`);
+          continue;
+        }
+
         const imageUrl = URL.createObjectURL(file);
         newImages.push(imageUrl);
       }

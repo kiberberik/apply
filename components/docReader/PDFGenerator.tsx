@@ -1,6 +1,7 @@
 import { PDFDocument } from 'pdf-lib';
 import { useState } from 'react';
 import { usePDF, PDFProvider } from './PDFContext';
+import { toast } from 'react-toastify';
 
 interface PDFGeneratorProps {
   images: string[];
@@ -99,6 +100,16 @@ const PDFGeneratorContent = ({ images, documentCode }: PDFGeneratorProps) => {
 
     const pdfBytes = await pdfDoc.save();
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+
+    // Проверяем размер PDF файла (10 МБ = 10 * 1024 * 1024 байт)
+    const maxSizeInBytes = 10 * 1024 * 1024; // 10 МБ
+    if (blob.size > maxSizeInBytes) {
+      toast.warning(
+        'Размер сгенерированного PDF превышает 10 мегабайтов. Пожалуйста, уменьшите количество или качество изображений.',
+      );
+      setIsLoading(false);
+      return;
+    }
 
     // Создаем FormData для загрузки файла
     const formData = new FormData();
