@@ -10,9 +10,13 @@ const CONTRACT_CODES: Record<AcademicLevel, Partial<Record<StudyType, string>>> 
     [StudyType.PAID]: 'М',
     [StudyType.CONDITIONAL]: 'М-УЗ',
     [StudyType.NONE_DEGREE]: 'M-ND',
+    [StudyType.GRANT]: 'M',
   },
   [AcademicLevel.DOCTORAL]: {
     [StudyType.PAID]: 'Д',
+    [StudyType.CONDITIONAL]: 'Д',
+    [StudyType.NONE_DEGREE]: 'Д',
+    [StudyType.GRANT]: 'Д',
   },
 };
 
