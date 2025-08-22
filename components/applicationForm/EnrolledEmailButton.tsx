@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { Button } from '../ui/button';
 import { useLocale } from 'next-intl';
 import { useLogStore } from '@/store/useLogStore';
+import { ApplicationStatus } from '@prisma/client';
 
 const EnrolledEmailButton = ({ applicationId }: { applicationId: string }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -63,7 +64,7 @@ const EnrolledEmailButton = ({ applicationId }: { applicationId: string }) => {
 
       const logData = {
         applicationId: applicationId,
-        statusId: latestLog?.statusId || null, // Явно указываем null если statusId нет
+        statusId: ApplicationStatus.ENROLLED, // latestLog?.statusId || null, // Явно указываем null если statusId нет
         createdById: user?.id,
         description: `Письмо счастья успешно отправлено`,
       };
