@@ -324,6 +324,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         latestLog?.statusId === 'NEED_SIGNATURE_TERMINATE_CONTRACT' ||
         latestLog?.statusId === 'REFUSED_TO_ENROLL' ||
         latestLog?.statusId === 'EARLY_REFUSED_TO_ENROLL' ||
+        latestLog?.statusId === 'ENROLLED' ||
         latestLog?.statusId === 'REJECTED')) ||
     (isSubmitted &&
       user?.role === Role.MANAGER &&
@@ -333,6 +334,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         latestLog?.statusId === 'NEED_SIGNATURE_TERMINATE_CONTRACT' ||
         latestLog?.statusId === 'REFUSED_TO_ENROLL' ||
         latestLog?.statusId === 'EARLY_REFUSED_TO_ENROLL' ||
+        latestLog?.statusId === 'ENROLLED' ||
         latestLog?.statusId === 'REJECTED')) ||
     (isSubmitted &&
       user?.role === Role.ADMIN &&
@@ -342,6 +344,7 @@ export default function ApplicationForm({ id }: ApplicationFormProps) {
         latestLog?.statusId === 'NEED_SIGNATURE_TERMINATE_CONTRACT' ||
         latestLog?.statusId === 'REFUSED_TO_ENROLL' ||
         latestLog?.statusId === 'EARLY_REFUSED_TO_ENROLL' ||
+        latestLog?.statusId === 'ENROLLED' ||
         latestLog?.statusId === 'REJECTED'));
 
   // Мемоизация isApplicantAdult для предотвращения лишних рендеров
